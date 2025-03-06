@@ -30,3 +30,23 @@
 
 ## BPMN 
 ![BPMN](./readme/bpmn.png)
+
+# Реализиция
+
+**Тип приложения:** MPA
+
+**Технологический стек:**
+ - Язык программирования: **Go**
+ - Http-handlers: **Gin**
+ - Html-renderer: **Templ**
+ - База данных: **Postgresql**
+ - Объектное хранилище: **Minio**
+ - Unit-тестирование: **Go-test**
+
+## Диаграмма компонентов
+
+![components](./readme/Components.png)
+
+## Диаграмма классов
+
+![classes](./readme/Classes.png)
