@@ -41,7 +41,7 @@
  - Html-renderer: **Templ**
  - База данных: **Postgresql**
  - Объектное хранилище: **Minio**
- - Unit-тестирование: **Go-test**
+ - Unit-тестирование: **Go-test, Testify**
 
 ## Диаграмма компонентов
 
