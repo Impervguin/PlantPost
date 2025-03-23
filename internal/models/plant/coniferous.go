@@ -2,10 +2,6 @@ package plant
 
 import "fmt"
 
-// func init() {
-// 	globalPlantRegistry.Register("coniferous", NewConiferousSpecification)
-// }
-
 // Хвойные
 const ConiferousCategory = "coniferous"
 
@@ -20,65 +16,10 @@ type ConiferousSpecification struct {
 	winterHardiness WinterHardiness
 }
 
-// func NewConiferousSpecification(data map[string]interface{}) (PlantSpecification, error) {
-// 	heightM, ok := data["height_m"].(float64)
-// 	if !ok {
-// 		return nil, fmt.Errorf("height_m is not a float64")
-// 	}
-
-// 	diameterM, ok := data["diameter_m"].(float64)
-// 	if !ok {
-// 		return nil, fmt.Errorf("diameter_m is not a float64")
-// 	}
-// 	soilAcidity, ok := data["soil_acidity"].(int)
-// 	if !ok {
-// 		return nil, fmt.Errorf("soil_acidity is not an int")
-// 	}
-
-// 	soilMoisture, ok := data["soil_moisture"].(SoilMoisture)
-// 	if !ok {
-// 		return nil, fmt.Errorf("soil_moisture is not a SoilMoisture")
-// 	}
-// 	if err := soilMoisture.Validate(); err != nil {
-// 		return nil, err
-// 	}
-
-// 	LightRelation, ok := data["light_sensivity"].(LightRelation)
-// 	if !ok {
-// 		return nil, fmt.Errorf("light_sensivity is not a LightRelation")
-// 	}
-// 	if err := LightRelation.Validate(); err != nil {
-// 		return nil, err
-// 	}
-
-// 	soilType, ok := data["soil_type"].(Soil)
-// 	if !ok {
-// 		return nil, fmt.Errorf("soil_type is not a Soil")
-// 	}
-
-// 	winterHardiness, ok := data["winter_hardiness"].(WinterHardiness)
-// 	if !ok {
-// 		return nil, fmt.Errorf("winter_hardiness is not a WinterHardiness")
-// 	}
-// 	spec := &ConiferousSpecification{
-// 		HeightM:         heightM,
-// 		DiameterM:       diameterM,
-// 		SoilAcidity:     soilAcidity,
-// 		SoilMoisture:    soilMoisture,
-// 		LightRelation:  LightRelation,
-// 		SoilType:        soilType,
-// 		WinterHardiness: winterHardiness,
-// 	}
-// 	if err := spec.Validate(); err != nil {
-// 		return nil, err
-// 	}
-// 	return spec, nil
-// }
-
 func NewConiferousSpecification(heightM, diameterM float64,
 	soilAcidity SoilAcidity,
 	soilMoisture SoilMoisture,
-	LightRelation LightRelation,
+	lightRelation LightRelation,
 	soilType Soil,
 	winterHardiness WinterHardiness) (*ConiferousSpecification, error) {
 	spec := &ConiferousSpecification{
@@ -86,7 +27,7 @@ func NewConiferousSpecification(heightM, diameterM float64,
 		diameterM:       diameterM,
 		soilAcidity:     soilAcidity,
 		soilMoisture:    soilMoisture,
-		lightRelation:   LightRelation,
+		lightRelation:   lightRelation,
 		soilType:        soilType,
 		winterHardiness: winterHardiness,
 	}

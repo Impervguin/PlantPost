@@ -21,7 +21,7 @@ func NewPostTitleFilter(title string) *PostTitleFilter {
 }
 
 func (p *PostTitleFilter) Filter(post *post.Post) bool {
-	return post.Title == p.Title
+	return post.Title() == p.Title
 }
 
 type PostTitleContainsFilter struct {
@@ -33,7 +33,7 @@ func NewPostTitleContainsFilter(part string) *PostTitleContainsFilter {
 }
 
 func (p *PostTitleContainsFilter) Filter(post *post.Post) bool {
-	return strings.Contains(strings.ToLower(post.Title), strings.ToLower(p.Part))
+	return strings.Contains(strings.ToLower(post.Title()), strings.ToLower(p.Part))
 }
 
 type PostTagFilter struct {
@@ -45,7 +45,7 @@ func NewPostTagFilter(tag string) *PostTagFilter {
 }
 
 func (p *PostTagFilter) Filter(post *post.Post) bool {
-	return slices.Contains(post.Tags, p.Tag)
+	return slices.Contains(post.Tags(), p.Tag)
 }
 
 type PostAuthorFilter struct {
@@ -57,5 +57,5 @@ func NewPostAuthorFilter(authorID uuid.UUID) *PostAuthorFilter {
 }
 
 func (p *PostAuthorFilter) Filter(post *post.Post) bool {
-	return post.AuthorID == p.AuthorID
+	return post.AuthorID() == p.AuthorID
 }

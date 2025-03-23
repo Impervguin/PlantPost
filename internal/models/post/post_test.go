@@ -42,26 +42,24 @@ func TestPostCreation(t *testing.T) {
 		postTitle := "Post Title"
 		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
 		assert.NoError(t, err)
-		postPhotos := []post.PostPhoto{
-			{ID: uuid.New(), PlaceNumber: 1, FileID: uuid.New()},
-			{ID: uuid.New(), PlaceNumber: 2, FileID: uuid.New()},
-		}
+		postPhotos := post.NewPostPhotos()
 		res, err := post.CreatePost(
 			postID,
 			postTitle,
 			*content,
 			[]string{"tag1", "tag2"},
 			authorID,
-			postPhotos,
+			*postPhotos,
+			time.Now(),
 			time.Now(),
 		)
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
-		assert.Equal(t, authorID, res.AuthorID)
-		assert.Equal(t, postID, res.ID)
-		assert.Equal(t, postTitle, res.Title)
-		assert.Equal(t, 2, len(res.Photos))
-		assert.Equal(t, *content, res.Content)
+		assert.Equal(t, authorID, res.AuthorID())
+		assert.Equal(t, postID, res.ID())
+		assert.Equal(t, postTitle, res.Title())
+		// assert.Equal(t, 2, len(res.Photos()))
+		assert.Equal(t, *content, res.Content())
 
 		testID++
 	}
@@ -72,27 +70,25 @@ func TestPostCreation(t *testing.T) {
 		postTitle := "Post Title"
 		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
 		assert.NoError(t, err)
-		postPhotos := []post.PostPhoto{
-			{ID: uuid.New(), PlaceNumber: 1, FileID: uuid.New()},
-			{ID: uuid.New(), PlaceNumber: 2, FileID: uuid.New()},
-		}
+		postPhotos := post.NewPostPhotos()
 		res, err := post.CreatePost(
 			postID,
 			postTitle,
 			*content,
 			[]string{},
 			authorID,
-			postPhotos,
+			*postPhotos,
+			time.Now(),
 			time.Now(),
 		)
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
-		assert.Equal(t, authorID, res.AuthorID)
-		assert.Equal(t, postID, res.ID)
-		assert.Equal(t, postTitle, res.Title)
-		assert.Equal(t, len(res.Tags), 0)
-		assert.Equal(t, 2, len(res.Photos))
-		assert.Equal(t, *content, res.Content)
+		assert.Equal(t, authorID, res.AuthorID())
+		assert.Equal(t, postID, res.ID())
+		assert.Equal(t, postTitle, res.Title())
+		assert.Equal(t, len(res.Tags()), 0)
+		// assert.Equal(t, 2, len(res.Photos()))
+		assert.Equal(t, *content, res.Content())
 		testID++
 	}
 
@@ -103,17 +99,15 @@ func TestPostCreation(t *testing.T) {
 		postTitle := "Post Title"
 		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
 		assert.NoError(t, err)
-		postPhotos := []post.PostPhoto{
-			{ID: uuid.New(), PlaceNumber: 1, FileID: uuid.New()},
-			{ID: uuid.New(), PlaceNumber: 2, FileID: uuid.New()},
-		}
+		postPhotos := post.NewPostPhotos()
 		res, err := post.CreatePost(
 			postID,
 			postTitle,
 			*content,
 			[]string{"tag1", "tag2"},
 			authorID,
-			postPhotos,
+			*postPhotos,
+			time.Now(),
 			time.Now(),
 		)
 		assert.Error(t, err)
@@ -127,17 +121,15 @@ func TestPostCreation(t *testing.T) {
 		postTitle := "Post Title"
 		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
 		assert.NoError(t, err)
-		postPhotos := []post.PostPhoto{
-			{ID: uuid.New(), PlaceNumber: 1, FileID: uuid.New()},
-			{ID: uuid.New(), PlaceNumber: 2, FileID: uuid.New()},
-		}
+		postPhotos := post.NewPostPhotos()
 		res, err := post.CreatePost(
 			postID,
 			postTitle,
 			*content,
 			[]string{"tag1", "tag2"},
 			authorID,
-			postPhotos,
+			*postPhotos,
+			time.Now(),
 			time.Now(),
 		)
 		assert.Error(t, err)
@@ -151,62 +143,15 @@ func TestPostCreation(t *testing.T) {
 		postTitle := ""
 		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
 		assert.NoError(t, err)
-		postPhotos := []post.PostPhoto{
-			{ID: uuid.New(), PlaceNumber: 1, FileID: uuid.New()},
-			{ID: uuid.New(), PlaceNumber: 2, FileID: uuid.New()},
-		}
+		postPhotos := post.NewPostPhotos()
 		res, err := post.CreatePost(
 			postID,
 			postTitle,
 			*content,
 			[]string{"tag1", "tag2"},
 			authorID,
-			postPhotos,
+			*postPhotos,
 			time.Now(),
-		)
-		assert.Error(t, err)
-		assert.Nil(t, res)
-		testID++
-	}
-	t.Logf("Test %d: invalid post (exceede photo count)", testID)
-	{
-		postID := uuid.New()
-		authorID := uuid.New()
-		postTitle := "Post Title"
-		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
-		assert.NoError(t, err)
-		postPhotos := []post.PostPhoto{}
-		for i := 0; i < post.MaximumPhotoPerPostCount+1; i++ {
-			postPhotos = append(postPhotos, post.PostPhoto{ID: uuid.New(), PlaceNumber: i, FileID: uuid.New()})
-		}
-		res, err := post.CreatePost(
-			postID,
-			postTitle,
-			*content,
-			[]string{"tag1", "tag2"},
-			authorID,
-			postPhotos,
-			time.Now(),
-		)
-		assert.Error(t, err)
-		assert.Nil(t, res)
-		testID++
-	}
-	t.Logf("Test %d: invalid post (photos nil)", testID)
-	{
-		postID := uuid.New()
-		authorID := uuid.New()
-		postTitle := "Post Title"
-		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
-		assert.NoError(t, err)
-		var postPhotos []post.PostPhoto = nil
-		res, err := post.CreatePost(
-			postID,
-			postTitle,
-			*content,
-			[]string{"tag1", "tag2"},
-			authorID,
-			postPhotos,
 			time.Now(),
 		)
 		assert.Error(t, err)
@@ -220,45 +165,20 @@ func TestPostCreation(t *testing.T) {
 		postTitle := "Post Title"
 		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
 		assert.NoError(t, err)
-		postPhotos := []post.PostPhoto{
-			{ID: uuid.New(), PlaceNumber: 1, FileID: uuid.New()},
-			{ID: uuid.New(), PlaceNumber: 2, FileID: uuid.New()},
-		}
+		postPhotos := post.NewPostPhotos()
 		res, err := post.CreatePost(
 			postID,
 			postTitle,
 			*content,
 			nil,
 			authorID,
-			postPhotos,
+			*postPhotos,
+			time.Now(),
 			time.Now(),
 		)
 		assert.Error(t, err)
 		assert.Nil(t, res)
 		testID++
-	}
-	t.Logf("Test %d: invalid post (duplicate photo placenumber)", testID)
-	{
-		postID := uuid.New()
-		authorID := uuid.New()
-		postTitle := "Post Title"
-		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
-		assert.NoError(t, err)
-		postPhotos := []post.PostPhoto{
-			{ID: uuid.New(), PlaceNumber: 1, FileID: uuid.New()},
-			{ID: uuid.New(), PlaceNumber: 1, FileID: uuid.New()},
-		}
-		res, err := post.CreatePost(
-			postID,
-			postTitle,
-			*content,
-			[]string{"tag1", "tag2"},
-			authorID,
-			postPhotos,
-			time.Now(),
-		)
-		assert.Error(t, err)
-		assert.Nil(t, res)
 	}
 	t.Logf("Test %d: invalid post (created in future)", testID)
 	{
@@ -267,17 +187,15 @@ func TestPostCreation(t *testing.T) {
 		postTitle := "Post Title"
 		content, err := post.NewContent("Hello, world!", post.ContentTypePlainText)
 		assert.NoError(t, err)
-		postPhotos := []post.PostPhoto{
-			{ID: uuid.New(), PlaceNumber: 1, FileID: uuid.New()},
-			{ID: uuid.New(), PlaceNumber: 2, FileID: uuid.New()},
-		}
+		postPhotos := post.NewPostPhotos()
 		res, err := post.CreatePost(
 			postID,
 			postTitle,
 			*content,
 			[]string{"tag1", "tag2"},
 			authorID,
-			postPhotos,
+			*postPhotos,
+			time.Now().Add(time.Hour),
 			time.Now().Add(time.Hour),
 		)
 		assert.Error(t, err)

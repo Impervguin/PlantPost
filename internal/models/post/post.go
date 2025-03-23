@@ -3,72 +3,58 @@ package post
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type Post struct {
-	ID        uuid.UUID
-	Title     string
-	Content   Content
-	Tags      []string
-	AuthorID  uuid.UUID
-	CreatedAt time.Time
-	Photos    []PostPhoto
-}
+	id      uuid.UUID
+	title   string
+	content Content
+	tags    []string
+	photos  PostPhotos
 
-type PostPhoto struct {
-	ID          uuid.UUID
-	PlaceNumber int
-	FileID      uuid.UUID
+	authorID  uuid.UUID
+	updatedAt time.Time
+	createdAt time.Time
 }
 
 func (p *Post) Validate() error {
-	if p.ID == uuid.Nil {
+	if p.id == uuid.Nil {
 		return fmt.Errorf("post ID cannot be empty")
 	}
-	if p.Title == "" {
+	if p.title == "" {
 		return fmt.Errorf("post title cannot be empty")
 	}
-	if err := p.Content.Validate(); err != nil {
+	if err := p.content.Validate(); err != nil {
 		return fmt.Errorf("post content validation failed: %v", err)
 	}
-	if p.AuthorID == uuid.Nil {
+	if p.authorID == uuid.Nil {
 		return fmt.Errorf("author ID cannot be empty")
 	}
-	if len(p.Photos) > MaximumPhotoPerPostCount {
-		return fmt.Errorf("maximum number of photos exceeded")
-	}
-	if p.Tags == nil {
+	if p.tags == nil {
 		return fmt.Errorf("tags cannot be nil")
 	}
-	if p.Photos == nil {
-		return fmt.Errorf("photos cannot be nil")
-	}
-	photoSet := make(map[int]struct{})
-	for _, photo := range p.Photos {
-		if photo.PlaceNumber < 1 || photo.PlaceNumber > 10 {
-			return fmt.Errorf("invalid photo place number: %d", photo.PlaceNumber)
-		}
-		if _, exists := photoSet[photo.PlaceNumber]; exists {
-			return fmt.Errorf("duplicate photo place number: %d", photo.PlaceNumber)
-		}
-		photoSet[photo.PlaceNumber] = struct{}{}
-		if photo.FileID == uuid.Nil {
-			return fmt.Errorf("photo file ID cannot be empty")
-		}
+	if err := p.photos.Validate(); err != nil {
+		return fmt.Errorf("post photo validation failed: %v", err)
 	}
 
-	for _, tag := range p.Tags {
+	for _, tag := range p.tags {
 		if tag == "" {
 			return fmt.Errorf("empty tag")
 		}
 	}
 
-	if p.CreatedAt.After(time.Now()) {
-		return fmt.Errorf("post creation date cannot be in the future")
+	if p.updatedAt.Before(p.createdAt) {
+		return fmt.Errorf("post update date cannot be before creation date")
 	}
+
+	if p.updatedAt.After(time.Now()) {
+		return fmt.Errorf("post update date cannot be in the future")
+	}
+
 	return nil
 }
 
@@ -78,17 +64,19 @@ func CreatePost(
 	content Content,
 	tags []string,
 	authorID uuid.UUID,
-	photos []PostPhoto,
+	photos PostPhotos,
 	createdAt time.Time,
+	updatedAt time.Time,
 ) (*Post, error) {
 	post := &Post{
-		ID:        id,
-		Title:     title,
-		Content:   content,
-		Tags:      tags,
-		AuthorID:  authorID,
-		CreatedAt: createdAt,
-		Photos:    photos,
+		id:        id,
+		title:     title,
+		content:   content,
+		tags:      tags,
+		authorID:  authorID,
+		createdAt: createdAt,
+		photos:    photos,
+		updatedAt: updatedAt,
 	}
 	if err := post.Validate(); err != nil {
 		return nil, err
@@ -101,27 +89,92 @@ func NewPost(
 	content Content,
 	tags []string,
 	authorID uuid.UUID,
-	photos []PostPhoto,
+	photos *PostPhotos,
 ) (*Post, error) {
-	return CreatePost(uuid.New(), title, content, tags, authorID, photos, time.Now())
+	t := time.Now()
+	return CreatePost(uuid.New(), title, content, tags, authorID, *photos, t, t)
 }
 
-func CreatePostPhoto(id uuid.UUID, fileID uuid.UUID, placeNumber int) (*PostPhoto, error) {
-	postPhoto := &PostPhoto{
-		ID:          id,
-		PlaceNumber: placeNumber,
-		FileID:      fileID,
+func (p Post) ID() uuid.UUID {
+	return p.id
+}
+
+func (p Post) AuthorID() uuid.UUID {
+	return p.authorID
+}
+
+func (p Post) Title() string {
+	return p.title
+}
+
+func (p Post) Content() Content {
+	return p.content
+}
+
+func (p Post) Tags() []string {
+	return p.tags
+}
+
+func (p Post) Photos() PostPhotos {
+	return p.photos
+}
+
+func (p Post) UpdatedAt() time.Time {
+	return p.updatedAt
+}
+
+func (p Post) CreatedAt() time.Time {
+	return p.createdAt
+}
+
+func (p *Post) UpdateContent(content Content) error {
+	if err := content.Validate(); err != nil {
+		return err
 	}
-	return postPhoto, nil
+	p.content = content
+	p.updatedAt = time.Now()
+	return nil
 }
 
-func NewPostPhoto(fileID uuid.UUID, placeNumber int) (*PostPhoto, error) {
-	return CreatePostPhoto(uuid.New(), fileID, placeNumber)
+func (p *Post) UpdateTitle(title string) error {
+	p.title = title
+	p.updatedAt = time.Now()
+	return nil
+}
+
+func (p *Post) UpdateTags(tags []string) error {
+	p.tags = tags
+	p.updatedAt = time.Now()
+	return nil
+}
+
+func (p *Post) AddTag(tag string) error {
+	if len(p.tags) >= MaximumTagCount {
+		return fmt.Errorf("maximum number of tags exceeded")
+	}
+	if slices.Contains(p.tags, tag) {
+		return fmt.Errorf("tag already exists: %s", tag)
+	}
+	p.tags = append(p.tags, tag)
+	return nil
+}
+
+func (p *Post) RemoveTag(tag string) error {
+	index := slices.Index(p.tags, tag)
+	if index == -1 {
+		return fmt.Errorf("tag not found: %s", tag)
+	}
+	p.tags = append(p.tags[:index], p.tags[index+1:]...)
+	return nil
+}
+
+func (p *Post) AddPhoto(photo *PostPhoto) error {
+	return p.photos.Validate()
 }
 
 type PostRepository interface {
 	Create(ctx context.Context, post *Post) (*Post, error)
-	Update(ctx context.Context, post *Post, updateFn func(*Post) (*Post, error)) (*Post, error)
+	Update(ctx context.Context, id uuid.UUID, updateFn func(*Post) (*Post, error)) (*Post, error)
 	Delete(ctx context.Context, postID uuid.UUID) error
 	Get(ctx context.Context, postID uuid.UUID) (*Post, error)
 }

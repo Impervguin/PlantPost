@@ -3,10 +3,12 @@ package auth
 import (
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Author struct {
-	member     Member
+	Member
 	rights     bool
 	giveTime   time.Time
 	revokeTime time.Time
@@ -14,7 +16,7 @@ type Author struct {
 
 func CreateAuthor(member Member, giveTime time.Time, rights bool, revokeTime time.Time) (*Author, error) {
 	ath := &Author{
-		member:     member,
+		Member:     member,
 		rights:     true,
 		giveTime:   giveTime,
 		revokeTime: time.Time{},
@@ -27,7 +29,7 @@ func CreateAuthor(member Member, giveTime time.Time, rights bool, revokeTime tim
 }
 
 func (a *Author) Validate() error {
-	if err := a.member.Validate(); err != nil {
+	if err := a.Member.Validate(); err != nil {
 		return err
 	}
 	if a.giveTime.IsZero() {
@@ -54,4 +56,12 @@ func (a *Author) HasAuthorRights() bool {
 
 func (a *Author) HasMemberRights() bool {
 	return true
+}
+
+func (a *Author) Auth(passwd []byte, authFunc func(hashPasswd []byte, plainPasswd []byte) (bool, error)) bool {
+	return a.Member.Auth(passwd, authFunc)
+}
+
+func (a *Author) ID() uuid.UUID {
+	return a.Member.ID()
 }

@@ -1,6 +1,7 @@
 package album
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -50,7 +51,6 @@ func (album *Album) Validate() error {
 	if album.name == "" {
 		return fmt.Errorf("album name cannot be empty")
 	}
-
 	if album.ownerID == uuid.Nil {
 		return fmt.Errorf("album owner id cannot be nil")
 	}
@@ -76,9 +76,39 @@ func (album Album) GetOwnerID() uuid.UUID {
 	return album.ownerID
 }
 
+func (album *Album) UpdateName(name string) error {
+	album.name = name
+	album.updatedAt = time.Now()
+	return nil
+}
+
+func (album *Album) UpdateDescription(description string) error {
+	album.description = description
+	album.updatedAt = time.Now()
+	return nil
+}
+
+func (album *Album) AddPlant(plantID uuid.UUID) error {
+	album.plantIDs = append(album.plantIDs, plantID)
+	album.updatedAt = time.Now()
+	return nil
+}
+
+func (album *Album) RemovePlant(plantID uuid.UUID) error {
+	for i, p := range album.plantIDs {
+		if p == plantID {
+			album.plantIDs = append(album.plantIDs[:i], album.plantIDs[i+1:]...)
+			album.updatedAt = time.Now()
+			return nil
+		}
+	}
+	return fmt.Errorf("plant id not found in album: %v", plantID)
+}
+
 type AlbumRepository interface {
-	Create(alb *Album) (*Album, error)
-	Update(id uuid.UUID, updateFn func(*Album) (*Album, error)) (*Album, error)
-	Delete(id uuid.UUID) error
-	Get(id uuid.UUID) (*Album, error)
+	Create(ctx context.Context, alb *Album) (*Album, error)
+	Update(ctx context.Context, id uuid.UUID, updateFn func(*Album) (*Album, error)) (*Album, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	Get(ctx context.Context, id uuid.UUID) (*Album, error)
+	List(ctx context.Context, ownerID uuid.UUID) ([]*Album, error)
 }

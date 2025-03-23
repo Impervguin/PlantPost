@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type Member struct {
@@ -54,12 +53,8 @@ func (m *Member) Validate() error {
 	return nil
 }
 
-func NewMember(name, email string, password string) (*Member, error) {
+func NewMember(name, email string, hashPasswd []byte) (*Member, error) {
 	id := uuid.New()
-	hashPasswd, err := bcrypt.GenerateFromPassword([]byte(password), BcryptCost)
-	if err != nil {
-		return nil, err
-	}
 	createdAt := time.Now()
 	return CreateMember(id, name, email, hashPasswd, createdAt)
 }
@@ -70,4 +65,16 @@ func (m *Member) HasAuthorRights() bool {
 
 func (m *Member) HasMemberRights() bool {
 	return true
+}
+
+func (m *Member) Auth(passwd []byte, authFunc func(hashPasswd []byte, plainPasswd []byte) (bool, error)) bool {
+	res, err := authFunc(m.hashPasswd, passwd)
+	if err != nil {
+		return false
+	}
+	return res
+}
+
+func (m *Member) ID() uuid.UUID {
+	return m.id
 }

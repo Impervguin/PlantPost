@@ -18,8 +18,9 @@ type File struct {
 
 // FileData is for uploading/downloading files to the system
 type FileData struct {
-	Name   string
-	Reader io.Reader
+	Name        string
+	Reader      io.Reader
+	ContentType string
 }
 
 type FileRepository interface {

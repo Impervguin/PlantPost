@@ -21,8 +21,16 @@ type Plant struct {
 	createdAt     time.Time
 }
 
+func (p *Plant) ID() uuid.UUID {
+	return p.id
+}
+
 func (p *Plant) GetName() string {
 	return p.name
+}
+
+func (p *Plant) GetDescription() string {
+	return p.description
 }
 
 func (p *Plant) GetLatinName() string {
@@ -35,6 +43,36 @@ func (p *Plant) GetCategory() string {
 
 func (p *Plant) GetSpecification() PlantSpecification {
 	return p.specification
+}
+
+func (p *Plant) CreatedAt() time.Time {
+	return p.createdAt
+}
+
+func (p *Plant) MainPhotoID() uuid.UUID {
+	return p.mainPhotoID
+}
+
+func (p *Plant) GetPhotos() []PlantPhoto {
+	return p.photos
+}
+
+func (p *Plant) UpdateSpec(ps PlantSpecification) error {
+	if err := ps.Validate(); err != nil {
+		return err
+	}
+	p.specification = ps
+	return nil
+}
+
+func (p *Plant) AddPhoto(photo *PlantPhoto) error {
+	for _, v := range p.photos {
+		if v.Compare(photo) {
+			return fmt.Errorf("photo already exists")
+		}
+	}
+	p.photos = append(p.photos, *photo)
+	return nil
 }
 
 type PlantSpecification interface {
@@ -110,7 +148,7 @@ func (p *Plant) Validate() error {
 
 type PlantRepository interface {
 	Create(ctx context.Context, plant *Plant) (*Plant, error)
-	Update(ctx context.Context, plant *Plant, updateFn func(*Plant) (*Plant, error)) (*Plant, error)
+	Update(ctx context.Context, plantID uuid.UUID, updateFn func(*Plant) (*Plant, error)) (*Plant, error)
 	Delete(ctx context.Context, plantID uuid.UUID) error
 	Get(ctx context.Context, plantID uuid.UUID) (*Plant, error)
 }
