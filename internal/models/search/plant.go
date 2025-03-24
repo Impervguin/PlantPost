@@ -96,9 +96,9 @@ func (p *PlantSoilAcidityFilter) Filter(pl *plant.Plant) bool {
 	spec := pl.GetSpecification()
 	switch impl := spec.(type) {
 	case *plant.ConiferousSpecification:
-		return impl.GetSoilAcidity() > p.Min && impl.GetSoilAcidity() < p.Max
+		return impl.GetSoilAcidity() >= p.Min && impl.GetSoilAcidity() <= p.Max
 	case *plant.DeciduousSpecification:
-		return impl.GetSoilAcidity() > p.Min && impl.GetSoilAcidity() < p.Max
+		return impl.GetSoilAcidity() >= p.Min && impl.GetSoilAcidity() <= p.Max
 	}
 	return false
 }

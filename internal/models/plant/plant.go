@@ -15,7 +15,7 @@ type Plant struct {
 	latinName     string
 	description   string
 	mainPhotoID   uuid.UUID
-	photos        []PlantPhoto
+	photos        PlantPhotos
 	category      string
 	specification PlantSpecification
 	createdAt     time.Time
@@ -53,7 +53,7 @@ func (p *Plant) MainPhotoID() uuid.UUID {
 	return p.mainPhotoID
 }
 
-func (p *Plant) GetPhotos() []PlantPhoto {
+func (p *Plant) GetPhotos() PlantPhotos {
 	return p.photos
 }
 
@@ -66,13 +66,7 @@ func (p *Plant) UpdateSpec(ps PlantSpecification) error {
 }
 
 func (p *Plant) AddPhoto(photo *PlantPhoto) error {
-	for _, v := range p.photos {
-		if v.Compare(photo) {
-			return fmt.Errorf("photo already exists")
-		}
-	}
-	p.photos = append(p.photos, *photo)
-	return nil
+	return p.photos.Add(photo)
 }
 
 type PlantSpecification interface {
@@ -82,7 +76,7 @@ type PlantSpecification interface {
 func CreatePlant(id uuid.UUID,
 	name, latinName, description string,
 	mainPhotoID uuid.UUID,
-	photos []PlantPhoto, category string,
+	photos PlantPhotos, category string,
 	specification PlantSpecification,
 	createdAt time.Time) (*Plant, error) {
 
@@ -105,7 +99,7 @@ func CreatePlant(id uuid.UUID,
 
 func NewPlant(name, latinName, description string,
 	mainPhotoID uuid.UUID,
-	photos []PlantPhoto, category string,
+	photos PlantPhotos, category string,
 	specification PlantSpecification) (*Plant, error) {
 	return CreatePlant(uuid.New(), name, latinName, description, mainPhotoID, photos, category, specification, time.Now())
 }
@@ -134,14 +128,6 @@ func (p *Plant) Validate() error {
 	}
 	if p.createdAt.After(time.Now()) {
 		return fmt.Errorf("plant creation date cannot be in the future: %v", p.createdAt)
-	}
-	if p.photos == nil {
-		return fmt.Errorf("plant photos cannot be nil")
-	}
-	for _, p := range p.photos {
-		if err := p.Validate(); err != nil {
-			return fmt.Errorf("plant photo validation failed: %v", err)
-		}
 	}
 	return nil
 }

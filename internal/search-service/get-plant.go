@@ -28,37 +28,41 @@ type GetPlantPhoto struct {
 }
 
 func (s *SearchService) GetPlantByID(ctx context.Context, id uuid.UUID) (*GetPlant, error) {
-	plant, err := s.searchRepo.GetPlantByID(ctx, id)
+	pl, err := s.searchRepo.GetPlantByID(ctx, id)
 	if err != nil {
 		return nil, Wrap(err)
 	}
-	mainPhoto, err := s.plantFileRepo.Get(ctx, plant.MainPhotoID())
+	mainPhoto, err := s.plantFileRepo.Get(ctx, pl.MainPhotoID())
 	if err != nil {
 		return nil, Wrap(err)
 	}
 
 	photos := make([]GetPlantPhoto, 0)
-	for _, photo := range plant.GetPhotos() {
-		file, err := s.plantFileRepo.Get(ctx, photo.FileID())
+
+	err = pl.GetPhotos().Iterate(func(e plant.PlantPhoto) error {
+		photoFile, err := s.plantFileRepo.Get(ctx, e.FileID())
 		if err != nil {
-			return nil, Wrap(err)
+			return Wrap(err)
 		}
 		photos = append(photos, GetPlantPhoto{
-			ID:          photo.ID(),
-			File:        *file,
-			Description: photo.Description(),
+			ID:          e.ID(),
+			File:        *photoFile,
+			Description: e.Description(),
 		})
+		return nil
+	})
+	if err != nil {
+		return nil, Wrap(err)
 	}
-
 	return &GetPlant{
-		ID:            plant.ID(),
-		Name:          plant.GetName(),
-		LatinName:     plant.GetLatinName(),
-		Description:   plant.GetDescription(),
+		ID:            pl.ID(),
+		Name:          pl.GetName(),
+		LatinName:     pl.GetLatinName(),
+		Description:   pl.GetDescription(),
 		MainPhoto:     *mainPhoto,
 		Photos:        photos,
-		Category:      plant.GetCategory(),
-		Specification: plant.GetSpecification(),
-		CreatedAt:     plant.CreatedAt(),
+		Category:      pl.GetCategory(),
+		Specification: pl.GetSpecification(),
+		CreatedAt:     pl.CreatedAt(),
 	}, nil
 }

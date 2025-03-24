@@ -31,6 +31,7 @@ func CreateAlbum(id uuid.UUID,
 		plantIDs:    plantIDs,
 		ownerID:     ownerID,
 		createdAt:   createdAt,
+		updatedAt:   updatedAt,
 	}
 	if err := album.Validate(); err != nil {
 		return nil, err
@@ -58,7 +59,7 @@ func (album *Album) Validate() error {
 		return fmt.Errorf("can't be updated in future %v", album.updatedAt)
 	}
 	if album.createdAt.After(album.updatedAt) {
-		return fmt.Errorf("can't be created after update %v", album.createdAt)
+		return fmt.Errorf("can't be created after update %v %v", album.createdAt, album.updatedAt)
 	}
 	if album.plantIDs == nil {
 		return fmt.Errorf("album plant ids cannot be nil")

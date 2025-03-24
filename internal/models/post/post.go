@@ -164,12 +164,16 @@ func (p *Post) RemoveTag(tag string) error {
 	if index == -1 {
 		return fmt.Errorf("tag not found: %s", tag)
 	}
-	p.tags = append(p.tags[:index], p.tags[index+1:]...)
+	if index == 0 {
+		p.tags = p.tags[index+1:]
+		return nil
+	}
+	p.tags = append(p.tags[:index-1], p.tags[index+1:]...)
 	return nil
 }
 
 func (p *Post) AddPhoto(photo *PostPhoto) error {
-	return p.photos.Validate()
+	return p.photos.Add(photo)
 }
 
 type PostRepository interface {

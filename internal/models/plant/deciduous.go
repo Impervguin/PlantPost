@@ -44,8 +44,8 @@ func (d *DeciduousSpecification) Validate() error {
 	if d.heightM <= 0 || d.diameterM <= 0 {
 		return fmt.Errorf("height_m and diameter_m should be greater than 0")
 	}
-	if d.soilAcidity <= 0 {
-		return fmt.Errorf("soil_acidity should be greater than 0")
+	if err := d.soilAcidity.Validate(); err != nil {
+		return err
 	}
 	if err := d.floweringPeriod.Validate(); err != nil {
 		return err

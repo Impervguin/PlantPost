@@ -19,7 +19,7 @@ func CreateAuthor(member Member, giveTime time.Time, rights bool, revokeTime tim
 		Member:     member,
 		rights:     true,
 		giveTime:   giveTime,
-		revokeTime: time.Time{},
+		revokeTime: revokeTime,
 	}
 	if err := ath.Validate(); err != nil {
 		return nil, err

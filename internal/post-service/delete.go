@@ -17,3 +17,4 @@ func (s *PostService) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	return s.postRepo.Delete(ctx, id)
 }
+

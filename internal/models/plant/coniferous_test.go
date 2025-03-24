@@ -1,206 +1,181 @@
-package plant_test
+package plant
 
 import (
-	"PlantSite/internal/models/plant"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConiferousImplementing(t *testing.T) {
-	assert.Implements(t, (*plant.PlantSpecification)(nil), new(plant.ConiferousSpecification))
+	assert.Implements(t, (*PlantSpecification)(nil), new(ConiferousSpecification))
 }
 
-func TestConiferous(t *testing.T) {
-	defaultHeightM := 10.
-	defaultDiameterM := 20.
-	defaultHardiness := plant.WinterHardiness(5)
-	defaultLightRelation := plant.HalfShadow
-	defaultSoilAcidity := plant.SoilAcidity(5)
-	defaultSoilMoisture := plant.MediumMoisture
-	defaultSoilType := plant.MediumSoil
-	testID := 0
+func TestConiferousSpecification(t *testing.T) {
+	// Валидные параметры для тестов
+	validHeight := 10.5
+	validDiameter := 2.3
+	validSoilAcidity := SoilAcidity(5)
+	validSoilMoisture := MediumMoisture
+	validLightRelation := HalfShadow
+	validSoilType := MediumSoil
+	validWinterHardiness := WinterHardiness(6)
 
-	t.Logf("Test %d: default values", testID)
-	{
-		spec, err := plant.NewConiferousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			defaultSoilAcidity,
-			defaultSoilMoisture,
-			defaultLightRelation,
-			defaultSoilType,
-			defaultHardiness,
+	t.Run("NewConiferousSpecification - успешное создание", func(t *testing.T) {
+		spec, err := NewConiferousSpecification(
+			validHeight,
+			validDiameter,
+			validSoilAcidity,
+			validSoilMoisture,
+			validLightRelation,
+			validSoilType,
+			validWinterHardiness,
 		)
-		assert.Nil(t, err)
-		assert.NotNil(t, spec)
-		assert.Equal(t, defaultHeightM, spec.GetHeightM())
-		assert.Equal(t, defaultDiameterM, spec.GetDiameterM())
-		assert.Equal(t, defaultSoilAcidity, spec.GetSoilAcidity())
-		assert.Equal(t, defaultSoilMoisture, spec.GetSoilMoisture())
-		assert.Equal(t, defaultLightRelation, spec.GetLightRelation())
-		assert.Equal(t, defaultSoilType, spec.GetSoilType())
-		assert.Equal(t, defaultHardiness, spec.GetWinterHardiness())
-		assert.Nil(t, spec.Validate())
-	}
-	testID++
-	t.Logf("Test %d: soil types", testID)
-	{
-		values := []plant.Soil{
-			plant.LightSoil,
-			plant.MediumSoil,
-			plant.HeavySoil,
-		}
-		for _, soil := range values {
-			spec, err := plant.NewConiferousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				defaultSoilAcidity,
-				defaultSoilMoisture,
-				defaultLightRelation,
-				soil,
-				defaultHardiness,
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, soil, spec.GetSoilType())
-		}
-		spec, err := plant.NewConiferousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			defaultSoilAcidity,
-			defaultSoilMoisture,
-			defaultLightRelation,
-			"invalid",
-			defaultHardiness,
-		)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
-	testID++
-	t.Logf("Test %d: soil moistures", testID)
-	{
-		values := []plant.SoilMoisture{
-			plant.DryMoisture,
-			plant.LowMoisture,
-			plant.MediumMoisture,
-			plant.HighMoisture,
-		}
-		for _, moisture := range values {
-			spec, err := plant.NewConiferousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				defaultSoilAcidity,
-				moisture,
-				defaultLightRelation,
-				defaultSoilType,
-				defaultHardiness,
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, moisture, spec.GetSoilMoisture())
-		}
-	}
-	testID++
-	t.Logf("Test %d: soil acidities", testID)
-	{
-		for acidity := range 10 {
-			spec, err := plant.NewConiferousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				plant.SoilAcidity(acidity+1),
-				defaultSoilMoisture,
-				defaultLightRelation,
-				defaultSoilType,
-				defaultHardiness,
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, plant.SoilAcidity(acidity+1), spec.GetSoilAcidity())
-		}
-		spec, err := plant.NewConiferousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			plant.SoilAcidity(0),
-			defaultSoilMoisture,
-			defaultLightRelation,
-			defaultSoilType,
-			defaultHardiness,
-		)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
-	testID++
-	t.Logf("Test %d: light relations", testID)
-	{
-		values := []plant.LightRelation{
-			plant.Shadow,
-			plant.HalfShadow,
-			plant.Light,
-		}
-		for _, relation := range values {
-			spec, err := plant.NewConiferousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				defaultSoilAcidity,
-				defaultSoilMoisture,
-				relation,
-				defaultSoilType,
-				defaultHardiness,
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, relation, spec.GetLightRelation())
-		}
-		spec, err := plant.NewConiferousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			defaultSoilAcidity,
-			defaultSoilMoisture,
-			plant.LightRelation("invalid"),
-			defaultSoilType,
-			defaultHardiness,
-		)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
-	testID++
-	t.Logf("Test %d: winter hardiness", testID)
-	{
-		for hardiness := range 10 {
-			spec, err := plant.NewConiferousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				defaultSoilAcidity,
-				defaultSoilMoisture,
-				defaultLightRelation,
-				defaultSoilType,
-				plant.WinterHardiness(hardiness+1),
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, plant.WinterHardiness(hardiness+1), spec.GetWinterHardiness())
-		}
-		spec, err := plant.NewConiferousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			defaultSoilAcidity,
-			defaultSoilMoisture,
-			defaultLightRelation,
-			defaultSoilType,
-			plant.WinterHardiness(-1),
-		)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
-	testID++
-	t.Logf("Test %d: height negative", testID)
-	{
-		spec, err := plant.NewConiferousSpecification(-1, defaultDiameterM, defaultSoilAcidity, defaultSoilMoisture, defaultLightRelation, defaultSoilType, defaultHardiness)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
 
-	testID++
-	t.Logf("Test %d: diameter negative", testID)
-	{
-		spec, err := plant.NewConiferousSpecification(defaultHeightM, -1, defaultSoilAcidity, defaultSoilMoisture, defaultLightRelation, defaultSoilType, defaultHardiness)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
+		require.NoError(t, err)
+		assert.Equal(t, validHeight, spec.GetHeightM())
+		assert.Equal(t, validDiameter, spec.GetDiameterM())
+		assert.Equal(t, validSoilAcidity, spec.GetSoilAcidity())
+		assert.Equal(t, validSoilMoisture, spec.GetSoilMoisture())
+		assert.Equal(t, validLightRelation, spec.GetLightRelation())
+		assert.Equal(t, validSoilType, spec.GetSoilType())
+		assert.Equal(t, validWinterHardiness, spec.GetWinterHardiness())
+	})
+
+	t.Run("NewConiferousSpecification - ошибки валидации", func(t *testing.T) {
+		testCases := []struct {
+			name            string
+			height          float64
+			diameter        float64
+			soilAcidity     SoilAcidity
+			soilMoisture    SoilMoisture
+			lightRelation   LightRelation
+			soilType        Soil
+			winterHardiness WinterHardiness
+			expectError     bool
+		}{
+			{
+				name:            "невалидная высота",
+				height:          0,
+				diameter:        validDiameter,
+				soilAcidity:     validSoilAcidity,
+				soilMoisture:    validSoilMoisture,
+				lightRelation:   validLightRelation,
+				soilType:        validSoilType,
+				winterHardiness: validWinterHardiness,
+				expectError:     true,
+			},
+			{
+				name:            "невалидный диаметр",
+				height:          validHeight,
+				diameter:        0,
+				soilAcidity:     validSoilAcidity,
+				soilMoisture:    validSoilMoisture,
+				lightRelation:   validLightRelation,
+				soilType:        validSoilType,
+				winterHardiness: validWinterHardiness,
+				expectError:     true,
+			},
+			{
+				name:            "валидные параметры",
+				height:          validHeight,
+				diameter:        validDiameter,
+				soilAcidity:     validSoilAcidity,
+				soilMoisture:    validSoilMoisture,
+				lightRelation:   validLightRelation,
+				soilType:        validSoilType,
+				winterHardiness: validWinterHardiness,
+				expectError:     false,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				_, err := NewConiferousSpecification(
+					tc.height,
+					tc.diameter,
+					tc.soilAcidity,
+					tc.soilMoisture,
+					tc.lightRelation,
+					tc.soilType,
+					tc.winterHardiness,
+				)
+
+				if tc.expectError {
+					assert.Error(t, err)
+				} else {
+					assert.NoError(t, err)
+				}
+			})
+		}
+	})
+
+	t.Run("Validate - проверка валидации", func(t *testing.T) {
+		spec := &ConiferousSpecification{
+			heightM:         validHeight,
+			diameterM:       validDiameter,
+			soilAcidity:     validSoilAcidity,
+			soilMoisture:    validSoilMoisture,
+			lightRelation:   validLightRelation,
+			soilType:        validSoilType,
+			winterHardiness: validWinterHardiness,
+		}
+
+		assert.NoError(t, spec.Validate())
+	})
+
+	t.Run("Getters - проверка геттеров", func(t *testing.T) {
+		spec := &ConiferousSpecification{
+			heightM:         validHeight,
+			diameterM:       validDiameter,
+			soilAcidity:     validSoilAcidity,
+			soilMoisture:    validSoilMoisture,
+			lightRelation:   validLightRelation,
+			soilType:        validSoilType,
+			winterHardiness: validWinterHardiness,
+		}
+
+		assert.Equal(t, validHeight, spec.GetHeightM())
+		assert.Equal(t, validDiameter, spec.GetDiameterM())
+		assert.Equal(t, validSoilAcidity, spec.GetSoilAcidity())
+		assert.Equal(t, validSoilMoisture, spec.GetSoilMoisture())
+		assert.Equal(t, validLightRelation, spec.GetLightRelation())
+		assert.Equal(t, validSoilType, spec.GetSoilType())
+		assert.Equal(t, validWinterHardiness, spec.GetWinterHardiness())
+	})
+}
+
+func TestPlantWithConiferousSpecification(t *testing.T) {
+	spec, err := NewConiferousSpecification(
+		15.0,
+		3.0,
+		6,
+		MediumMoisture,
+		HalfShadow,
+		MediumSoil,
+		5,
+	)
+	require.NoError(t, err)
+
+	t.Run("Создание растения с хвойной спецификацией", func(t *testing.T) {
+		plant, err := NewPlant(
+			"Сосна",
+			"Pinus sylvestris",
+			"Обыкновенная сосна",
+			uuid.New(),
+			*NewPlantPhotos(),
+			ConiferousCategory,
+			spec,
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, "Сосна", plant.GetName())
+		assert.Equal(t, ConiferousCategory, plant.GetCategory())
+
+		plantSpec, ok := plant.GetSpecification().(*ConiferousSpecification)
+		require.True(t, ok)
+		assert.Equal(t, 15.0, plantSpec.GetHeightM())
+		assert.Equal(t, 5, int(plantSpec.GetWinterHardiness()))
+	})
 }

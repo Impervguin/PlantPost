@@ -36,37 +36,41 @@ func (s *PlantService) GetPlant(ctx context.Context, id uuid.UUID) (*GetPlant, e
 	if !user.HasAuthorRights() {
 		return nil, ErrNotAuthor
 	}
-	plant, err := s.plantrepo.Get(ctx, id)
+	pl, err := s.plantrepo.Get(ctx, id)
 	if err != nil {
 		return nil, Wrap(err)
 	}
 
-	mainPhoto, err := s.filerepo.Get(ctx, plant.MainPhotoID())
+	mainPhoto, err := s.filerepo.Get(ctx, pl.MainPhotoID())
 	if err != nil {
 		return nil, Wrap(err)
 	}
-	photos := make([]GetPlantPhoto, 0, len(plant.GetPhotos()))
-	for _, p := range plant.GetPhotos() {
-		photoFile, err := s.filerepo.Get(ctx, p.FileID())
+	photos := make([]GetPlantPhoto, 0, pl.GetPhotos().Len())
+	err = pl.GetPhotos().Iterate(func(e plant.PlantPhoto) error {
+		photoFile, err := s.filerepo.Get(ctx, e.FileID())
 		if err != nil {
-			return nil, Wrap(err)
+			return Wrap(err)
 		}
 		photos = append(photos, GetPlantPhoto{
-			ID:          p.ID(),
+			ID:          e.ID(),
 			File:        *photoFile,
-			Description: p.Description(),
+			Description: e.Description(),
 		})
+		return nil
+	})
+	if err != nil {
+		return nil, Wrap(err)
 	}
 
 	return &GetPlant{
-		ID:            plant.ID(),
-		Name:          plant.GetName(),
-		LatinName:     plant.GetLatinName(),
-		Description:   plant.GetDescription(),
+		ID:            pl.ID(),
+		Name:          pl.GetName(),
+		LatinName:     pl.GetLatinName(),
+		Description:   pl.GetDescription(),
 		MainPhoto:     *mainPhoto,
 		Photos:        photos,
-		Category:      plant.GetCategory(),
-		Specification: plant.GetSpecification(),
-		CreatedAt:     plant.CreatedAt(),
+		Category:      pl.GetCategory(),
+		Specification: pl.GetSpecification(),
+		CreatedAt:     pl.CreatedAt(),
 	}, nil
 }

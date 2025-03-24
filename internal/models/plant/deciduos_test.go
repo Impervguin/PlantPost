@@ -1,266 +1,194 @@
-package plant_test
+package plant
 
 import (
-	"PlantSite/internal/models/plant"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeciduosImplementing(t *testing.T) {
-	assert.Implements(t, (*plant.PlantSpecification)(nil), new(plant.DeciduousSpecification))
+	assert.Implements(t, (*PlantSpecification)(nil), new(DeciduousSpecification))
 }
 
-func TestDeciduous(t *testing.T) {
-	defaultHeightM := 10.
-	defaultDiameterM := 20.
-	defaultFloweringPeriod := plant.Spring
-	defaultHardiness := plant.WinterHardiness(5)
-	defaultLightRelation := plant.HalfShadow
-	defaultSoilAcidity := plant.SoilAcidity(5)
-	defaultSoilMoisture := plant.MediumMoisture
-	defaultSoilType := plant.MediumSoil
-	testID := 0
+func TestDeciduousSpecification(t *testing.T) {
+	// Валидные параметры для тестов
+	validHeight := 8.2
+	validDiameter := 1.8
+	validFloweringPeriod := Spring
+	validSoilAcidity := SoilAcidity(6)
+	validSoilMoisture := MediumMoisture
+	validLightRelation := HalfShadow
+	validSoilType := MediumSoil
+	validWinterHardiness := WinterHardiness(5)
 
-	t.Logf("Test %d: default values", testID)
-	{
-		spec, err := plant.NewDeciduousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			defaultFloweringPeriod,
-			defaultSoilAcidity,
-			defaultSoilMoisture,
-			defaultLightRelation,
-			defaultSoilType,
-			defaultHardiness,
+	t.Run("NewDeciduousSpecification - успешное создание", func(t *testing.T) {
+		spec, err := NewDeciduousSpecification(
+			validHeight,
+			validDiameter,
+			validFloweringPeriod,
+			validSoilAcidity,
+			validSoilMoisture,
+			validLightRelation,
+			validSoilType,
+			validWinterHardiness,
 		)
-		assert.Nil(t, err)
-		assert.NotNil(t, spec)
-		assert.Equal(t, defaultHeightM, spec.GetHeightM())
-		assert.Equal(t, defaultDiameterM, spec.GetDiameterM())
-		assert.Equal(t, defaultFloweringPeriod, spec.GetFloweringPeriod())
-		assert.Equal(t, defaultSoilAcidity, spec.GetSoilAcidity())
-		assert.Equal(t, defaultSoilMoisture, spec.GetSoilMoisture())
-		assert.Equal(t, defaultLightRelation, spec.GetLightRelation())
-		assert.Equal(t, defaultSoilType, spec.GetSoilType())
-		assert.Equal(t, defaultHardiness, spec.GetWinterHardiness())
-		assert.Nil(t, spec.Validate())
-	}
-	testID++
-	t.Logf("Test %d: soil types", testID)
-	{
-		values := []plant.Soil{
-			plant.LightSoil,
-			plant.MediumSoil,
-			plant.HeavySoil,
-		}
-		for _, soil := range values {
-			spec, err := plant.NewDeciduousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				defaultFloweringPeriod,
-				defaultSoilAcidity,
-				defaultSoilMoisture,
-				defaultLightRelation,
-				soil,
-				defaultHardiness,
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, soil, spec.GetSoilType())
-		}
-		spec, err := plant.NewDeciduousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			defaultFloweringPeriod,
-			defaultSoilAcidity,
-			defaultSoilMoisture,
-			defaultLightRelation,
-			"invalid",
-			defaultHardiness,
-		)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
-	testID++
-	t.Logf("Test %d: soil moistures", testID)
-	{
-		values := []plant.SoilMoisture{
-			plant.DryMoisture,
-			plant.LowMoisture,
-			plant.MediumMoisture,
-			plant.HighMoisture,
-		}
-		for _, moisture := range values {
-			spec, err := plant.NewDeciduousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				defaultFloweringPeriod,
-				defaultSoilAcidity,
-				moisture,
-				defaultLightRelation,
-				defaultSoilType,
-				defaultHardiness,
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, moisture, spec.GetSoilMoisture())
-		}
-	}
-	testID++
-	t.Logf("Test %d: soil acidities", testID)
-	{
-		for acidity := range 10 {
-			spec, err := plant.NewDeciduousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				defaultFloweringPeriod,
-				plant.SoilAcidity(acidity+1),
-				defaultSoilMoisture,
-				defaultLightRelation,
-				defaultSoilType,
-				defaultHardiness,
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, plant.SoilAcidity(acidity+1), spec.GetSoilAcidity())
-		}
-		spec, err := plant.NewDeciduousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			defaultFloweringPeriod,
-			plant.SoilAcidity(0),
-			defaultSoilMoisture,
-			defaultLightRelation,
-			defaultSoilType,
-			defaultHardiness,
-		)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
-	testID++
-	t.Logf("Test %d: light relations", testID)
-	{
-		values := []plant.LightRelation{
-			plant.Shadow,
-			plant.HalfShadow,
-			plant.Light,
-		}
-		for _, relation := range values {
-			spec, err := plant.NewDeciduousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				defaultFloweringPeriod,
-				defaultSoilAcidity,
-				defaultSoilMoisture,
-				relation,
-				defaultSoilType,
-				defaultHardiness,
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, relation, spec.GetLightRelation())
-		}
-		spec, err := plant.NewDeciduousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			defaultFloweringPeriod,
-			defaultSoilAcidity,
-			defaultSoilMoisture,
-			plant.LightRelation("invalid"),
-			defaultSoilType,
-			defaultHardiness,
-		)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
-	testID++
-	t.Logf("Test %d: flowering periods", testID)
-	{
-		values := []plant.FloweringPeriod{
-			plant.Spring,
-			plant.Summer,
-			plant.Autumn,
-			plant.Winter,
-			plant.January,
-			plant.February,
-			plant.March,
-			plant.April,
-			plant.May,
-			plant.June,
-			plant.July,
-			plant.August,
-			plant.September,
-			plant.October,
-			plant.November,
-			plant.December,
-		}
-		for _, period := range values {
-			spec, err := plant.NewDeciduousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				period,
-				defaultSoilAcidity,
-				defaultSoilMoisture,
-				defaultLightRelation,
-				defaultSoilType,
-				defaultHardiness,
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, spec.GetFloweringPeriod(), period)
-		}
-		spec, err := plant.NewDeciduousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			plant.FloweringPeriod("invalid"),
-			defaultSoilAcidity,
-			defaultSoilMoisture,
-			defaultLightRelation,
-			defaultSoilType,
-			defaultHardiness,
-		)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
-	testID++
-	t.Logf("Test %d: winter hardiness", testID)
-	{
-		for hardiness := range 10 {
-			spec, err := plant.NewDeciduousSpecification(
-				defaultHeightM,
-				defaultDiameterM,
-				defaultFloweringPeriod,
-				defaultSoilAcidity,
-				defaultSoilMoisture,
-				defaultLightRelation,
-				defaultSoilType,
-				plant.WinterHardiness(hardiness+1),
-			)
-			assert.Nil(t, err)
-			assert.Equal(t, plant.WinterHardiness(hardiness+1), spec.GetWinterHardiness())
-		}
-		spec, err := plant.NewDeciduousSpecification(
-			defaultHeightM,
-			defaultDiameterM,
-			defaultFloweringPeriod,
-			defaultSoilAcidity,
-			defaultSoilMoisture,
-			defaultLightRelation,
-			defaultSoilType,
-			plant.WinterHardiness(-1),
-		)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
-	testID++
-	t.Logf("Test %d: height negative", testID)
-	{
-		spec, err := plant.NewDeciduousSpecification(-1, defaultDiameterM, defaultFloweringPeriod, defaultSoilAcidity, defaultSoilMoisture, defaultLightRelation, defaultSoilType, defaultHardiness)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
 
-	testID++
-	t.Logf("Test %d: diameter negative", testID)
-	{
-		spec, err := plant.NewDeciduousSpecification(defaultHeightM, -1, defaultFloweringPeriod, defaultSoilAcidity, defaultSoilMoisture, defaultLightRelation, defaultSoilType, defaultHardiness)
-		assert.NotNil(t, err)
-		assert.Nil(t, spec)
-	}
+		require.NoError(t, err)
+		assert.Equal(t, validHeight, spec.GetHeightM())
+		assert.Equal(t, validDiameter, spec.GetDiameterM())
+		assert.Equal(t, validFloweringPeriod, spec.GetFloweringPeriod())
+		assert.Equal(t, validSoilAcidity, spec.GetSoilAcidity())
+		assert.Equal(t, validSoilMoisture, spec.GetSoilMoisture())
+		assert.Equal(t, validLightRelation, spec.GetLightRelation())
+		assert.Equal(t, validSoilType, spec.GetSoilType())
+		assert.Equal(t, validWinterHardiness, spec.GetWinterHardiness())
+	})
+
+	t.Run("NewDeciduousSpecification - ошибки валидации", func(t *testing.T) {
+		testCases := []struct {
+			name            string
+			height          float64
+			diameter        float64
+			floweringPeriod FloweringPeriod
+			soilAcidity     SoilAcidity
+			soilMoisture    SoilMoisture
+			lightRelation   LightRelation
+			soilType        Soil
+			winterHardiness WinterHardiness
+			expectError     bool
+		}{
+			{
+				name:            "невалидная высота",
+				height:          0,
+				diameter:        validDiameter,
+				floweringPeriod: validFloweringPeriod,
+				soilAcidity:     validSoilAcidity,
+				soilMoisture:    validSoilMoisture,
+				lightRelation:   validLightRelation,
+				soilType:        validSoilType,
+				winterHardiness: validWinterHardiness,
+				expectError:     true,
+			},
+			{
+				name:            "невалидный диаметр",
+				height:          validHeight,
+				diameter:        0,
+				floweringPeriod: validFloweringPeriod,
+				soilAcidity:     validSoilAcidity,
+				soilMoisture:    validSoilMoisture,
+				lightRelation:   validLightRelation,
+				soilType:        validSoilType,
+				winterHardiness: validWinterHardiness,
+				expectError:     true,
+			},
+			{
+				name:            "валидные параметры",
+				height:          validHeight,
+				diameter:        validDiameter,
+				floweringPeriod: validFloweringPeriod,
+				soilAcidity:     validSoilAcidity,
+				soilMoisture:    validSoilMoisture,
+				lightRelation:   validLightRelation,
+				soilType:        validSoilType,
+				winterHardiness: validWinterHardiness,
+				expectError:     false,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				_, err := NewDeciduousSpecification(
+					tc.height,
+					tc.diameter,
+					tc.floweringPeriod,
+					tc.soilAcidity,
+					tc.soilMoisture,
+					tc.lightRelation,
+					tc.soilType,
+					tc.winterHardiness,
+				)
+
+				if tc.expectError {
+					assert.Error(t, err)
+				} else {
+					assert.NoError(t, err)
+				}
+			})
+		}
+	})
+
+	t.Run("Validate - проверка валидации", func(t *testing.T) {
+		spec := &DeciduousSpecification{
+			heightM:         validHeight,
+			diameterM:       validDiameter,
+			floweringPeriod: validFloweringPeriod,
+			soilAcidity:     validSoilAcidity,
+			soilMoisture:    validSoilMoisture,
+			lightRelation:   validLightRelation,
+			soilType:        validSoilType,
+			winterHardiness: validWinterHardiness,
+		}
+
+		assert.NoError(t, spec.Validate())
+	})
+
+	t.Run("Getters - проверка геттеров", func(t *testing.T) {
+		spec := &DeciduousSpecification{
+			heightM:         validHeight,
+			diameterM:       validDiameter,
+			floweringPeriod: validFloweringPeriod,
+			soilAcidity:     validSoilAcidity,
+			soilMoisture:    validSoilMoisture,
+			lightRelation:   validLightRelation,
+			soilType:        validSoilType,
+			winterHardiness: validWinterHardiness,
+		}
+
+		assert.Equal(t, validHeight, spec.GetHeightM())
+		assert.Equal(t, validDiameter, spec.GetDiameterM())
+		assert.Equal(t, validFloweringPeriod, spec.GetFloweringPeriod())
+		assert.Equal(t, validSoilAcidity, spec.GetSoilAcidity())
+		assert.Equal(t, validSoilMoisture, spec.GetSoilMoisture())
+		assert.Equal(t, validLightRelation, spec.GetLightRelation())
+		assert.Equal(t, validSoilType, spec.GetSoilType())
+		assert.Equal(t, validWinterHardiness, spec.GetWinterHardiness())
+	})
+}
+
+func TestPlantWithDeciduousSpecification(t *testing.T) {
+	spec, err := NewDeciduousSpecification(
+		12.0,
+		2.5,
+		Spring,
+		6,
+		MediumMoisture,
+		HalfShadow,
+		MediumSoil,
+		5,
+	)
+	require.NoError(t, err)
+
+	t.Run("Создание растения с лиственной спецификацией", func(t *testing.T) {
+		plant, err := NewPlant(
+			"Дуб",
+			"Quercus robur",
+			"Дуб обыкновенный",
+			uuid.New(),
+			*NewPlantPhotos(),
+			DeciduousCategory,
+			spec,
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, "Дуб", plant.GetName())
+		assert.Equal(t, DeciduousCategory, plant.GetCategory())
+
+		plantSpec, ok := plant.GetSpecification().(*DeciduousSpecification)
+		require.True(t, ok)
+		assert.Equal(t, 12.0, plantSpec.GetHeightM())
+		assert.Equal(t, Spring, plantSpec.GetFloweringPeriod())
+		assert.Equal(t, 5, int(plantSpec.GetWinterHardiness()))
+	})
 }

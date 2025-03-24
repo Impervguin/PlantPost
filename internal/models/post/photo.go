@@ -39,6 +39,16 @@ func (p *PostPhoto) FileID() uuid.UUID {
 	return p.fileID
 }
 
+func (p *PostPhoto) Validate() error {
+	if p.id == uuid.Nil {
+		return fmt.Errorf("post photo ID cannot be empty")
+	}
+	if p.fileID == uuid.Nil {
+		return fmt.Errorf("photo file ID cannot be empty")
+	}
+	return nil
+}
+
 type PostPhotos struct {
 	photos []PostPhoto
 }
@@ -78,8 +88,11 @@ func (pp *PostPhotos) RebalancePositions() {
 }
 
 func (pp *PostPhotos) Add(photo *PostPhoto) error {
-	if photo.PlaceNumber() >= MaximumPhotoPerPostCount {
+	if len(pp.photos) >= MaximumPhotoPerPostCount {
 		return fmt.Errorf("maximum number of photos exceeded")
+	}
+	if err := photo.Validate(); err != nil {
+		return err
 	}
 	if slices.ContainsFunc(pp.photos, func(ph PostPhoto) bool { return photo.ID() == ph.ID() || photo.FileID() == ph.FileID() }) {
 		return fmt.Errorf("photo already exists")

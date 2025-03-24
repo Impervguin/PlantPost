@@ -42,8 +42,8 @@ func (c *ConiferousSpecification) Validate() error {
 		return fmt.Errorf("height_m and diameter_m should be greater than 0")
 	}
 
-	if c.soilAcidity <= 0 {
-		return fmt.Errorf("soil_acidity should be greater than 0")
+	if err := c.soilAcidity.Validate(); err != nil {
+		return err
 	}
 
 	if err := c.soilMoisture.Validate(); err != nil {
