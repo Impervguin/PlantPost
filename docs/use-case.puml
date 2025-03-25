@@ -1,0 +1,91 @@
+@startuml
+
+"Автор" as author
+"Администратор" as :admin:
+"Пользователь" as :user:
+"Авторизованный пользователь" as :auser:
+"Неавторизованный пользователь" as :nuser:
+
+usecase lookplant as "Просмотр
+каталога
+растений"
+usecase searchplant as "Поиск
+растений
+по фильтрам"
+usecase lookpost as "Просмотр
+постов"
+usecase searchposttag as "Поиск
+постов
+по тегам"
+usecase searchpostbody as "Поиск
+постов
+по содержанию"
+
+usecase createalbum as "Создание
+альбомов
+растений"
+usecase deleteplantalbum as "Удаление
+растений
+из своих альбомов"
+usecase addplantalbum as "Добавление
+растений
+в свои альбомы"
+usecase likepost as "Добавление
+постов
+в избранные"
+
+usecase addplant as "Добавление
+растений"
+usecase deleteplant as "Удаление
+растений"
+usecase modplant as "Изменение
+растений"
+usecase makepost as "Написание
+постов"
+usecase deletepost as "Удаление
+постов"
+
+usecase addcategory as "Добавление
+категорий
+растений"
+usecase modcategory as "Изменение
+характеристик
+категорий"
+usecase deletecategory as "Удаление
+категории
+растений"
+usecase addrights as "Выдача
+прав
+автора"
+usecase deleterights as "Отмена
+прав
+автора"
+
+:user: <|-- :auser: 
+:user: <|-- :nuser:
+:auser: <|-- :author:
+:author: <|-- :admin:
+
+(lookplant) <-- :user:
+(searchplant) <-- :user:
+(lookpost) <-- :user:
+(searchpostbody) <-- :user:
+(searchposttag) <- :user:
+
+(createalbum) <- :auser:
+(addplantalbum) <-- :auser:
+(deleteplantalbum) <-- :auser:
+ :auser: -> (likepost)
+
+(addplant) <-- :author:
+(deleteplant) <-- :author:
+(modplant) <-- :author:
+(makepost) <- :author:
+:author: -> (deletepost) 
+
+:admin: -> (addcategory)
+:admin: -> (modcategory)
+(deletecategory) <- :admin:
+:admin: --> (addrights)
+:admin: --> (deleterights)
+@enduml
