@@ -3,6 +3,7 @@ package album
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -90,7 +91,14 @@ func (album *Album) UpdateDescription(description string) error {
 }
 
 func (album *Album) AddPlant(plantID uuid.UUID) error {
+	if slices.ContainsFunc(
+		album.plantIDs,
+		func(p uuid.UUID) bool { return p == plantID },
+	) {
+		return ErrPlantAlreadyInAlbum
+	}
 	album.plantIDs = append(album.plantIDs, plantID)
+
 	album.updatedAt = time.Now()
 	return nil
 }
@@ -103,7 +111,7 @@ func (album *Album) RemovePlant(plantID uuid.UUID) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("plant id not found in album: %v", plantID)
+	return ErrPlantNotFound
 }
 
 type AlbumRepository interface {

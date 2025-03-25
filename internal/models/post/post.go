@@ -137,12 +137,26 @@ func (p *Post) UpdateContent(content Content) error {
 }
 
 func (p *Post) UpdateTitle(title string) error {
+	if title == "" {
+		return fmt.Errorf("title cannot be empty")
+	}
 	p.title = title
 	p.updatedAt = time.Now()
 	return nil
 }
 
 func (p *Post) UpdateTags(tags []string) error {
+	if tags == nil {
+		return fmt.Errorf("tags cannot be nil")
+	}
+	if len(tags) > MaximumTagCount {
+		return fmt.Errorf("maximum number of tags exceeded")
+	}
+	for _, tag := range tags {
+		if tag == "" {
+			return fmt.Errorf("empty tag")
+		}
+	}
 	p.tags = tags
 	p.updatedAt = time.Now()
 	return nil

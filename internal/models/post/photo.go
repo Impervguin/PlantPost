@@ -127,3 +127,7 @@ func (pp PostPhotos) List() []PostPhoto {
 	copy(ppcopy, pp.photos)
 	return ppcopy
 }
+
+func (pp PostPhotos) Len() int {
+	return len(pp.photos)
+}

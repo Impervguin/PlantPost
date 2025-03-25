@@ -1,10 +1,10 @@
 package searchservice
 
 import (
-	authservice "PlantSite/internal/auth-service"
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/post"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -33,12 +33,8 @@ type GetPostPhoto struct {
 }
 
 func (s *SearchService) GetPost(ctx context.Context, id uuid.UUID) (*GetPost, error) {
-	user := authservice.UserFromContext(ctx)
-	if user == nil {
-		return nil, ErrNotAuthorized
-	}
-	if !user.HasAuthorRights() {
-		return nil, ErrNotAuthor
+	if id == uuid.Nil {
+		return nil, Wrap(fmt.Errorf("id must be non-nil"))
 	}
 	post, err := s.searchRepo.GetPostByID(ctx, id)
 	if err != nil {

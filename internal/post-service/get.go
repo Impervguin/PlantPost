@@ -5,6 +5,7 @@ import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/post"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -35,6 +36,9 @@ func (s *PostService) GetPost(ctx context.Context, id uuid.UUID) (*GetPost, erro
 	}
 	if !user.HasAuthorRights() {
 		return nil, ErrNotAuthor
+	}
+	if id == uuid.Nil {
+		return nil, fmt.Errorf("id must be non-nil")
 	}
 	post, err := s.postRepo.Get(ctx, id)
 	if err != nil {

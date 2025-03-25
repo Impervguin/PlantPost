@@ -24,6 +24,9 @@ func (s *PostService) UpdatePost(ctx context.Context, id uuid.UUID, data UpdateP
 	}
 
 	p, err := s.postRepo.Update(ctx, id, func(p *post.Post) (*post.Post, error) {
+		if user.ID() != p.AuthorID() {
+			return nil, ErrNotAuthor
+		}
 		err := p.UpdateContent(data.Content)
 		if err != nil {
 			return nil, err

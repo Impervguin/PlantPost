@@ -4,6 +4,7 @@ import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/plant"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -28,6 +29,9 @@ type GetPlantPhoto struct {
 }
 
 func (s *SearchService) GetPlantByID(ctx context.Context, id uuid.UUID) (*GetPlant, error) {
+	if id == uuid.Nil {
+		return nil, Wrap(fmt.Errorf("id must be non-nil"))
+	}
 	pl, err := s.searchRepo.GetPlantByID(ctx, id)
 	if err != nil {
 		return nil, Wrap(err)

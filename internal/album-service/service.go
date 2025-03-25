@@ -24,6 +24,9 @@ func (s *AlbumService) CreateAlbum(ctx context.Context, alb *album.Album) (*albu
 	if !user.HasMemberRights() {
 		return nil, ErrNotMember
 	}
+	if alb.GetOwnerID() != user.ID() {
+		return nil, ErrNotOwner
+	}
 	alb, err := s.albumRepository.Create(ctx, alb)
 	if err != nil {
 		return nil, Wrap(err)
@@ -67,7 +70,7 @@ func (s *AlbumService) UpdateAlbumName(ctx context.Context, id uuid.UUID, name s
 	if err != nil {
 		return Wrap(err)
 	}
-	return Wrap(err)
+	return nil
 }
 
 func (s *AlbumService) UpdateAlbumDescription(ctx context.Context, id uuid.UUID, description string) error {
@@ -88,7 +91,7 @@ func (s *AlbumService) UpdateAlbumDescription(ctx context.Context, id uuid.UUID,
 	if err != nil {
 		return Wrap(err)
 	}
-	return Wrap(err)
+	return nil
 }
 
 func (s *AlbumService) AddPlantToAlbum(ctx context.Context, id uuid.UUID, plantID uuid.UUID) error {
@@ -109,7 +112,7 @@ func (s *AlbumService) AddPlantToAlbum(ctx context.Context, id uuid.UUID, plantI
 	if err != nil {
 		return Wrap(err)
 	}
-	return Wrap(err)
+	return nil
 }
 
 func (s *AlbumService) RemovePlantFromAlbum(ctx context.Context, id uuid.UUID, plantID uuid.UUID) error {
@@ -130,7 +133,7 @@ func (s *AlbumService) RemovePlantFromAlbum(ctx context.Context, id uuid.UUID, p
 	if err != nil {
 		return Wrap(err)
 	}
-	return Wrap(err)
+	return nil
 }
 
 func (s *AlbumService) DeleteAlbum(ctx context.Context, id uuid.UUID) error {
