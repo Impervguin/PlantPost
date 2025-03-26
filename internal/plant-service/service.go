@@ -32,6 +32,7 @@ func NewPlantService(repository plant.PlantRepository, crep plant.PlantCategoryR
 }
 
 func (s *PlantService) UpdatePlantSpec(ctx context.Context, id uuid.UUID, spec plant.PlantSpecification) error {
+	
 	user := authservice.UserFromContext(ctx)
 	if user == nil {
 		return ErrNotAuthorized

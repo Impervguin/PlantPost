@@ -28,8 +28,10 @@ func TestSearchPosts(t *testing.T) {
 	require.NoError(t, err)
 
 	photos := post.NewPostPhotos()
-	photos.Add(photo1)
-	photos.Add(photo2)
+	err = photos.Add(photo1)
+	require.NoError(t, err)
+	err = photos.Add(photo2)
+	require.NoError(t, err)
 
 	validPost, err := post.NewPost(
 		"Test Post",
@@ -38,6 +40,7 @@ func TestSearchPosts(t *testing.T) {
 		validUserID,
 		photos,
 	)
+	require.NoError(t, err)
 
 	createdAt := validPost.CreatedAt()
 	updatedAt := validPost.UpdatedAt()

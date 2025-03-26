@@ -85,8 +85,8 @@ func (s *AlbumService) UpdateAlbumDescription(ctx context.Context, id uuid.UUID,
 		if a.GetOwnerID() != user.ID() {
 			return nil, ErrNotOwner
 		}
-		a.UpdateDescription(description)
-		return a, nil
+		err := a.UpdateDescription(description)
+		return a, err
 	})
 	if err != nil {
 		return Wrap(err)

@@ -37,7 +37,10 @@ func (s *PostService) CreatePost(ctx context.Context, data CreatePostTextData, f
 			return nil, err
 		}
 		// photos = append(photos, *photo)
-		photos.Add(photo)
+		err = photos.Add(photo)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	post, err := post.NewPost(data.Title, data.Content, data.Tags, user.ID(), photos)

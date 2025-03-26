@@ -2,7 +2,6 @@ package postservice_test
 
 import (
 	"context"
-	"testing"
 
 	authservice "PlantSite/internal/auth-service"
 	"PlantSite/internal/models"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 // MockPostRepository implements post.PostRepository interface
@@ -127,25 +125,4 @@ func (m *MockUser) HasAuthorRights() bool {
 
 func PutUserInContext(ctx context.Context, user auth.User) context.Context {
 	return context.WithValue(ctx, authservice.AuthContextKey, user)
-}
-
-// Test helper functions
-func createValidPost(t *testing.T) *post.Post {
-	content, err := post.NewContent("Test content", post.ContentTypePlainText)
-	require.NoError(t, err)
-
-	photos := post.NewPostPhotos()
-	photo, err := post.NewPostPhoto(uuid.New(), 1)
-	require.NoError(t, err)
-	require.NoError(t, photos.Add(photo))
-
-	p, err := post.NewPost(
-		"Test Post",
-		*content,
-		[]string{"tag1", "tag2"},
-		uuid.New(),
-		photos,
-	)
-	require.NoError(t, err)
-	return p
 }

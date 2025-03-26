@@ -28,8 +28,10 @@ func TestUpdatePost(t *testing.T) {
 	require.NoError(t, err)
 
 	photos := post.NewPostPhotos()
-	photos.Add(photo1)
-	photos.Add(photo2)
+	err = photos.Add(photo1)
+	require.NoError(t, err)
+	err = photos.Add(photo2)
+	require.NoError(t, err)
 
 	validPost, err := post.CreatePost(
 		uuid.New(),
@@ -41,6 +43,7 @@ func TestUpdatePost(t *testing.T) {
 		time.Now().Add(-time.Hour),
 		time.Now().Add(-time.Hour).Add(time.Minute),
 	)
+	require.NoError(t, err)
 
 	validPostID := validPost.ID()
 	createdAt := validPost.CreatedAt()

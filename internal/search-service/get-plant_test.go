@@ -154,6 +154,7 @@ func TestGetPlantByID(t *testing.T) {
 			validCategoryName,
 			validSpec,
 		)
+		require.NoError(t, err)
 
 		srepo.On("GetPlantByID", ctx, validPlantID).Return(plantNoPhotos, nil)
 		pfrepo.On("Get", ctx, mainPhotoFile.ID).Return(mainPhotoFile, nil)

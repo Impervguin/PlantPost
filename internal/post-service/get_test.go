@@ -27,8 +27,10 @@ func TestGetPost(t *testing.T) {
 	require.NoError(t, err)
 
 	photos := post.NewPostPhotos()
-	photos.Add(photo1)
-	photos.Add(photo2)
+	err = photos.Add(photo1)
+	require.NoError(t, err)
+	err = photos.Add(photo2)
+	require.NoError(t, err)
 
 	validPost, err := post.NewPost(
 		"Test Post",
@@ -37,6 +39,7 @@ func TestGetPost(t *testing.T) {
 		validUserID,
 		photos,
 	)
+	require.NoError(t, err)
 
 	validPostID := validPost.ID()
 	createdAt := validPost.CreatedAt()
@@ -161,6 +164,7 @@ func TestGetPost(t *testing.T) {
 			validUserID,
 			noPhotos,
 		)
+		require.NoError(t, err)
 
 		user.On("HasAuthorRights").Return(true)
 		prepo.On("Get", mock.Anything, validPostID).Return(postNoPhotos, nil)
