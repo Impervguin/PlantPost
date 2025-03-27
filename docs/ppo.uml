@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmi:version="2.1" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmlns:uml="http://www.eclipse.org/uml2/3.0.0/UML" xmi:id="_dqyUAAmEEfC2xKQ3tTe8Hg" name="ppo">
+  <eAnnotations xmi:id="_dqyUAQmEEfC2xKQ3tTe8Hg" source="Objing">
+    <contents xmi:type="uml:Property" xmi:id="_dqyUAgmEEfC2xKQ3tTe8Hg" name="exporterVersion">
+      <defaultValue xmi:type="uml:LiteralString" xmi:id="_dqyUAwmEEfC2xKQ3tTe8Hg" value="3.0.0"/>
+    </contents>
+  </eAnnotations>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUBAmEEfC2xKQ3tTe8Hg" name="Http-handler" clientDependency="_dqyUCwmEEfC2xKQ3tTe8Hg">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUBQmEEfC2xKQ3tTe8Hg" name="Port1"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUBgmEEfC2xKQ3tTe8Hg" name="Port2"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUBwmEEfC2xKQ3tTe8Hg" name="Port3"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUCAmEEfC2xKQ3tTe8Hg" name="Port4"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUCQmEEfC2xKQ3tTe8Hg" name="Port5"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUCgmEEfC2xKQ3tTe8Hg" name="Port6"/>
+    <realization xmi:id="_dqyUCwmEEfC2xKQ3tTe8Hg" supplier="_dqyUDAmEEfC2xKQ3tTe8Hg" client="_dqyUBAmEEfC2xKQ3tTe8Hg" realizingClassifier="_dqyUDAmEEfC2xKQ3tTe8Hg"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUDAmEEfC2xKQ3tTe8Hg" name="Frontend"/>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUDQmEEfC2xKQ3tTe8Hg" name="Guard service">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUDgmEEfC2xKQ3tTe8Hg" name="Port"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUDwmEEfC2xKQ3tTe8Hg" name="Port1"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUEAmEEfC2xKQ3tTe8Hg" name="Plant service">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUEQmEEfC2xKQ3tTe8Hg" name="Port"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUEgmEEfC2xKQ3tTe8Hg" name="Port1"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUEwmEEfC2xKQ3tTe8Hg" name="Port2"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUFAmEEfC2xKQ3tTe8Hg" name="Post service">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUFQmEEfC2xKQ3tTe8Hg" name="Port"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUFgmEEfC2xKQ3tTe8Hg" name="Port1"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUFwmEEfC2xKQ3tTe8Hg" name="Port2"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUGAmEEfC2xKQ3tTe8Hg" name="Album service">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUGQmEEfC2xKQ3tTe8Hg" name="Port"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUGgmEEfC2xKQ3tTe8Hg" name="Port1"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUGwmEEfC2xKQ3tTe8Hg" name="Search service">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUHAmEEfC2xKQ3tTe8Hg" name="Port"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUHQmEEfC2xKQ3tTe8Hg" name="Port1"/>
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUHgmEEfC2xKQ3tTe8Hg" name="Port2"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUHwmEEfC2xKQ3tTe8Hg" name="Plant access">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUIAmEEfC2xKQ3tTe8Hg" name="Port"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUIQmEEfC2xKQ3tTe8Hg" name="Post access">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUIgmEEfC2xKQ3tTe8Hg" name="Port"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUIwmEEfC2xKQ3tTe8Hg" name="Album access">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUJAmEEfC2xKQ3tTe8Hg" name="Port"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUJQmEEfC2xKQ3tTe8Hg" name="Search access">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUJgmEEfC2xKQ3tTe8Hg" name="Port"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUJwmEEfC2xKQ3tTe8Hg" name="File access">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUKAmEEfC2xKQ3tTe8Hg" name="Port"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUKQmEEfC2xKQ3tTe8Hg" name="Guard access">
+    <ownedAttribute xmi:type="uml:Port" xmi:id="_dqyUKgmEEfC2xKQ3tTe8Hg" name="Port"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqyUKwmEEfC2xKQ3tTe8Hg" name="Session storage" clientDependency="_dqyULAmEEfC2xKQ3tTe8Hg">
+    <realization xmi:id="_dqyULAmEEfC2xKQ3tTe8Hg" supplier="_dqyUKQmEEfC2xKQ3tTe8Hg" client="_dqyUKwmEEfC2xKQ3tTe8Hg" realizingClassifier="_dqyUKQmEEfC2xKQ3tTe8Hg"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqy7EAmEEfC2xKQ3tTe8Hg" name="Database" clientDependency="_dqy7EQmEEfC2xKQ3tTe8Hg _dqy7EgmEEfC2xKQ3tTe8Hg _dqy7EwmEEfC2xKQ3tTe8Hg _dqy7FAmEEfC2xKQ3tTe8Hg _dqy7FQmEEfC2xKQ3tTe8Hg _dqy7FgmEEfC2xKQ3tTe8Hg">
+    <realization xmi:id="_dqy7EQmEEfC2xKQ3tTe8Hg" supplier="_dqyUJwmEEfC2xKQ3tTe8Hg" client="_dqy7EAmEEfC2xKQ3tTe8Hg" realizingClassifier="_dqyUJwmEEfC2xKQ3tTe8Hg"/>
+    <realization xmi:id="_dqy7EgmEEfC2xKQ3tTe8Hg" supplier="_dqyUJQmEEfC2xKQ3tTe8Hg" client="_dqy7EAmEEfC2xKQ3tTe8Hg" realizingClassifier="_dqyUJQmEEfC2xKQ3tTe8Hg"/>
+    <realization xmi:id="_dqy7EwmEEfC2xKQ3tTe8Hg" supplier="_dqyUIwmEEfC2xKQ3tTe8Hg" client="_dqy7EAmEEfC2xKQ3tTe8Hg" realizingClassifier="_dqyUIwmEEfC2xKQ3tTe8Hg"/>
+    <realization xmi:id="_dqy7FAmEEfC2xKQ3tTe8Hg" supplier="_dqyUIQmEEfC2xKQ3tTe8Hg" client="_dqy7EAmEEfC2xKQ3tTe8Hg" realizingClassifier="_dqyUIQmEEfC2xKQ3tTe8Hg"/>
+    <realization xmi:id="_dqy7FQmEEfC2xKQ3tTe8Hg" supplier="_dqyUHwmEEfC2xKQ3tTe8Hg" client="_dqy7EAmEEfC2xKQ3tTe8Hg" realizingClassifier="_dqyUHwmEEfC2xKQ3tTe8Hg"/>
+    <realization xmi:id="_dqy7FgmEEfC2xKQ3tTe8Hg" supplier="_dqyUKQmEEfC2xKQ3tTe8Hg" client="_dqy7EAmEEfC2xKQ3tTe8Hg" realizingClassifier="_dqyUKQmEEfC2xKQ3tTe8Hg"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Component" xmi:id="_dqy7FwmEEfC2xKQ3tTe8Hg" name="Object storage" clientDependency="_dqy7GAmEEfC2xKQ3tTe8Hg">
+    <realization xmi:id="_dqy7GAmEEfC2xKQ3tTe8Hg" supplier="_dqyUJwmEEfC2xKQ3tTe8Hg" client="_dqy7FwmEEfC2xKQ3tTe8Hg" realizingClassifier="_dqyUJwmEEfC2xKQ3tTe8Hg"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7GQmEEfC2xKQ3tTe8Hg" name="Authorizer">
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7GgmEEfC2xKQ3tTe8Hg" name="Register()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7GwmEEfC2xKQ3tTe8Hg" name="Login()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7HAmEEfC2xKQ3tTe8Hg" name="Logout()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7HQmEEfC2xKQ3tTe8Hg" name="Authenticate()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7HgmEEfC2xKQ3tTe8Hg" name="Planter">
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7HwmEEfC2xKQ3tTe8Hg" name=" CreatePlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7IAmEEfC2xKQ3tTe8Hg" name=" UpdatePlantSpec()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7IQmEEfC2xKQ3tTe8Hg" name=" DeletePlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7IgmEEfC2xKQ3tTe8Hg" name=" GetPlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7IwmEEfC2xKQ3tTe8Hg" name="ListCategories()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7JAmEEfC2xKQ3tTe8Hg" name="UploadPlantPhoto()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7JQmEEfC2xKQ3tTe8Hg" name="Poster">
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7JgmEEfC2xKQ3tTe8Hg" name="DeletePost()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7JwmEEfC2xKQ3tTe8Hg" name="GetPost()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7KAmEEfC2xKQ3tTe8Hg" name="CreatePost()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7KQmEEfC2xKQ3tTe8Hg" name="UpdatePostText()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7KgmEEfC2xKQ3tTe8Hg" name="Albumer">
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7KwmEEfC2xKQ3tTe8Hg" name="+ CreateAlbum()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7LAmEEfC2xKQ3tTe8Hg" name="+ GetAlbum()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7LQmEEfC2xKQ3tTe8Hg" name="+ DeleteAlbum()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7LgmEEfC2xKQ3tTe8Hg" name="+ UpdateAlbumName()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7LwmEEfC2xKQ3tTe8Hg" name="UpdateAlbumDescription()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7MAmEEfC2xKQ3tTe8Hg" name="AddPlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7MQmEEfC2xKQ3tTe8Hg" name="RemovePlant()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7MgmEEfC2xKQ3tTe8Hg" name="Searcher">
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7MwmEEfC2xKQ3tTe8Hg" name="GetPlant()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7NAmEEfC2xKQ3tTe8Hg" name="Plant">
+    <ownedAttribute xmi:id="_dqy7NQmEEfC2xKQ3tTe8Hg" name="Name" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7NgmEEfC2xKQ3tTe8Hg" name="LatinName" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7NwmEEfC2xKQ3tTe8Hg" name="Description" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7OAmEEfC2xKQ3tTe8Hg" name="MainPhoto" visibility="public" type="_dqy76wmEEfC2xKQ3tTe8Hg" isUnique="false"/>
+    <ownedAttribute xmi:id="_dqy7OQmEEfC2xKQ3tTe8Hg" name="Photos" visibility="public" type="_dqy76wmEEfC2xKQ3tTe8Hg" isUnique="false"/>
+    <ownedAttribute xmi:id="_dqy7OgmEEfC2xKQ3tTe8Hg" name="Category" visibility="public" type="_dqy77wmEEfC2xKQ3tTe8Hg" isUnique="false"/>
+    <ownedAttribute xmi:id="_dqy7OwmEEfC2xKQ3tTe8Hg" name="Parameters" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7PAmEEfC2xKQ3tTe8Hg" name="File">
+    <ownedAttribute xmi:id="_dqy7PQmEEfC2xKQ3tTe8Hg" name="ID" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7PgmEEfC2xKQ3tTe8Hg" name="Name" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7PwmEEfC2xKQ3tTe8Hg" name="Path" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7QAmEEfC2xKQ3tTe8Hg" name="Type" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7QQmEEfC2xKQ3tTe8Hg" name="UploadedAt" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7QgmEEfC2xKQ3tTe8Hg" name="Auth Service">
+    <generalization xmi:id="_dqy7QwmEEfC2xKQ3tTe8Hg" general="_dqy7GQmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7RAmEEfC2xKQ3tTe8Hg" name="Register()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7RQmEEfC2xKQ3tTe8Hg" name="Login()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7RgmEEfC2xKQ3tTe8Hg" name="Logout()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7RwmEEfC2xKQ3tTe8Hg" name="Authenticate()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7SAmEEfC2xKQ3tTe8Hg" name="Plant Service">
+    <generalization xmi:id="_dqy7SQmEEfC2xKQ3tTe8Hg" general="_dqy7HgmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7SgmEEfC2xKQ3tTe8Hg" name="CreatePlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7SwmEEfC2xKQ3tTe8Hg" name="UpdatePlantSpec()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7TAmEEfC2xKQ3tTe8Hg" name="DeletePlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7TQmEEfC2xKQ3tTe8Hg" name="GetPlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7TgmEEfC2xKQ3tTe8Hg" name="ListCategories()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7TwmEEfC2xKQ3tTe8Hg" name="UploadPlantPhoto()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7UAmEEfC2xKQ3tTe8Hg" name="Post Service">
+    <generalization xmi:id="_dqy7UQmEEfC2xKQ3tTe8Hg" general="_dqy7JQmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7UgmEEfC2xKQ3tTe8Hg" name="DeletePost()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7UwmEEfC2xKQ3tTe8Hg" name="GetPost()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7VAmEEfC2xKQ3tTe8Hg" name="CreatePost()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7VQmEEfC2xKQ3tTe8Hg" name="UpdatePostText()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7VgmEEfC2xKQ3tTe8Hg" name="Album Service">
+    <generalization xmi:id="_dqy7VwmEEfC2xKQ3tTe8Hg" general="_dqy7KgmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7WAmEEfC2xKQ3tTe8Hg" name="CreateAlbum()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7WQmEEfC2xKQ3tTe8Hg" name="GetAlbum()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7WgmEEfC2xKQ3tTe8Hg" name="DeleteAlbum()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7WwmEEfC2xKQ3tTe8Hg" name="UpdateAlbumName()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7XAmEEfC2xKQ3tTe8Hg" name="UpdateAlbumDescription()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7XQmEEfC2xKQ3tTe8Hg" name="AddPlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7XgmEEfC2xKQ3tTe8Hg" name="RemovePlant()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7XwmEEfC2xKQ3tTe8Hg" name="Search Service">
+    <generalization xmi:id="_dqy7YAmEEfC2xKQ3tTe8Hg" general="_dqy7MgmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7YQmEEfC2xKQ3tTe8Hg" name="SearchPlants()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7YgmEEfC2xKQ3tTe8Hg" name="SearchPosts()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7YwmEEfC2xKQ3tTe8Hg" name="GetPost()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7ZAmEEfC2xKQ3tTe8Hg" name="GetPlant()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7ZQmEEfC2xKQ3tTe8Hg" name="User Repository">
+    <ownedAttribute xmi:id="_dqy7ZgmEEfC2xKQ3tTe8Hg" name="guard Service" visibility="public" type="_dqy7QgmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7bQmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7ZwmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7aAmEEfC2xKQ3tTe8Hg" name="Get()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7aQmEEfC2xKQ3tTe8Hg" name="Create()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7agmEEfC2xKQ3tTe8Hg" name="Update()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7awmEEfC2xKQ3tTe8Hg" name="GetByName()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7bAmEEfC2xKQ3tTe8Hg" name="GetByEmail()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7bQmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7ZgmEEfC2xKQ3tTe8Hg _dqy7bgmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7bgmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7ZQmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7bQmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7bwmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7cAmEEfC2xKQ3tTe8Hg" name="Session Repository">
+    <ownedAttribute xmi:id="_dqy7cQmEEfC2xKQ3tTe8Hg" name="guard Service" visibility="public" type="_dqy7QgmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7dwmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7cgmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7cwmEEfC2xKQ3tTe8Hg" name="Get()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7dAmEEfC2xKQ3tTe8Hg" name="Store()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7dQmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7dgmEEfC2xKQ3tTe8Hg" name="ClearExpired()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7dwmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7cQmEEfC2xKQ3tTe8Hg _dqy7eAmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7eAmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7cAmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7dwmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7eQmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7egmEEfC2xKQ3tTe8Hg" name="Hasher">
+    <ownedAttribute xmi:id="_dqy7ewmEEfC2xKQ3tTe8Hg" name="guard Service" visibility="public" type="_dqy7QgmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7fwmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7fAmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7fQmEEfC2xKQ3tTe8Hg" name="Hash()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7fgmEEfC2xKQ3tTe8Hg" name="Compare()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7fwmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7ewmEEfC2xKQ3tTe8Hg _dqy7gAmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7gAmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7egmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7fwmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7gQmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7ggmEEfC2xKQ3tTe8Hg" name="Plant Repository">
+    <ownedAttribute xmi:id="_dqy7gwmEEfC2xKQ3tTe8Hg" name="plant Service" visibility="public" type="_dqy7SAmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7iQmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7hAmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7hQmEEfC2xKQ3tTe8Hg" name="Create()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7hgmEEfC2xKQ3tTe8Hg" name="Update()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7hwmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7iAmEEfC2xKQ3tTe8Hg" name="Get()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7iQmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7gwmEEfC2xKQ3tTe8Hg _dqy7igmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7igmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7ggmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7iQmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7iwmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7jAmEEfC2xKQ3tTe8Hg" name="Post Repository">
+    <ownedAttribute xmi:id="_dqy7jQmEEfC2xKQ3tTe8Hg" name="post Service" visibility="public" type="_dqy7UAmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7kwmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7jgmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7jwmEEfC2xKQ3tTe8Hg" name="Create()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7kAmEEfC2xKQ3tTe8Hg" name="Update()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7kQmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7kgmEEfC2xKQ3tTe8Hg" name="Get()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7kwmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7jQmEEfC2xKQ3tTe8Hg _dqy7lAmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7lAmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7jAmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7kwmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7lQmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7lgmEEfC2xKQ3tTe8Hg" name="Album Repository">
+    <ownedAttribute xmi:id="_dqy7lwmEEfC2xKQ3tTe8Hg" name="album Service" visibility="public" type="_dqy7VgmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7ngmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7mAmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7mQmEEfC2xKQ3tTe8Hg" name="Create()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7mgmEEfC2xKQ3tTe8Hg" name="Update()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7mwmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7nAmEEfC2xKQ3tTe8Hg" name="Get()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7nQmEEfC2xKQ3tTe8Hg" name="List()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7ngmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7lwmEEfC2xKQ3tTe8Hg _dqy7nwmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7nwmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7lgmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7ngmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7oAmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7oQmEEfC2xKQ3tTe8Hg" name="File Repository">
+    <ownedAttribute xmi:id="_dqy7ogmEEfC2xKQ3tTe8Hg" name="plant Service" visibility="public" type="_dqy7SAmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7rQmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7owmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7pAmEEfC2xKQ3tTe8Hg" name="post Service" visibility="public" type="_dqy7UAmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7sAmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7pQmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7pgmEEfC2xKQ3tTe8Hg" name="search Service" visibility="public" type="_dqy7XwmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7swmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7pwmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7qAmEEfC2xKQ3tTe8Hg" name="Upload()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7qQmEEfC2xKQ3tTe8Hg" name="Download()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7qgmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7qwmEEfC2xKQ3tTe8Hg" name="Update()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7rAmEEfC2xKQ3tTe8Hg" name="Get()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7rQmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7ogmEEfC2xKQ3tTe8Hg _dqy7rgmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7rgmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7oQmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7rQmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7rwmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7sAmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7pAmEEfC2xKQ3tTe8Hg _dqy7sQmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7sQmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7oQmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7sAmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7sgmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7swmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7pgmEEfC2xKQ3tTe8Hg _dqy7tAmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7tAmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7oQmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7swmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7tQmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7tgmEEfC2xKQ3tTe8Hg" name="Search Repository">
+    <ownedAttribute xmi:id="_dqy7twmEEfC2xKQ3tTe8Hg" name="search Service" visibility="public" type="_dqy7XwmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7vQmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7uAmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7uQmEEfC2xKQ3tTe8Hg" name="SearchPlants()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7ugmEEfC2xKQ3tTe8Hg" name="SearchPosts()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7uwmEEfC2xKQ3tTe8Hg" name="GetPlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7vAmEEfC2xKQ3tTe8Hg" name="GetPost()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqy7vQmEEfC2xKQ3tTe8Hg" memberEnd="_dqy7twmEEfC2xKQ3tTe8Hg _dqy7vgmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqy7vgmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy7tgmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqy7vQmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqy7vwmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7wAmEEfC2xKQ3tTe8Hg" name=" SyncMap Sessions">
+    <generalization xmi:id="_dqy7wQmEEfC2xKQ3tTe8Hg" general="_dqy7cAmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7wgmEEfC2xKQ3tTe8Hg" name="Get()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7wwmEEfC2xKQ3tTe8Hg" name="Store()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7xAmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7xQmEEfC2xKQ3tTe8Hg" name="ClearExpired()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7xgmEEfC2xKQ3tTe8Hg" name="BcryptHasher">
+    <generalization xmi:id="_dqy7xwmEEfC2xKQ3tTe8Hg" general="_dqy7egmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7yAmEEfC2xKQ3tTe8Hg" name="Hash()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7yQmEEfC2xKQ3tTe8Hg" name="Compare()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7ygmEEfC2xKQ3tTe8Hg" name="Pg User Repository">
+    <generalization xmi:id="_dqy7ywmEEfC2xKQ3tTe8Hg" general="_dqy7ZQmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7zAmEEfC2xKQ3tTe8Hg" name="GetByID()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7zQmEEfC2xKQ3tTe8Hg" name="GetByName()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7zgmEEfC2xKQ3tTe8Hg" name="GetModeratorByUserId()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy7zwmEEfC2xKQ3tTe8Hg" name="Add()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy70AmEEfC2xKQ3tTe8Hg" name="Update()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy70QmEEfC2xKQ3tTe8Hg" name="Pg Plant Repository">
+    <generalization xmi:id="_dqy70gmEEfC2xKQ3tTe8Hg" general="_dqy7ggmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy70wmEEfC2xKQ3tTe8Hg" name="Create()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy71AmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy71QmEEfC2xKQ3tTe8Hg" name="Get()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy71gmEEfC2xKQ3tTe8Hg" name="Update()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy71wmEEfC2xKQ3tTe8Hg" name="Pg Album Repository">
+    <generalization xmi:id="_dqy72AmEEfC2xKQ3tTe8Hg" general="_dqy7lgmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy72QmEEfC2xKQ3tTe8Hg" name="Create()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy72gmEEfC2xKQ3tTe8Hg" name="Update()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy72wmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy73AmEEfC2xKQ3tTe8Hg" name="Get()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy73QmEEfC2xKQ3tTe8Hg" name="List()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy73gmEEfC2xKQ3tTe8Hg" name="Minio File Repository">
+    <generalization xmi:id="_dqy73wmEEfC2xKQ3tTe8Hg" general="_dqy7oQmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy74AmEEfC2xKQ3tTe8Hg" name="Upload()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy74QmEEfC2xKQ3tTe8Hg" name="Download()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy74gmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy74wmEEfC2xKQ3tTe8Hg" name="Update()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy75AmEEfC2xKQ3tTe8Hg" name="Get()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy75QmEEfC2xKQ3tTe8Hg" name="Pg Search Repository">
+    <generalization xmi:id="_dqy75gmEEfC2xKQ3tTe8Hg" general="_dqy7tgmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy75wmEEfC2xKQ3tTe8Hg" name="GetPost()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy76AmEEfC2xKQ3tTe8Hg" name="GetPlant()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy76QmEEfC2xKQ3tTe8Hg" name="SearchPlants()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy76gmEEfC2xKQ3tTe8Hg" name="SearchAlbums()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy76wmEEfC2xKQ3tTe8Hg" name="PlantPhoto">
+    <ownedAttribute xmi:id="_dqy77AmEEfC2xKQ3tTe8Hg" name="ID" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy77QmEEfC2xKQ3tTe8Hg" name="Photo" visibility="public" type="_dqy7PAmEEfC2xKQ3tTe8Hg" isUnique="false"/>
+    <ownedAttribute xmi:id="_dqy77gmEEfC2xKQ3tTe8Hg" name="Description" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy77wmEEfC2xKQ3tTe8Hg" name="PlantCategory">
+    <ownedAttribute xmi:id="_dqy78AmEEfC2xKQ3tTe8Hg" name="ID" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy78QmEEfC2xKQ3tTe8Hg" name="Name" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy78gmEEfC2xKQ3tTe8Hg" name="Photo" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy78wmEEfC2xKQ3tTe8Hg" name="PossibleAttributes" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy79AmEEfC2xKQ3tTe8Hg" name="Album">
+    <ownedAttribute xmi:id="_dqy79QmEEfC2xKQ3tTe8Hg" name="ID" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy79gmEEfC2xKQ3tTe8Hg" name="Name" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy79wmEEfC2xKQ3tTe8Hg" name="Description" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7-AmEEfC2xKQ3tTe8Hg" name="Owner" visibility="public" type="_dqy8AgmEEfC2xKQ3tTe8Hg" isUnique="false"/>
+    <ownedAttribute xmi:id="_dqy7-QmEEfC2xKQ3tTe8Hg" name="Plants" visibility="public" type="_dqy7NAmEEfC2xKQ3tTe8Hg" isUnique="false"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy7-gmEEfC2xKQ3tTe8Hg" name="Post">
+    <ownedAttribute xmi:id="_dqy7-wmEEfC2xKQ3tTe8Hg" name="ID" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7_AmEEfC2xKQ3tTe8Hg" name="Title" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7_QmEEfC2xKQ3tTe8Hg" name="Body" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7_gmEEfC2xKQ3tTe8Hg" name="Tags" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy7_wmEEfC2xKQ3tTe8Hg" name="Photos" visibility="public" type="_dqy8DgmEEfC2xKQ3tTe8Hg" isUnique="false"/>
+    <ownedAttribute xmi:id="_dqy8AAmEEfC2xKQ3tTe8Hg" name="CreatedAt" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8AQmEEfC2xKQ3tTe8Hg" name="Creator" visibility="public" type="_dqy8CQmEEfC2xKQ3tTe8Hg" isUnique="false"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy8AgmEEfC2xKQ3tTe8Hg" name="User">
+    <ownedAttribute xmi:id="_dqy8AwmEEfC2xKQ3tTe8Hg" name="ID" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8BAmEEfC2xKQ3tTe8Hg" name="Nickname" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8BQmEEfC2xKQ3tTe8Hg" name="Email" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8BgmEEfC2xKQ3tTe8Hg" name="Credentials" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8BwmEEfC2xKQ3tTe8Hg" name="RegisteredAt" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8CAmEEfC2xKQ3tTe8Hg" name="AuthAt" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy8CQmEEfC2xKQ3tTe8Hg" name="Author">
+    <ownedAttribute xmi:id="_dqy8CgmEEfC2xKQ3tTe8Hg" name="User" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8CwmEEfC2xKQ3tTe8Hg" name="HasRights" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8DAmEEfC2xKQ3tTe8Hg" name="GrantAt" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8DQmEEfC2xKQ3tTe8Hg" name="RevokeAt" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy8DgmEEfC2xKQ3tTe8Hg" name="PostImage">
+    <ownedAttribute xmi:id="_dqy8DwmEEfC2xKQ3tTe8Hg" name="Number" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_dqy8EAmEEfC2xKQ3tTe8Hg" name="Photo" visibility="public" type="_dqy7PAmEEfC2xKQ3tTe8Hg" isUnique="false"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy8EQmEEfC2xKQ3tTe8Hg" name="Class"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy8EgmEEfC2xKQ3tTe8Hg" name="Class1"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy8EwmEEfC2xKQ3tTe8Hg" name="Pg Post Repository">
+    <generalization xmi:id="_dqy8FAmEEfC2xKQ3tTe8Hg" general="_dqy7jAmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy8FQmEEfC2xKQ3tTe8Hg" name="Create()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy8FgmEEfC2xKQ3tTe8Hg" name="Update()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy8FwmEEfC2xKQ3tTe8Hg" name="Delete()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqy8GAmEEfC2xKQ3tTe8Hg" name="Get()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqy8GQmEEfC2xKQ3tTe8Hg" name="Plant Category Repository">
+    <ownedAttribute xmi:id="_dqy8GgmEEfC2xKQ3tTe8Hg" name="plant Service" visibility="public" type="_dqy7SAmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqziIwmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqziIAmEEfC2xKQ3tTe8Hg"/>
+    </ownedAttribute>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqziIQmEEfC2xKQ3tTe8Hg" name="GetCategory()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqziIgmEEfC2xKQ3tTe8Hg" name="GetCategories()"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_dqziIwmEEfC2xKQ3tTe8Hg" memberEnd="_dqy8GgmEEfC2xKQ3tTe8Hg _dqziJAmEEfC2xKQ3tTe8Hg">
+    <ownedEnd xmi:id="_dqziJAmEEfC2xKQ3tTe8Hg" visibility="public" type="_dqy8GQmEEfC2xKQ3tTe8Hg" isUnique="false" association="_dqziIwmEEfC2xKQ3tTe8Hg">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_dqziJQmEEfC2xKQ3tTe8Hg"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_dqziJgmEEfC2xKQ3tTe8Hg" name="Pg Plant Category Repository">
+    <generalization xmi:id="_dqziJwmEEfC2xKQ3tTe8Hg" general="_dqy8GQmEEfC2xKQ3tTe8Hg"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqziKAmEEfC2xKQ3tTe8Hg" name="GetCategory()"/>
+    <nestedClassifier xmi:type="uml:Signal" xmi:id="_dqziKQmEEfC2xKQ3tTe8Hg" name="GetCategories()"/>
+  </packagedElement>
+</uml:Model>
