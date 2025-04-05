@@ -39,6 +39,7 @@
  - Язык программирования: **Go**
  - Http-handlers: **Gin**
  - Html-renderer: **Templ**
+ - Postgres-driver: **Pgx** + **Squirrel**
  - База данных: **Postgresql**
  - Объектное хранилище: **Minio**
  - Unit-тестирование: **Go-test, Testify**

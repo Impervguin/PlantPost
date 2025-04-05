@@ -78,3 +78,19 @@ func (m *Member) Auth(passwd []byte, authFunc func(hashPasswd []byte, plainPassw
 func (m *Member) ID() uuid.UUID {
 	return m.id
 }
+
+func (m *Member) Name() string {
+	return m.name
+}
+
+func (m *Member) Email() string {
+	return m.email
+}
+
+func (m *Member) HashedPassword() []byte {
+	return m.hashPasswd
+}
+
+func (m *Member) CreatedAt() time.Time {
+	return m.createdAt
+}

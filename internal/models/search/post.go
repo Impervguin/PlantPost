@@ -10,10 +10,17 @@ import (
 
 type PostFilter interface {
 	Filter(p *post.Post) bool
+	Identifier() string
 }
 
 type PostTitleFilter struct {
 	Title string
+}
+
+var _ PostFilter = &PostTitleFilter{}
+
+func (p *PostTitleFilter) Identifier() string {
+	return PostTitleFilterID
 }
 
 func NewPostTitleFilter(title string) *PostTitleFilter {
@@ -28,6 +35,12 @@ type PostTitleContainsFilter struct {
 	Part string
 }
 
+var _ PostFilter = &PostTitleContainsFilter{}
+
+func (p *PostTitleContainsFilter) Identifier() string {
+	return PostTitleContainsFilterID
+}
+
 func NewPostTitleContainsFilter(part string) *PostTitleContainsFilter {
 	return &PostTitleContainsFilter{Part: part}
 }
@@ -37,19 +50,36 @@ func (p *PostTitleContainsFilter) Filter(post *post.Post) bool {
 }
 
 type PostTagFilter struct {
-	Tag string
+	Tags []string
 }
 
-func NewPostTagFilter(tag string) *PostTagFilter {
-	return &PostTagFilter{Tag: tag}
+var _ PostFilter = &PostTagFilter{}
+
+func (p *PostTagFilter) Identifier() string {
+	return PostTagFilterID
+}
+
+func NewPostTagFilter(tags []string) *PostTagFilter {
+	return &PostTagFilter{Tags: tags}
 }
 
 func (p *PostTagFilter) Filter(post *post.Post) bool {
-	return slices.Contains(post.Tags(), p.Tag)
+	for _, tag := range p.Tags {
+		if slices.Contains(post.Tags(), tag) {
+			return true
+		}
+	}
+	return false
 }
 
 type PostAuthorFilter struct {
 	AuthorID uuid.UUID
+}
+
+var _ PostFilter = &PostAuthorFilter{}
+
+func (p *PostAuthorFilter) Identifier() string {
+	return PostAuthorFilterID
 }
 
 func NewPostAuthorFilter(authorID uuid.UUID) *PostAuthorFilter {

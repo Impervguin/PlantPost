@@ -6,17 +6,15 @@ CREATE TABLE IF NOT EXISTS "user" (
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS author (
     id UUID PRIMARY KEY,
-    user_id UUID NOT NULL,
     has_rights BOOLEAN NOT NULL,
     grant_at TIMESTAMPTZ DEFAULT NOW(),
     revoke_at TIMESTAMPTZ DEFAULT NOW(),
-    FOREIGN KEY (user_id) REFERENCES "user"(id)
+    FOREIGN KEY (id) REFERENCES "user"(id)
 );
 
 CREATE TABLE IF NOT EXISTS plant_category (

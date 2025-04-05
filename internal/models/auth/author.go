@@ -65,3 +65,15 @@ func (a *Author) Auth(passwd []byte, authFunc func(hashPasswd []byte, plainPassw
 func (a *Author) ID() uuid.UUID {
 	return a.Member.ID()
 }
+
+func (a *Author) HasRights() bool {
+	return a.rights
+}
+
+func (a *Author) GiveTime() time.Time {
+	return a.giveTime
+}
+
+func (a *Author) RevokeTime() time.Time {
+	return a.revokeTime
+}

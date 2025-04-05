@@ -82,7 +82,7 @@ func TestPostFilters(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				filter := NewPostTagFilter(tt.tag)
+				filter := NewPostTagFilter([]string{tt.tag})
 				assert.Equal(t, tt.post1, filter.Filter(testPost1))
 				assert.Equal(t, tt.post2, filter.Filter(testPost2))
 				assert.Equal(t, tt.post3, filter.Filter(testPost3))

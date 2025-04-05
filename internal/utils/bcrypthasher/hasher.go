@@ -1,7 +1,7 @@
 package bcrypthasher
 
 import (
-	authservice "PlantSite/internal/auth-service"
+	authservice "PlantSite/internal/services/auth-service"
 
 	"golang.org/x/crypto/bcrypt"
 )

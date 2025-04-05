@@ -7,7 +7,9 @@ type PostSearch struct {
 }
 
 func NewPostSearch() *PostSearch {
-	return &PostSearch{}
+	return &PostSearch{
+		filters: make([]PostFilter, 0),
+	}
 }
 
 func (s *PostSearch) AddFilter(filter PostFilter) {
@@ -21,4 +23,13 @@ func (s *PostSearch) Filter(post *post.Post) bool {
 		}
 	}
 	return true
+}
+
+func (s *PostSearch) Iterate(fn func(PostFilter) error) error {
+	for _, f := range s.filters {
+		if err := fn(f); err != nil {
+			return err
+		}
+	}
+	return nil
 }
