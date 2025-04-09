@@ -87,7 +87,9 @@ func (album Album) Description() string {
 }
 
 func (album Album) PlantIDs() uuid.UUIDs {
-	return album.plantIDs
+	tmp := make(uuid.UUIDs, len(album.plantIDs))
+	copy(tmp, album.plantIDs)
+	return tmp
 }
 
 func (album Album) CreatedAt() time.Time {

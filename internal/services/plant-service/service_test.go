@@ -170,7 +170,7 @@ func TestPlantService(t *testing.T) {
 	ctx := context.Background()
 	validPlantID := uuid.New()
 	validFileID := uuid.New()
-	validCategoryName := "flowers"
+	validCategoryName := "mock"
 
 	// Create a valid plant for testing
 	validSpec := new(MockPlantSpecification)
@@ -189,6 +189,7 @@ func TestPlantService(t *testing.T) {
 	t.Run("UpdatePlantSpec", func(t *testing.T) {
 		newSpec := new(MockPlantSpecification)
 		newSpec.On("Validate").Return(nil)
+		newSpec.On("Category").Return(validCategoryName)
 
 		t.Run("Success", func(t *testing.T) {
 			prepo := new(MockPlantRepository)

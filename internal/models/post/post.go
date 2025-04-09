@@ -190,6 +190,10 @@ func (p *Post) AddPhoto(photo *PostPhoto) error {
 	return p.photos.Add(photo)
 }
 
+func (p *Post) ClearPhotos() {
+	p.photos.Clear()
+}
+
 type PostRepository interface {
 	Create(ctx context.Context, post *Post) (*Post, error)
 	Update(ctx context.Context, id uuid.UUID, updateFn func(*Post) (*Post, error)) (*Post, error)

@@ -1,0 +1,21 @@
+services:
+
+  minio:
+    container_name: minio-container
+    image: minio/minio:latest
+    command: server /data --address ':9000' --console-address ':9001'
+    environment:
+      - POSTGRES_USER=impi
+      - POSTGRES_PASSWORD=impi
+      - POSTGRES_DB=impi
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+

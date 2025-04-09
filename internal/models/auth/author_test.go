@@ -22,12 +22,12 @@ func TestAuthor(t *testing.T) {
 	validRevokeTime := time.Now().Add(1 * time.Hour)
 
 	t.Run("CreateAuthor - успешное создание", func(t *testing.T) {
-		author, err := CreateAuthor(validMember, validGiveTime, true, validRevokeTime)
+		author, err := CreateAuthor(validMember, validGiveTime, false, validRevokeTime)
 
 		require.NoError(t, err)
 		assert.Equal(t, validMember.ID(), author.ID())
 		assert.Equal(t, validGiveTime, author.giveTime)
-		assert.True(t, author.HasAuthorRights())
+		assert.False(t, author.HasAuthorRights())
 		assert.True(t, author.HasMemberRights())
 	})
 
@@ -58,14 +58,14 @@ func TestAuthor(t *testing.T) {
 				validMember,
 				validGiveTime,
 				validGiveTime.Add(-1 * time.Hour),
-				true,
+				false,
 			},
 			{
 				"Корректные данные",
 				validMember,
 				validGiveTime,
 				validRevokeTime,
-				false,
+				true,
 			},
 		}
 

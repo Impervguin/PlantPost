@@ -13,4 +13,5 @@ func (e *AuthServiceError) Error() string {
 var (
 	ErrInvalidCredentials = &AuthServiceError{msg: "invalid credentials"}
 	ErrSessionExpired     = &AuthServiceError{msg: "session expired"}
+	ErrSessionNotFound    = &AuthServiceError{msg: "session not found"}
 )

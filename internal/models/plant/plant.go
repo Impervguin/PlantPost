@@ -1,6 +1,7 @@
 package plant
 
 import (
+	"errors"
 	"fmt"
 
 	"time"
@@ -66,6 +67,7 @@ func (p *Plant) UpdateSpec(ps PlantSpecification) error {
 		return err
 	}
 	p.specification = ps
+	p.category = ps.Category()
 	p.updatedAt = time.Now()
 	return nil
 }
@@ -147,5 +149,59 @@ func (p *Plant) Validate() error {
 	if err := p.photos.Validate(); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (p *Plant) DeletePhoto(photoID uuid.UUID) error {
+	doneErr := errors.New("done")
+	err := p.photos.IterateUpdate(func(e *PlantPhoto) error {
+		if e.ID() == photoID {
+			p.photos.Remove(e)
+			p.updatedAt = time.Now()
+			return doneErr
+		}
+		return nil
+	})
+	if errors.Is(err, doneErr) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *Plant) UpdateName(name string) error {
+	if name == "" {
+		return fmt.Errorf("plant name cannot be empty")
+	}
+	p.name = name
+	p.updatedAt = time.Now()
+	return nil
+}
+
+func (p *Plant) UpdateLatinName(latinName string) error {
+	if latinName == "" {
+		return fmt.Errorf("plant latin name cannot be empty")
+	}
+	p.latinName = latinName
+	p.updatedAt = time.Now()
+	return nil
+}
+
+func (p *Plant) UpdateDescription(description string) error {
+	if description == "" {
+		return fmt.Errorf("plant description cannot be empty")
+	}
+	p.description = description
+	p.updatedAt = time.Now()
+	return nil
+}
+
+func (p *Plant) UpdateMainPhotoID(mainPhotoID uuid.UUID) error {
+	if mainPhotoID == uuid.Nil {
+		return fmt.Errorf("plant main photo ID cannot be empty")
+	}
+	p.mainPhotoID = mainPhotoID
+	p.updatedAt = time.Now()
 	return nil
 }

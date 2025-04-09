@@ -122,6 +122,11 @@ func (pp *PostPhotos) Remove(photoID uuid.UUID) error {
 	return fmt.Errorf("photo not found")
 }
 
+func (pp *PostPhotos) Clear() error {
+	pp.photos = make([]PostPhoto, 0)
+	return nil
+}
+
 func (pp PostPhotos) List() []PostPhoto {
 	ppcopy := make([]PostPhoto, len(pp.photos))
 	copy(ppcopy, pp.photos)

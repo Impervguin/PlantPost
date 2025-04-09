@@ -94,3 +94,33 @@ func (m *Member) HashedPassword() []byte {
 func (m *Member) CreatedAt() time.Time {
 	return m.createdAt
 }
+
+func (m *Member) UpdateName(name string) error {
+	previousName := m.name
+	m.name = name
+	if err := m.Validate(); err != nil {
+		m.name = previousName
+		return err
+	}
+	return nil
+}
+
+func (m *Member) UpdateEmail(email string) error {
+	previousEmail := m.email
+	m.email = email
+	if err := m.Validate(); err != nil {
+		m.email = previousEmail
+		return err
+	}
+	return nil
+}
+
+func (m *Member) UpdateHashedPassword(hashPasswd []byte) error {
+	previousHashPasswd := m.hashPasswd
+	m.hashPasswd = hashPasswd
+	if err := m.Validate(); err != nil {
+		m.hashPasswd = previousHashPasswd
+		return err
+	}
+	return nil
+}
