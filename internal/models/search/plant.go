@@ -8,14 +8,21 @@ import (
 
 type PlantFilter interface {
 	Filter(p *plant.Plant) bool
+	Identifier() string
 }
 
 type PlantNameFilter struct {
 	Name string
 }
 
+var _ PlantFilter = &PlantNameFilter{}
+
 func NewPlantNameFilter(name string) *PlantNameFilter {
 	return &PlantNameFilter{Name: name}
+}
+
+func (p *PlantNameFilter) Identifier() string {
+	return PlantNameFilterID
 }
 
 func (p *PlantNameFilter) Filter(plant *plant.Plant) bool {
@@ -26,6 +33,8 @@ type PlantCategoryFilter struct {
 	Category string
 }
 
+var _ PlantFilter = &PlantCategoryFilter{}
+
 func NewPlantCategoryFilter(category string) *PlantCategoryFilter {
 	return &PlantCategoryFilter{Category: category}
 }
@@ -34,9 +43,15 @@ func (p *PlantCategoryFilter) Filter(plant *plant.Plant) bool {
 	return plant.GetCategory() == p.Category
 }
 
+func (p *PlantCategoryFilter) Identifier() string {
+	return PlantCategoryFilterID
+}
+
 type PlantLatinNameFilter struct {
 	LatinName string
 }
+
+var _ PlantFilter = &PlantLatinNameFilter{}
 
 func NewPlantLatinNameFilter(latinName string) *PlantLatinNameFilter {
 	return &PlantLatinNameFilter{LatinName: latinName}
@@ -46,12 +61,22 @@ func (p *PlantLatinNameFilter) Filter(plant *plant.Plant) bool {
 	return plant.GetLatinName() == p.LatinName
 }
 
+func (p *PlantLatinNameFilter) Identifier() string {
+	return PlantLatinNameFilterID
+}
+
 type PlantHeightFilter struct {
 	Min, Max float64
 }
 
+var _ PlantFilter = &PlantHeightFilter{}
+
 func NewPlantHeightFilter(min, max float64) *PlantHeightFilter {
 	return &PlantHeightFilter{Min: min, Max: max}
+}
+
+func (p *PlantHeightFilter) Identifier() string {
+	return PlantHeightFilterID
 }
 
 func (p *PlantHeightFilter) Filter(pl *plant.Plant) bool {
@@ -67,6 +92,12 @@ func (p *PlantHeightFilter) Filter(pl *plant.Plant) bool {
 
 type PlantDiameterFilter struct {
 	Min, Max float64
+}
+
+var _ PlantFilter = &PlantDiameterFilter{}
+
+func (p *PlantDiameterFilter) Identifier() string {
+	return PlantDiameterFilterID
 }
 
 func NewPlantDiameterFilter(min, max float64) *PlantDiameterFilter {
@@ -88,6 +119,12 @@ type PlantSoilAcidityFilter struct {
 	Min, Max plant.SoilAcidity
 }
 
+var _ PlantFilter = &PlantSoilAcidityFilter{}
+
+func (p *PlantSoilAcidityFilter) Identifier() string {
+	return PlantSoilAcidityFilterID
+}
+
 func NewSoilAcidityFilter(min, max plant.SoilAcidity) *PlantSoilAcidityFilter {
 	return &PlantSoilAcidityFilter{Min: min, Max: max}
 }
@@ -105,6 +142,12 @@ func (p *PlantSoilAcidityFilter) Filter(pl *plant.Plant) bool {
 
 type PlantSoilMoistureFilter struct {
 	PossibleMoistures []plant.SoilMoisture
+}
+
+var _ PlantFilter = &PlantSoilMoistureFilter{}
+
+func (p *PlantSoilMoistureFilter) Identifier() string {
+	return PlantSoilMoistureFilterID
 }
 
 func NewSoilMoistureFilter(possibleMoistures []plant.SoilMoisture) *PlantSoilMoistureFilter {
@@ -126,6 +169,12 @@ type PlantLightRelationFilter struct {
 	PossibleRelations []plant.LightRelation
 }
 
+var _ PlantFilter = &PlantLightRelationFilter{}
+
+func (p *PlantLightRelationFilter) Identifier() string {
+	return PlantLightRelationFilterID
+}
+
 func NewLightRelationFilter(possibleRelations []plant.LightRelation) *PlantLightRelationFilter {
 	return &PlantLightRelationFilter{PossibleRelations: possibleRelations}
 }
@@ -143,6 +192,12 @@ func (p *PlantLightRelationFilter) Filter(pl *plant.Plant) bool {
 
 type PlantHardinessFilter struct {
 	Min, Max plant.WinterHardiness
+}
+
+var _ PlantFilter = &PlantHardinessFilter{}
+
+func (f *PlantHardinessFilter) Identifier() string {
+	return PlantWinterHardinessFilterID
 }
 
 func NewWinterHardinessFilter(min, max plant.WinterHardiness) *PlantHardinessFilter {
@@ -164,6 +219,12 @@ type PlantSoilTypeFilter struct {
 	PossibleSoilTypes []plant.Soil
 }
 
+var _ PlantFilter = &PlantSoilTypeFilter{}
+
+func (p *PlantSoilTypeFilter) Identifier() string {
+	return PlantSoilTypeFilterID
+}
+
 func NewSoilTypeFilter(possibleSoilTypes []plant.Soil) *PlantSoilTypeFilter {
 	return &PlantSoilTypeFilter{PossibleSoilTypes: possibleSoilTypes}
 }
@@ -181,6 +242,12 @@ func (p *PlantSoilTypeFilter) Filter(pl *plant.Plant) bool {
 
 type PlantFloweringPeriodFilter struct {
 	PossibleFloweringPeriods []plant.FloweringPeriod
+}
+
+var _ PlantFilter = &PlantFloweringPeriodFilter{}
+
+func (p *PlantFloweringPeriodFilter) Identifier() string {
+	return PlantFloweringPeriodFilterID
 }
 
 func NewFloweringPeriodFilter(arr []plant.FloweringPeriod) *PlantFloweringPeriodFilter {

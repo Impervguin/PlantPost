@@ -74,6 +74,32 @@ func (album *Album) Validate() error {
 	return nil
 }
 
+func (album Album) ID() uuid.UUID {
+	return album.id
+}
+
+func (album Album) Name() string {
+	return album.name
+}
+
+func (album Album) Description() string {
+	return album.description
+}
+
+func (album Album) PlantIDs() uuid.UUIDs {
+	tmp := make(uuid.UUIDs, len(album.plantIDs))
+	copy(tmp, album.plantIDs)
+	return tmp
+}
+
+func (album Album) CreatedAt() time.Time {
+	return album.createdAt
+}
+
+func (album Album) UpdatedAt() time.Time {
+	return album.updatedAt
+}
+
 func (album Album) GetOwnerID() uuid.UUID {
 	return album.ownerID
 }

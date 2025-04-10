@@ -7,7 +7,9 @@ type PlantSearch struct {
 }
 
 func NewPlantSearch() *PlantSearch {
-	return &PlantSearch{}
+	return &PlantSearch{
+		filters: make([]PlantFilter, 0),
+	}
 }
 
 func (s *PlantSearch) AddFilter(filter PlantFilter) {
@@ -21,4 +23,13 @@ func (s *PlantSearch) Filter(pl *plant.Plant) bool {
 		}
 	}
 	return true
+}
+
+func (s *PlantSearch) Iterate(fn func(PlantFilter) error) error {
+	for _, f := range s.filters {
+		if err := fn(f); err != nil {
+			return err
+		}
+	}
+	return nil
 }

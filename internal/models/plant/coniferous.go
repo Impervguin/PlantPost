@@ -92,3 +92,7 @@ func (c *ConiferousSpecification) GetSoilType() Soil {
 func (c *ConiferousSpecification) GetWinterHardiness() WinterHardiness {
 	return c.winterHardiness
 }
+
+func (c *ConiferousSpecification) Category() string {
+	return ConiferousCategory
+}

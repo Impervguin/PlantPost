@@ -1,8 +1,6 @@
 package plant
 
 import (
-	"context"
-
 	"github.com/google/uuid"
 )
 
@@ -25,9 +23,4 @@ type PlantCategory struct {
 	Name        string
 	MainPhotoID uuid.UUID
 	Params      []PlantParam
-}
-
-type PlantCategoryRepository interface {
-	GetCategories(ctx context.Context) ([]PlantCategory, error)
-	GetCategory(ctx context.Context, name string) (*PlantCategory, error)
 }

@@ -96,3 +96,7 @@ func (d DeciduousSpecification) GetSoilType() Soil {
 func (d DeciduousSpecification) GetWinterHardiness() WinterHardiness {
 	return d.winterHardiness
 }
+
+func (d DeciduousSpecification) Category() string {
+	return DeciduousCategory
+}

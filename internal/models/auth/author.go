@@ -17,7 +17,7 @@ type Author struct {
 func CreateAuthor(member Member, giveTime time.Time, rights bool, revokeTime time.Time) (*Author, error) {
 	ath := &Author{
 		Member:     member,
-		rights:     true,
+		rights:     rights,
 		giveTime:   giveTime,
 		revokeTime: revokeTime,
 	}
@@ -38,8 +38,11 @@ func (a *Author) Validate() error {
 	if a.revokeTime.IsZero() {
 		return fmt.Errorf("revoke time must be non-zero")
 	}
-	if a.revokeTime.Before(a.giveTime) {
-		return fmt.Errorf("revoke time must be after give time")
+	if a.revokeTime.Before(a.giveTime) && !a.rights {
+		return fmt.Errorf("revoke time must be after give time if rights are not granted")
+	}
+	if a.revokeTime.After(a.giveTime) && a.rights {
+		return fmt.Errorf("revoke time must be before give time if rights are granted")
 	}
 
 	return nil
@@ -48,6 +51,11 @@ func (a *Author) Validate() error {
 func (a *Author) RevokeAuthorRights() {
 	a.rights = false
 	a.revokeTime = time.Now()
+}
+
+func (a *Author) GrantRights(rights bool) {
+	a.rights = rights
+	a.giveTime = time.Now()
 }
 
 func (a *Author) HasAuthorRights() bool {
@@ -64,4 +72,28 @@ func (a *Author) Auth(passwd []byte, authFunc func(hashPasswd []byte, plainPassw
 
 func (a *Author) ID() uuid.UUID {
 	return a.Member.ID()
+}
+
+func (a *Author) HasRights() bool {
+	return a.rights
+}
+
+func (a *Author) GiveTime() time.Time {
+	return a.giveTime
+}
+
+func (a *Author) RevokeTime() time.Time {
+	return a.revokeTime
+}
+
+func (a *Author) UpdateName(name string) error {
+	return a.Member.UpdateName(name)
+}
+
+func (a *Author) UpdateEmail(email string) error {
+	return a.Member.UpdateEmail(email)
+}
+
+func (a *Author) UpdateHashedPassword(hashPasswd []byte) error {
+	return a.Member.UpdateHashedPassword(hashPasswd)
 }

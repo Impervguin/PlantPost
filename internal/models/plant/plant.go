@@ -1,7 +1,7 @@
 package plant
 
 import (
-	"context"
+	"errors"
 	"fmt"
 
 	"time"
@@ -19,6 +19,7 @@ type Plant struct {
 	category      string
 	specification PlantSpecification
 	createdAt     time.Time
+	updatedAt     time.Time
 }
 
 func (p *Plant) ID() uuid.UUID {
@@ -49,6 +50,10 @@ func (p *Plant) CreatedAt() time.Time {
 	return p.createdAt
 }
 
+func (p *Plant) UpdatedAt() time.Time {
+	return p.updatedAt
+}
+
 func (p *Plant) MainPhotoID() uuid.UUID {
 	return p.mainPhotoID
 }
@@ -62,15 +67,23 @@ func (p *Plant) UpdateSpec(ps PlantSpecification) error {
 		return err
 	}
 	p.specification = ps
+	p.category = ps.Category()
+	p.updatedAt = time.Now()
 	return nil
 }
 
 func (p *Plant) AddPhoto(photo *PlantPhoto) error {
-	return p.photos.Add(photo)
+	err := p.photos.Add(photo)
+	if err != nil {
+		return err
+	}
+	p.updatedAt = time.Now()
+	return nil
 }
 
 type PlantSpecification interface {
 	Validate() error
+	Category() string
 }
 
 func CreatePlant(id uuid.UUID,
@@ -78,7 +91,7 @@ func CreatePlant(id uuid.UUID,
 	mainPhotoID uuid.UUID,
 	photos PlantPhotos, category string,
 	specification PlantSpecification,
-	createdAt time.Time) (*Plant, error) {
+	createdAt time.Time, updatedAt time.Time) (*Plant, error) {
 
 	plant := &Plant{
 		id:            id,
@@ -90,6 +103,7 @@ func CreatePlant(id uuid.UUID,
 		category:      category,
 		specification: specification,
 		createdAt:     createdAt,
+		updatedAt:     updatedAt,
 	}
 	if err := plant.Validate(); err != nil {
 		return nil, err
@@ -101,7 +115,7 @@ func NewPlant(name, latinName, description string,
 	mainPhotoID uuid.UUID,
 	photos PlantPhotos, category string,
 	specification PlantSpecification) (*Plant, error) {
-	return CreatePlant(uuid.New(), name, latinName, description, mainPhotoID, photos, category, specification, time.Now())
+	return CreatePlant(uuid.New(), name, latinName, description, mainPhotoID, photos, category, specification, time.Now(), time.Now())
 }
 
 func (p *Plant) Validate() error {
@@ -126,15 +140,68 @@ func (p *Plant) Validate() error {
 	if p.specification == nil || p.specification.Validate() != nil {
 		return fmt.Errorf("%v is not a valid specification", p.specification)
 	}
-	if p.createdAt.After(time.Now()) {
-		return fmt.Errorf("plant creation date cannot be in the future: %v", p.createdAt)
+	if p.updatedAt.After(time.Now()) {
+		return fmt.Errorf("plant update date cannot be in the future: %v", p.createdAt)
+	}
+	if p.createdAt.After(p.updatedAt) {
+		return fmt.Errorf("plant creation date cannot be after update date: %v %v", p.createdAt, p.updatedAt)
+	}
+	if err := p.photos.Validate(); err != nil {
+		return err
 	}
 	return nil
 }
 
-type PlantRepository interface {
-	Create(ctx context.Context, plant *Plant) (*Plant, error)
-	Update(ctx context.Context, plantID uuid.UUID, updateFn func(*Plant) (*Plant, error)) (*Plant, error)
-	Delete(ctx context.Context, plantID uuid.UUID) error
-	Get(ctx context.Context, plantID uuid.UUID) (*Plant, error)
+func (p *Plant) DeletePhoto(photoID uuid.UUID) error {
+	doneErr := errors.New("done")
+	err := p.photos.IterateUpdate(func(e *PlantPhoto) error {
+		if e.ID() == photoID {
+			p.photos.Remove(e)
+			p.updatedAt = time.Now()
+			return doneErr
+		}
+		return nil
+	})
+	if errors.Is(err, doneErr) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *Plant) UpdateName(name string) error {
+	if name == "" {
+		return fmt.Errorf("plant name cannot be empty")
+	}
+	p.name = name
+	p.updatedAt = time.Now()
+	return nil
+}
+
+func (p *Plant) UpdateLatinName(latinName string) error {
+	if latinName == "" {
+		return fmt.Errorf("plant latin name cannot be empty")
+	}
+	p.latinName = latinName
+	p.updatedAt = time.Now()
+	return nil
+}
+
+func (p *Plant) UpdateDescription(description string) error {
+	if description == "" {
+		return fmt.Errorf("plant description cannot be empty")
+	}
+	p.description = description
+	p.updatedAt = time.Now()
+	return nil
+}
+
+func (p *Plant) UpdateMainPhotoID(mainPhotoID uuid.UUID) error {
+	if mainPhotoID == uuid.Nil {
+		return fmt.Errorf("plant main photo ID cannot be empty")
+	}
+	p.mainPhotoID = mainPhotoID
+	p.updatedAt = time.Now()
+	return nil
 }

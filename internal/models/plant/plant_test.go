@@ -16,6 +16,10 @@ func (m *MockPlantSpecification) Validate() error {
 	return nil
 }
 
+func (m *MockPlantSpecification) Category() string {
+	return ""
+}
+
 func TestPlant(t *testing.T) {
 	// Подготовка тестовых данных
 	validID := uuid.New()
@@ -36,6 +40,7 @@ func TestPlant(t *testing.T) {
 			*validPhotos,
 			"Test Category",
 			validSpec,
+			validTime,
 			validTime,
 		)
 
@@ -66,6 +71,7 @@ func TestPlant(t *testing.T) {
 			category    string
 			spec        PlantSpecification
 			createdAt   time.Time
+			updatedAt   time.Time
 			expectError bool
 		}{
 			{
@@ -79,6 +85,7 @@ func TestPlant(t *testing.T) {
 				category:    "Cat",
 				spec:        validSpec,
 				createdAt:   validTime,
+				updatedAt:   validTime,
 				expectError: true,
 			},
 			{
@@ -92,6 +99,7 @@ func TestPlant(t *testing.T) {
 				category:    "Cat",
 				spec:        validSpec,
 				createdAt:   validTime,
+				updatedAt:   validTime,
 				expectError: true,
 			},
 			{
@@ -105,6 +113,7 @@ func TestPlant(t *testing.T) {
 				category:    "Cat",
 				spec:        validSpec,
 				createdAt:   time.Now().Add(time.Hour),
+				updatedAt:   time.Now().Add(time.Hour),
 				expectError: true,
 			},
 		}
@@ -121,6 +130,7 @@ func TestPlant(t *testing.T) {
 					tc.category,
 					tc.spec,
 					tc.createdAt,
+					tc.updatedAt,
 				)
 				if tc.expectError {
 					require.Error(t, err)
@@ -158,6 +168,7 @@ func TestPlant(t *testing.T) {
 			"Test Category",
 			validSpec,
 			validTime,
+			validTime,
 		)
 
 		newSpec := &MockPlantSpecification{}
@@ -175,6 +186,7 @@ func TestPlant(t *testing.T) {
 			*NewPlantPhotos(),
 			"Test Category",
 			validSpec,
+			validTime,
 			validTime,
 		)
 
@@ -194,6 +206,7 @@ func TestPlant(t *testing.T) {
 			"Test Category",
 			validSpec,
 			validTime,
+			validTime,
 		)
 
 		err := plant.AddPhoto(validPhoto)
@@ -210,6 +223,7 @@ func TestPlant(t *testing.T) {
 			*validPhotos,
 			"Test Category",
 			validSpec,
+			validTime,
 			validTime,
 		)
 
