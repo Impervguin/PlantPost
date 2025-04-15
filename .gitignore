@@ -1,0 +1,10 @@
+# env files
+*.env
+!*.example.env
+
+# configs
+config/*.yaml
+!config/*.example.*
+
+# coverage
+out/*.out
