@@ -4,6 +4,9 @@ COVERAGE_FILE:=$(COVERDIR)/coverage.out
 SCRIPTS:=./scripts
 INTEGRATION_TESTS:=$(SCRIPTS)/integration_tests.sh
 
+COMPOSEFILE:=./deployments/docker-compose.yaml
+COMPOSEFILE_DEV:=./deployments/docker-compose.dev.yaml
+
 .PHONY: test
 test: test-unit test-integration
 
@@ -18,3 +21,38 @@ test-integration:
 .PHONY: show-coverage
 show-coverage:
 	go tool cover -html=$(COVERAGE_FILE)
+
+.PHONY: api-build
+api-build:
+	go build -o api ./cmd/api
+
+.PHONY: api-run
+api-run:
+	./api
+
+.PHONY: api
+api: api-build api-run
+
+.PHONY: dev-up
+dev-up:
+	docker compose -f $(COMPOSEFILE_DEV) up 
+
+.PHONY: dev-up-upd
+dev-upd:
+	docker compose -f $(COMPOSEFILE_DEV) up -d 
+
+.PHONY: dev-down
+dev-down:
+	docker compose -f $(COMPOSEFILE_DEV) down 
+
+.PHONY: up
+up:
+	docker compose -f $(COMPOSEFILE) up 
+
+.PHONY: upd
+upd:
+	docker compose -f $(COMPOSEFILE) up -d 
+
+.PHONY: down
+down:
+	docker compose -f $(COMPOSEFILE) down 

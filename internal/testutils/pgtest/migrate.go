@@ -23,5 +23,4 @@ func Migrate(ctx context.Context, db *PostgresCredentials) error {
 		return err
 	}
 	return nil
-
 }
