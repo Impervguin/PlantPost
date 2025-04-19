@@ -11,6 +11,17 @@ services:
         limits:
           cpus: '8'
           memory: 4G
+    depends_on:
+      pg:
+        condition: service_healthy 
+      pg-migrations:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+      minio-migrations:
+        condition: service_completed_successfully
+    networks:
+      - pg-net
   
   pg:
     container_name: pg
@@ -63,11 +74,46 @@ services:
     depends_on:
       pg:
         condition: service_healthy
-    
+  minio:
+    container_name: minio
+    hostname: minio
+    image: minio/minio:RELEASE.2025-04-08T15-41-24Z-cpuv1
+    command: server --console-address ":9001" --address ":9000" /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    volumes:
+      - miniodata:/data
+    env_file:
+      - minio.env
+    networks:
+      - minio-net
+  
+  minio-migrations:
+    container_name: minio-migrations
+    image: minio/mc:RELEASE.2025-04-08T15-39-49Z-cpuv1
+    depends_on:
+      minio:
+        condition: service_healthy
+    env_file:
+      - minio-migr.env
+    volumes:
+      - ../scripts/migrate.sh:/migrations/migrate.sh
+    networks:
+      - minio-net
+    entrypoint: /migrations/migrate.sh
 
 volumes:
   pgdata:
+  miniodata:
 
 networks:
   pg-net:
+    driver: bridge
+  minio-net:
     driver: bridge
