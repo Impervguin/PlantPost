@@ -41,6 +41,9 @@ dev-up:
 dev-upd:
 	docker compose -f $(COMPOSEFILE_DEV) up -d 
 
+dev-update:
+	docker compose -f $(COMPOSEFILE_DEV) up --build
+
 .PHONY: dev-down
 dev-down:
 	docker compose -f $(COMPOSEFILE_DEV) down 

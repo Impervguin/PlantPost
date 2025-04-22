@@ -3,15 +3,17 @@ LABEL AUTHOR="Impervguin"
 
 RUN apk add --no-cache make
 
+RUN mkdir /logs
 RUN mkdir /build
 WORKDIR /build
+
 
 COPY go.* .
 RUN go mod download
 
 
-COPY ./cmd ./cmd/
-COPY ./internal .internal/
+COPY ./cmd/api/ ./cmd/api/
+COPY ./internal/ ./internal/
 COPY ./config/*.yaml ./config/
 COPY ./makefile .
 
