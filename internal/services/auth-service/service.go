@@ -78,26 +78,51 @@ func (s *AuthService) Login(ctx context.Context, identifier, password string) (u
 	return sid, nil
 }
 
-func (s *AuthService) Logout(ctx context.Context, sid uuid.UUID) error {
-	return s.sessions.Delete(ctx, sid)
+func (s *AuthService) Logout(ctx context.Context) error {
+	sess, err := s.sessions.Get(ctx, uuid.Nil)
+	if err != nil {
+		return err
+	}
+
+	return s.sessions.Delete(ctx, sess.ID)
 }
 
-func (s *AuthService) Authenticate(ctx context.Context, sid uuid.UUID) (context.Context, error) {
+func (s *AuthService) authenticate(ctx context.Context, sid uuid.UUID) (uuid.UUID, error) {
 	session, err := s.sessions.Get(ctx, sid)
 	if err != nil {
-		return nil, err
+		return uuid.Nil, err
 	}
 
 	if session.ExpiresAt.Before(time.Now()) {
-		return nil, ErrSessionExpired
+		return uuid.Nil, ErrSessionExpired
 	}
 
-	user, err := s.repository.Get(ctx, session.MemberID)
+	return session.MemberID, nil
+}
+
+func (s *AuthService) Authenticate(ctx context.Context, sid uuid.UUID) context.Context {
+	userID, err := s.authenticate(ctx, sid)
 	if err != nil {
-		return nil, err
+		userID = uuid.Nil
 	}
 
-	newCtx := context.WithValue(ctx, AuthContextKey, user)
+	ctx = context.WithValue(ctx, AuthContextKey, userID)
 
-	return newCtx, nil
+	return ctx
+}
+
+func (s *AuthService) UserFromContext(ctx context.Context) auth.User {
+	if userID, ok := ctx.Value(AuthContextKey).(uuid.UUID); ok {
+		if userID == uuid.Nil {
+			return auth.NewNoAuthUser()
+		}
+		s.repository.Get(ctx, userID)
+		user, err := s.repository.Get(ctx, userID)
+		if err != nil {
+			return auth.NewNoAuthUser()
+		}
+		return user
+	}
+
+	return auth.NewNoAuthUser()
 }

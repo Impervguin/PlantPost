@@ -30,7 +30,7 @@ func NewPgMinioStorage(ctx context.Context, db sqdb.SquirrelDatabase, minioCl *m
 	}, nil
 }
 
-func (storage *PgMinioStorage) UploadFile(ctx context.Context, data models.FileData) (*models.File, error) {
+func (storage *PgMinioStorage) Upload(ctx context.Context, data *models.FileData) (*models.File, error) {
 	if data.Reader == nil {
 		return nil, errors.New("data.Reader should not be nil")
 	}
@@ -88,7 +88,7 @@ func (storage *PgMinioStorage) Download(ctx context.Context, fileID uuid.UUID) (
 	}, nil
 }
 
-func (storage *PgMinioStorage) DeleteFile(ctx context.Context, fileID uuid.UUID) error {
+func (storage *PgMinioStorage) Delete(ctx context.Context, fileID uuid.UUID) error {
 	f, err := storage.get(ctx, fileID)
 	if err != nil {
 		return err

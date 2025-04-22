@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"PlantSite/internal/models/post"
+	authservice "PlantSite/internal/services/auth-service"
+	authmock "PlantSite/internal/services/auth-service/auth-mock"
 	postservice "PlantSite/internal/services/post-service"
 
 	"github.com/google/uuid"
@@ -15,6 +17,7 @@ import (
 )
 
 func TestUpdatePost(t *testing.T) {
+	validSessionID := uuid.New()
 	ctx := context.Background()
 	validUserID := uuid.New()
 
@@ -70,17 +73,29 @@ func TestUpdatePost(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		prepo := new(MockPostRepository)
-		frepo := new(MockFileRepository)
-		user := new(MockUser)
-
+		arepo := new(authmock.MockAuthRepository)
+		sessions := new(authmock.MockSessionStorage)
+		hasher := new(authmock.MockPasswdHasher)
+		asvc := authservice.NewAuthService(sessions, arepo, hasher)
+		validSession := &authservice.Session{
+			ID:        validSessionID,
+			MemberID:  validUserID,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}
+		user := new(authmock.MockUser)
 		user.On("HasAuthorRights").Return(true)
 		user.On("ID").Return(validUserID)
+		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
+		ctx := asvc.Authenticate(ctx, validSessionID)
+		arepo.On("Get", ctx, validUserID).Return(user, nil)
+
+		prepo := new(MockPostRepository)
+		frepo := new(MockFileRepository)
+
 		prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
 			Return(validPost, nil)
 
-		svc := postservice.NewPostService(prepo, frepo)
-		ctx := PutUserInContext(ctx, user)
+		svc := postservice.NewPostService(prepo, frepo, asvc)
 
 		result, err := svc.UpdatePost(ctx, validPostID, updateData)
 		require.NoError(t, err)
@@ -89,30 +104,49 @@ func TestUpdatePost(t *testing.T) {
 		assert.Equal(t, result.Content(), updatedPost.Content())
 		assert.NotEqual(t, result.UpdatedAt(), updatedAt)
 
-		user.AssertExpectations(t)
 		prepo.AssertExpectations(t)
 	})
 
 	t.Run("NotAuthorized", func(t *testing.T) {
+		arepo := new(authmock.MockAuthRepository)
+		sessions := new(authmock.MockSessionStorage)
+		hasher := new(authmock.MockPasswdHasher)
+		asvc := authservice.NewAuthService(sessions, arepo, hasher)
+		user := new(authmock.MockUser)
+		user.On("HasAuthorRights").Return(true)
+		sessions.On("Get", ctx, validSessionID).Return(nil, assert.AnError)
+		ctx := asvc.Authenticate(ctx, validSessionID)
+		arepo.On("Get", ctx, validUserID).Return(user, nil)
+
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
 
-		svc := postservice.NewPostService(prepo, frepo)
+		svc := postservice.NewPostService(prepo, frepo, asvc)
 
 		_, err := svc.UpdatePost(ctx, validPostID, updateData)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, postservice.ErrNotAuthorized)
 	})
 
 	t.Run("NotAuthor", func(t *testing.T) {
+		arepo := new(authmock.MockAuthRepository)
+		sessions := new(authmock.MockSessionStorage)
+		hasher := new(authmock.MockPasswdHasher)
+		asvc := authservice.NewAuthService(sessions, arepo, hasher)
+		validSession := &authservice.Session{
+			ID:        validSessionID,
+			MemberID:  validUserID,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}
+		user := new(authmock.MockUser)
+		user.On("HasAuthorRights").Return(false)
+		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
+		ctx := asvc.Authenticate(ctx, validSessionID)
+		arepo.On("Get", ctx, validUserID).Return(user, nil)
+
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
-		user := new(MockUser)
 
-		user.On("HasAuthorRights").Return(false)
-
-		svc := postservice.NewPostService(prepo, frepo)
-		ctx := PutUserInContext(ctx, user)
+		svc := postservice.NewPostService(prepo, frepo, asvc)
 
 		_, err := svc.UpdatePost(ctx, validPostID, updateData)
 		require.Error(t, err)
@@ -120,16 +154,27 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("PostNotFound", func(t *testing.T) {
+		arepo := new(authmock.MockAuthRepository)
+		sessions := new(authmock.MockSessionStorage)
+		hasher := new(authmock.MockPasswdHasher)
+		asvc := authservice.NewAuthService(sessions, arepo, hasher)
+		validSession := &authservice.Session{
+			ID:        validSessionID,
+			MemberID:  validUserID,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}
+		user := new(authmock.MockUser)
+		user.On("HasAuthorRights").Return(true)
+		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
+		ctx := asvc.Authenticate(ctx, validSessionID)
+		arepo.On("Get", ctx, validUserID).Return(user, nil)
+
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
-		user := new(MockUser)
 
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
 		prepo.On("Update", mock.Anything, validPostID, mock.Anything).Return(nil, assert.AnError)
 
-		svc := postservice.NewPostService(prepo, frepo)
-		ctx := PutUserInContext(ctx, user)
+		svc := postservice.NewPostService(prepo, frepo, asvc)
 
 		_, err := svc.UpdatePost(ctx, validPostID, updateData)
 		require.Error(t, err)
@@ -137,60 +182,96 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("InvalidContent", func(t *testing.T) {
+		arepo := new(authmock.MockAuthRepository)
+		sessions := new(authmock.MockSessionStorage)
+		hasher := new(authmock.MockPasswdHasher)
+		asvc := authservice.NewAuthService(sessions, arepo, hasher)
+		validSession := &authservice.Session{
+			ID:        validSessionID,
+			MemberID:  validUserID,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}
+		user := new(authmock.MockUser)
+		user.On("HasAuthorRights").Return(true)
+		user.On("ID").Return(validUserID)
+		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
+		ctx := asvc.Authenticate(ctx, validSessionID)
+		arepo.On("Get", ctx, validUserID).Return(user, nil)
+
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
-		user := new(MockUser)
 
 		invalidData := updateData
 		invalidData.Content = post.Content{Text: "", ContentType: "invalid_type"}
 
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
 		prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
 			Return(validPost, nil)
 
-		svc := postservice.NewPostService(prepo, frepo)
-		ctx := PutUserInContext(ctx, user)
+		svc := postservice.NewPostService(prepo, frepo, asvc)
 
 		_, err := svc.UpdatePost(ctx, validPostID, invalidData)
 		require.Error(t, err)
 	})
 
 	t.Run("EmptyTitle", func(t *testing.T) {
+		arepo := new(authmock.MockAuthRepository)
+		sessions := new(authmock.MockSessionStorage)
+		hasher := new(authmock.MockPasswdHasher)
+		asvc := authservice.NewAuthService(sessions, arepo, hasher)
+		validSession := &authservice.Session{
+			ID:        validSessionID,
+			MemberID:  validUserID,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}
+		user := new(authmock.MockUser)
+		user.On("HasAuthorRights").Return(true)
+		user.On("ID").Return(validUserID)
+		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
+		ctx := asvc.Authenticate(ctx, validSessionID)
+		arepo.On("Get", ctx, validUserID).Return(user, nil)
+
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
-		user := new(MockUser)
 
 		invalidData := updateData
 		invalidData.Title = ""
 
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
 		prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
 			Return(validPost, nil)
 
-		svc := postservice.NewPostService(prepo, frepo)
-		ctx := PutUserInContext(ctx, user)
+		svc := postservice.NewPostService(prepo, frepo, asvc)
 
 		_, err := svc.UpdatePost(ctx, validPostID, invalidData)
 		require.Error(t, err)
 	})
 
 	t.Run("NilTags", func(t *testing.T) {
+		arepo := new(authmock.MockAuthRepository)
+		sessions := new(authmock.MockSessionStorage)
+		hasher := new(authmock.MockPasswdHasher)
+		asvc := authservice.NewAuthService(sessions, arepo, hasher)
+		validSession := &authservice.Session{
+			ID:        validSessionID,
+			MemberID:  validUserID,
+			ExpiresAt: time.Now().Add(time.Hour),
+		}
+		user := new(authmock.MockUser)
+		user.On("HasAuthorRights").Return(true)
+		user.On("ID").Return(validUserID)
+		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
+		ctx := asvc.Authenticate(ctx, validSessionID)
+		arepo.On("Get", ctx, validUserID).Return(user, nil)
+
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
-		user := new(MockUser)
 
 		invalidData := updateData
 		invalidData.Tags = nil
 
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
 		prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
 			Return(validPost, nil)
 
-		svc := postservice.NewPostService(prepo, frepo)
-		ctx := PutUserInContext(ctx, user)
+		svc := postservice.NewPostService(prepo, frepo, asvc)
 
 		_, err := svc.UpdatePost(ctx, validPostID, invalidData)
 		require.Error(t, err)

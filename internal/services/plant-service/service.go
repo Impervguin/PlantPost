@@ -13,9 +13,10 @@ type PlantService struct {
 	plantrepo    plant.PlantRepository
 	categoryrepo plant.PlantCategoryRepository
 	filerepo     models.FileRepository
+	auth         *authservice.AuthService
 }
 
-func NewPlantService(repository plant.PlantRepository, crep plant.PlantCategoryRepository, filerepo models.FileRepository) *PlantService {
+func NewPlantService(repository plant.PlantRepository, crep plant.PlantCategoryRepository, filerepo models.FileRepository, auth *authservice.AuthService) *PlantService {
 	if repository == nil {
 		panic("nil repository")
 	}
@@ -25,15 +26,19 @@ func NewPlantService(repository plant.PlantRepository, crep plant.PlantCategoryR
 	if filerepo == nil {
 		panic("nil file repository")
 	}
+	if auth == nil {
+		panic("nil auth")
+	}
 	return &PlantService{plantrepo: repository,
 		categoryrepo: crep,
 		filerepo:     filerepo,
+		auth:         auth,
 	}
 }
 
 func (s *PlantService) UpdatePlantSpec(ctx context.Context, id uuid.UUID, spec plant.PlantSpecification) error {
 
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return ErrNotAuthorized
 	}
@@ -48,7 +53,7 @@ func (s *PlantService) UpdatePlantSpec(ctx context.Context, id uuid.UUID, spec p
 }
 
 func (s *PlantService) DeletePlant(ctx context.Context, id uuid.UUID) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return ErrNotAuthorized
 	}
@@ -59,7 +64,7 @@ func (s *PlantService) DeletePlant(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s *PlantService) UploadPlantPhoto(ctx context.Context, id uuid.UUID, fdata models.FileData, description string) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return ErrNotAuthorized
 	}
@@ -82,7 +87,7 @@ func (s *PlantService) UploadPlantPhoto(ctx context.Context, id uuid.UUID, fdata
 }
 
 func (s *PlantService) GetPlantCategory(ctx context.Context, name string) (*plant.PlantCategory, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return nil, ErrNotAuthorized
 	}
@@ -93,7 +98,7 @@ func (s *PlantService) GetPlantCategory(ctx context.Context, name string) (*plan
 }
 
 func (s *PlantService) ListCategories(ctx context.Context) ([]plant.PlantCategory, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return nil, ErrNotAuthorized
 	}

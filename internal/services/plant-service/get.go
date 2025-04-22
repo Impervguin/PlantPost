@@ -3,7 +3,6 @@ package plantservice
 import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/plant"
-	authservice "PlantSite/internal/services/auth-service"
 	"context"
 	"time"
 
@@ -29,7 +28,7 @@ type GetPlantPhoto struct {
 }
 
 func (s *PlantService) GetPlant(ctx context.Context, id uuid.UUID) (*GetPlant, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return nil, ErrNotAuthorized
 	}

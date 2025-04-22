@@ -10,14 +10,18 @@ import (
 
 type AlbumService struct {
 	albumRepository album.AlbumRepository
+	auth            *authservice.AuthService
 }
 
-func NewAlbumService(repo album.AlbumRepository) *AlbumService {
-	return &AlbumService{albumRepository: repo}
+func NewAlbumService(repo album.AlbumRepository, auth *authservice.AuthService) *AlbumService {
+	return &AlbumService{
+		albumRepository: repo,
+		auth:            auth,
+	}
 }
 
 func (s *AlbumService) CreateAlbum(ctx context.Context, alb *album.Album) (*album.Album, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return nil, ErrNotAuthorized
 	}
@@ -35,7 +39,7 @@ func (s *AlbumService) CreateAlbum(ctx context.Context, alb *album.Album) (*albu
 }
 
 func (s *AlbumService) GetAlbum(ctx context.Context, id uuid.UUID) (*album.Album, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return nil, ErrNotAuthorized
 	}
@@ -53,7 +57,7 @@ func (s *AlbumService) GetAlbum(ctx context.Context, id uuid.UUID) (*album.Album
 }
 
 func (s *AlbumService) UpdateAlbumName(ctx context.Context, id uuid.UUID, name string) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return ErrNotAuthorized
 	}
@@ -74,7 +78,7 @@ func (s *AlbumService) UpdateAlbumName(ctx context.Context, id uuid.UUID, name s
 }
 
 func (s *AlbumService) UpdateAlbumDescription(ctx context.Context, id uuid.UUID, description string) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return ErrNotAuthorized
 	}
@@ -95,7 +99,7 @@ func (s *AlbumService) UpdateAlbumDescription(ctx context.Context, id uuid.UUID,
 }
 
 func (s *AlbumService) AddPlantToAlbum(ctx context.Context, id uuid.UUID, plantID uuid.UUID) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return ErrNotAuthorized
 	}
@@ -116,7 +120,7 @@ func (s *AlbumService) AddPlantToAlbum(ctx context.Context, id uuid.UUID, plantI
 }
 
 func (s *AlbumService) RemovePlantFromAlbum(ctx context.Context, id uuid.UUID, plantID uuid.UUID) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return ErrNotAuthorized
 	}
@@ -137,7 +141,7 @@ func (s *AlbumService) RemovePlantFromAlbum(ctx context.Context, id uuid.UUID, p
 }
 
 func (s *AlbumService) DeleteAlbum(ctx context.Context, id uuid.UUID) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return ErrNotAuthorized
 	}
@@ -159,7 +163,7 @@ func (s *AlbumService) DeleteAlbum(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s *AlbumService) ListAlbums(ctx context.Context) ([]*album.Album, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return nil, ErrNotAuthorized
 	}

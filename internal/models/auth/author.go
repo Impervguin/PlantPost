@@ -35,9 +35,6 @@ func (a *Author) Validate() error {
 	if a.giveTime.IsZero() {
 		return fmt.Errorf("give time must be non-zero")
 	}
-	if a.revokeTime.IsZero() {
-		return fmt.Errorf("revoke time must be non-zero")
-	}
 	if a.revokeTime.Before(a.giveTime) && !a.rights {
 		return fmt.Errorf("revoke time must be after give time if rights are not granted")
 	}

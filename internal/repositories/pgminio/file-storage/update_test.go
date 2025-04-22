@@ -19,7 +19,7 @@ func (s *FileStorageTestSuite) TestUpdateFile() {
 	testData := createTestFileData()
 
 	// Upload test file first
-	uploadedFile, err := s.storage.UploadFile(ctx, testData)
+	uploadedFile, err := s.storage.Upload(ctx, testData)
 	require.NoError(s.T(), err)
 
 	// Prepare update data
@@ -66,7 +66,7 @@ func (s *FileStorageTestSuite) TestUpdateFileWithPartialData() {
 	testData := createTestFileData()
 
 	// Upload test file first
-	uploadedFile, err := s.storage.UploadFile(ctx, testData)
+	uploadedFile, err := s.storage.Upload(ctx, testData)
 	require.NoError(s.T(), err)
 
 	// Prepare update data with only name changed
