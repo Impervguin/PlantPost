@@ -1,10 +1,22 @@
-package mapper
+package spec
 
 import (
 	"PlantSite/internal/models/plant"
 	"errors"
 	"fmt"
 )
+
+type UnionSpecification struct {
+	HeightM   float64 `json:"height_m" form:"height_m" binding:"required"`
+	DiameterM float64 `json:"diameter_m" form:"diameter_m" binding:"required"`
+
+	FloweringPeriod string `json:"flowering_period" form:"flowering_period" binding:"required"`
+	SoilAcidity     int    `json:"soil_acidity" form:"soil_acidity" binding:"required"`
+	SoilMoisture    string `json:"soil_moisture" form:"soil_moisture" binding:"required"`
+	LightRelation   string `json:"light_relation" form:"light_relation" binding:"required"`
+	SoilType        string `json:"soil_type" form:"soil_type" binding:"required"`
+	WinterHardiness int    `json:"winter_hardiness" form:"winter_hardiness" binding:"required"`
+}
 
 var ErrInvalidCategory = errors.New("invalid category (must be coniferous or deciduous)")
 

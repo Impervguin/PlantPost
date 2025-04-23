@@ -1,6 +1,6 @@
 package response
 
-import plantspec "PlantSite/internal/api/plant-spec"
+import "PlantSite/internal/api/plant-api/spec"
 
 type GetPlantResponse struct {
 	ID            string `json:"id" form:"id" binding:"required"`
@@ -10,7 +10,7 @@ type GetPlantResponse struct {
 	MainPhotoKey  string `json:"main_photo_key" form:"main_photo_key" binding:"required"`
 	Photos        []GetPlantPhoto
 	Category      string `json:"category" form:"category" binding:"required"`
-	Specification plantspec.PlantSpecification
+	Specification spec.PlantSpecification
 	CreatedAt     string `json:"created_at" form:"created_at" binding:"required"`
 }
 

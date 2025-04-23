@@ -7,6 +7,13 @@ INTEGRATION_TESTS:=$(SCRIPTS)/integration_tests.sh
 COMPOSEFILE:=./deployments/docker-compose.yaml
 COMPOSEFILE_DEV:=./deployments/docker-compose.dev.yaml
 
+PARSEDEPTH:= 10
+SWAGGER:=./cmd/docs
+API_APP:=./cmd/api/main.go
+API_DIR:=./cmd/api
+API_BUILD := api
+
+
 .PHONY: test
 test: test-unit test-integration
 
@@ -24,7 +31,8 @@ show-coverage:
 
 .PHONY: api-build
 api-build:
-	go build -o api ./cmd/api
+	swag init --parseInternal --parseDependency --parseDepth $(PARSEDEPTH) -g $(API_APP) -o $(SWAGGER)
+	go build -o $(API_BUILD) $(API_DIR)
 
 .PHONY: api-run
 api-run:

@@ -1,6 +1,7 @@
 package postservice
 
 import (
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
 	"context"
 
@@ -16,10 +17,10 @@ type UpdatePostTextData struct {
 func (s *PostService) UpdatePost(ctx context.Context, id uuid.UUID, data UpdatePostTextData) (*post.Post, error) {
 	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return nil, ErrNotAuthor
+		return nil, auth.ErrNoAuthorRights
 	}
 
 	p, err := s.postRepo.Update(ctx, id, func(p *post.Post) (*post.Post, error) {

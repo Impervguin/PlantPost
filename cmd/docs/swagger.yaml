@@ -1,0 +1,1083 @@
+definitions:
+  PlantSite_internal_api_album-api_mapper.AddPlantToAlbumRequest:
+    properties:
+      plant_id:
+        type: string
+    required:
+    - plant_id
+    type: object
+  PlantSite_internal_api_album-api_mapper.CreateAlbumRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      plant_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - description
+    - name
+    - plant_ids
+    type: object
+  PlantSite_internal_api_album-api_mapper.RemovePlantFromAlbumRequest:
+    properties:
+      plant_id:
+        type: string
+    required:
+    - plant_id
+    type: object
+  PlantSite_internal_api_album-api_mapper.UpdateAlbumDescriptionRequest:
+    properties:
+      description:
+        type: string
+    required:
+    - description
+    type: object
+  PlantSite_internal_api_album-api_mapper.UpdateAlbumNameRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  PlantSite_internal_api_album-api_response.GetAlbumResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      plantIDs:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+    required:
+    - created_at
+    - description
+    - id
+    - name
+    - updated_at
+    type: object
+  PlantSite_internal_api_album-api_response.ListAlbum:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      plantIDs:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+    required:
+    - created_at
+    - description
+    - id
+    - name
+    - updated_at
+    type: object
+  PlantSite_internal_api_plant-api_response.GetPlantPhoto:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+    required:
+    - description
+    - id
+    - key
+    type: object
+  PlantSite_internal_api_plant-api_response.GetPlantResponse:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      latin_name:
+        type: string
+      main_photo_key:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          $ref: '#/definitions/PlantSite_internal_api_plant-api_response.GetPlantPhoto'
+        type: array
+      specification: {}
+    required:
+    - category
+    - created_at
+    - description
+    - id
+    - latin_name
+    - main_photo_key
+    - name
+    type: object
+  PlantSite_internal_api_plant-api_spec.UnionSpecification:
+    properties:
+      diameter_m:
+        type: number
+      flowering_period:
+        type: string
+      height_m:
+        type: number
+      light_relation:
+        type: string
+      soil_acidity:
+        type: integer
+      soil_moisture:
+        type: string
+      soil_type:
+        type: string
+      winter_hardiness:
+        type: integer
+    required:
+    - diameter_m
+    - flowering_period
+    - height_m
+    - light_relation
+    - soil_acidity
+    - soil_moisture
+    - soil_type
+    - winter_hardiness
+    type: object
+  PlantSite_internal_api_post-api_mapper.UpdatePostRequestBody:
+    properties:
+      content:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  PlantSite_internal_api_post-api_response.GetPostPhoto:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      place_number:
+        type: integer
+    type: object
+  PlantSite_internal_api_post-api_response.GetPostResponse:
+    properties:
+      author_id:
+        type: string
+      content:
+        type: string
+      content_type:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      photos:
+        items:
+          $ref: '#/definitions/PlantSite_internal_api_post-api_response.GetPostPhoto'
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  PlantSite_internal_api_search-api_mapper.SearchPlantsItem:
+    properties:
+      params:
+        additionalProperties: true
+        type: object
+      type:
+        type: string
+    required:
+    - params
+    - type
+    type: object
+  PlantSite_internal_api_search-api_mapper.SearchPostsItem:
+    properties:
+      params:
+        additionalProperties: true
+        type: object
+      type:
+        type: string
+    required:
+    - params
+    - type
+    type: object
+  PlantSite_internal_api_search-api_response.GetPlantPhoto:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+    required:
+    - description
+    - id
+    - key
+    type: object
+  PlantSite_internal_api_search-api_response.GetPlantResponse:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      latin_name:
+        type: string
+      main_photo_key:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          $ref: '#/definitions/PlantSite_internal_api_search-api_response.GetPlantPhoto'
+        type: array
+      specification: {}
+    required:
+    - category
+    - created_at
+    - description
+    - id
+    - latin_name
+    - main_photo_key
+    - name
+    type: object
+  PlantSite_internal_api_search-api_response.GetPostPhoto:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      place_number:
+        type: integer
+    type: object
+  PlantSite_internal_api_search-api_response.GetPostResponse:
+    properties:
+      author_id:
+        type: string
+      content:
+        type: string
+      content_type:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      photos:
+        items:
+          $ref: '#/definitions/PlantSite_internal_api_search-api_response.GetPostPhoto'
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  PlantSite_internal_api_search-api_response.SearchPlantItem:
+    properties:
+      category:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      latin_name:
+        type: string
+      main_photo_key:
+        type: string
+      name:
+        type: string
+      specification: {}
+    required:
+    - category
+    - created_at
+    - description
+    - id
+    - latin_name
+    - main_photo_key
+    - name
+    - specification
+    type: object
+  PlantSite_internal_api_search-api_response.SearchPostItem:
+    properties:
+      author_id:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      photos:
+        items:
+          $ref: '#/definitions/PlantSite_internal_api_search-api_response.SearchPostPhoto'
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - author_id
+    - content
+    - created_at
+    - id
+    - title
+    - updated_at
+    type: object
+  PlantSite_internal_api_search-api_response.SearchPostPhoto:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+      place_number:
+        type: integer
+    required:
+    - id
+    - key
+    - place_number
+    type: object
+  internal_api_auth-api.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  internal_api_auth-api.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+info:
+  contact: {}
+paths:
+  /album/add/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Adds a plant to an album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Add plant to album request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/PlantSite_internal_api_album-api_mapper.AddPlantToAlbumRequest'
+      responses:
+        "200":
+          description: Plant added to album successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to add plant to album
+        "500":
+          description: Internal Server Error - Failed to add plant to album
+      summary: Add plant to album
+      tags:
+      - album
+  /album/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new album with the provided name and description
+      parameters:
+      - description: Create album request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/PlantSite_internal_api_album-api_mapper.CreateAlbumRequest'
+      responses:
+        "200":
+          description: Album created successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to create album
+        "500":
+          description: Internal Server Error - Failed to create album
+      summary: Create an album
+      tags:
+      - album
+  /album/delete/{id}:
+    delete:
+      description: Deletes an album by ID
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Album deleted successfully
+        "400":
+          description: Bad Request - Invalid input
+        "401":
+          description: Unauthorized - Not authorized to delete album
+        "500":
+          description: Internal Server Error - Failed to delete album
+      summary: Delete album
+      tags:
+      - album
+  /album/description/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the description of an album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update album description request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/PlantSite_internal_api_album-api_mapper.UpdateAlbumDescriptionRequest'
+      responses:
+        "200":
+          description: Album description updated successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to update album description
+        "500":
+          description: Internal Server Error - Failed to update album description
+      summary: Update album description
+      tags:
+      - album
+  /album/get/{id}:
+    get:
+      description: Gets an album by ID
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Album fetch successfully
+          schema:
+            $ref: '#/definitions/PlantSite_internal_api_album-api_response.GetAlbumResponse'
+        "400":
+          description: Bad Request - Invalid input
+        "401":
+          description: Unauthorized - Not authorized to get album
+        "500":
+          description: Internal Server Error - Failed to get album
+      summary: Get album
+      tags:
+      - album
+  /album/list:
+    get:
+      description: Lists all albums of authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Albums fetch successfully
+          schema:
+            items:
+              $ref: '#/definitions/PlantSite_internal_api_album-api_response.ListAlbum'
+            type: array
+        "401":
+          description: Unauthorized - Not authorized to list albums
+        "500":
+          description: Internal Server Error - Failed to list albums
+      summary: List albums
+      tags:
+      - album
+  /album/name/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the name of an album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update album name request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/PlantSite_internal_api_album-api_mapper.UpdateAlbumNameRequest'
+      responses:
+        "200":
+          description: Album name updated successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to update album name
+        "500":
+          description: Internal Server Error - Failed to update album name
+      summary: Update album name
+      tags:
+      - album
+  /album/remove/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Removes a plant from an album
+      parameters:
+      - description: Album ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Remove plant from album request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/PlantSite_internal_api_album-api_mapper.RemovePlantFromAlbumRequest'
+      responses:
+        "200":
+          description: Plant removed from album successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to remove plant from album
+        "500":
+          description: Internal Server Error - Failed to remove plant from album
+      summary: Remove plant from album
+      tags:
+      - album
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      - multipart/form-data
+      description: Authenticates a user and creates a session
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_auth-api.LoginRequest'
+      responses:
+        "200":
+          description: Session for user created
+        "400":
+          description: Wrong input parameters
+        "401":
+          description: Auth error
+      summary: User login
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Logouts a user
+      responses:
+        "200":
+          description: User logged out
+        "401":
+          description: Logout error
+      summary: Logouts a user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      - multipart/form-data
+      description: Registers a new user. Requires login afterwards
+      parameters:
+      - description: Register credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_api_auth-api.RegisterRequest'
+      responses:
+        "200":
+          description: User registered
+        "400":
+          description: Wrong input parameters
+        "401":
+          description: Auth error
+      summary: Register a new user
+      tags:
+      - auth
+  /plant/create:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new plant with the provided name, latin name, description,
+        category and specification
+      parameters:
+      - description: plant name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: plant latin name
+        in: formData
+        name: latin_name
+        required: true
+        type: string
+      - description: plant description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: plant category
+        in: formData
+        name: category
+        required: true
+        type: string
+      - description: plant main image
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: plant specification
+        in: body
+        name: specification
+        schema:
+          $ref: '#/definitions/PlantSite_internal_api_plant-api_spec.UnionSpecification'
+      - description: plant specification
+        in: formData
+        name: specification
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Plant created successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to create plant
+        "403":
+          description: Forbidden - Does not have author rights to create plant
+        "500":
+          description: Internal Server Error - Failed to create plant
+      summary: Create plant
+      tags:
+      - plant
+  /plant/delete/{id}:
+    delete:
+      description: Deletes a plant by ID
+      parameters:
+      - description: Plant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Plant deleted successfully
+        "400":
+          description: Bad Request - Invalid input
+        "401":
+          description: Unauthorized - Not authorized to delete plant
+        "403":
+          description: Forbidden - Does not have author rights to delete plant
+        "500":
+          description: Internal Server Error - Failed to delete plant"// @Param specification
+            body spec.UnionSpecification false "plant specification
+      summary: Delete plant
+      tags:
+      - plant
+  /plant/get/{id}:
+    get:
+      description: Gets a plant by ID
+      parameters:
+      - description: Plant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Plant fetch successfully
+          schema:
+            $ref: '#/definitions/PlantSite_internal_api_plant-api_response.GetPlantResponse'
+        "400":
+          description: Bad Request - Invalid input
+        "401":
+          description: Unauthorized - Not authorized to get plant
+        "403":
+          description: Forbidden - Does not have author rights to get plant
+        "500":
+          description: Internal Server Error - Failed to get plant
+      summary: Get plant
+      tags:
+      - plant
+  /plant/specification/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the specification of a plant
+      parameters:
+      - description: Plant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: plant specification
+        in: body
+        name: specification
+        schema:
+          $ref: '#/definitions/PlantSite_internal_api_plant-api_spec.UnionSpecification'
+      - description: plant specification
+        in: formData
+        name: specification
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Plant specification updated successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to update plant specification
+        "403":
+          description: Forbidden - Does not have author rights to update plant specification
+        "500":
+          description: Internal Server Error - Failed to update plant specification
+      summary: Update plant specification
+      tags:
+      - plant
+  /plant/upload/{id}:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a plant photo
+      parameters:
+      - description: Plant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Plant photo
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Plant photo description
+        in: formData
+        name: description
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Plant photo uploaded successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to upload plant photo
+        "403":
+          description: Forbidden - Does not have author rights to upload plant photo
+        "500":
+          description: Internal Server Error - Failed to upload plant photo
+      summary: Upload plant photo
+      tags:
+      - plant
+  /post/create:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new post with text content and optional images
+      parameters:
+      - description: Post title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Post content
+        in: formData
+        name: content
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: List of tags
+        in: formData
+        items:
+          type: string
+        name: tags
+        type: array
+      - collectionFormat: csv
+        description: Attached files
+        in: formData
+        items:
+          type: file
+        name: files
+        type: array
+      responses:
+        "200":
+          description: Post created successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to create post
+        "403":
+          description: Forbidden - Does not have author rights to create post
+        "500":
+          description: Internal Server Error - Failed to create post
+      summary: Create a new post
+      tags:
+      - post
+  /post/delete/{id}:
+    delete:
+      description: Deletes a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Post deleted successfully
+        "400":
+          description: Bad Request - Invalid input
+        "401":
+          description: Unauthorized - Not authorized to delete post
+        "403":
+          description: Forbidden - Does not have author rights to delete post
+        "500":
+          description: Internal Server Error - Failed to delete post
+      summary: Delete post
+      tags:
+      - post
+  /post/get/{id}:
+    get:
+      description: Gets a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post fetch successfully
+          schema:
+            $ref: '#/definitions/PlantSite_internal_api_post-api_response.GetPostResponse'
+        "400":
+          description: Bad Request - Invalid input
+        "401":
+          description: Unauthorized - Not authorized to get post
+        "403":
+          description: Forbidden - Does not have author rights to get post
+        "500":
+          description: Internal Server Error - Failed to get post
+      summary: Get post
+      tags:
+      - post
+  /post/text/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the text data of a post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update post request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/PlantSite_internal_api_post-api_mapper.UpdatePostRequestBody'
+      responses:
+        "200":
+          description: Post updated successfully
+        "400":
+          description: Bad Request - Invalid input or missing required fields
+        "401":
+          description: Unauthorized - Not authorized to update post
+        "403":
+          description: Forbidden - Does not have author rights to update post
+        "500":
+          description: Internal Server Error - Failed to update post
+      summary: Update post text data
+      tags:
+      - post
+  /search/plant/{id}:
+    get:
+      description: Gets a plant by ID
+      parameters:
+      - description: Plant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Plant fetch successfully
+          schema:
+            $ref: '#/definitions/PlantSite_internal_api_search-api_response.GetPlantResponse'
+        "400":
+          description: Bad Request - Invalid input
+        "401":
+          description: Unauthorized - Not authorized to get plant
+        "403":
+          description: Forbidden - Does not have author rights to get plant
+        "500":
+          description: Internal Server Error - Failed to get plant
+      summary: Get plant
+      tags:
+      - search
+  /search/plants:
+    post:
+      consumes:
+      - application/json
+      description: Search plants using an array of different filter types
+      parameters:
+      - description: Array of search filters
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/PlantSite_internal_api_search-api_mapper.SearchPlantsItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/PlantSite_internal_api_search-api_response.SearchPlantItem'
+            type: array
+        "400":
+          description: Invalid request format or missing required fields
+        "500":
+          description: Internal server error
+      summary: Search plants with multiple filters
+      tags:
+      - search
+  /search/post/{id}:
+    get:
+      description: Gets a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post fetch successfully
+          schema:
+            $ref: '#/definitions/PlantSite_internal_api_search-api_response.GetPostResponse'
+        "400":
+          description: Bad Request - Invalid input
+        "401":
+          description: Unauthorized - Not authorized to get post
+        "403":
+          description: Forbidden - Does not have author rights to get post
+        "500":
+          description: Internal Server Error - Failed to get post
+      summary: Get post
+      tags:
+      - search
+  /search/posts:
+    post:
+      consumes:
+      - application/json
+      description: Search posts using an array of different filter types
+      parameters:
+      - description: Array of search filters
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/PlantSite_internal_api_search-api_mapper.SearchPostsItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/PlantSite_internal_api_search-api_response.SearchPostItem'
+            type: array
+        "400":
+          description: Invalid request format or missing required fields
+        "500":
+          description: Internal server error
+      summary: Search posts with multiple filters
+      tags:
+      - search
+swagger: "2.0"

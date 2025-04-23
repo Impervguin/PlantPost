@@ -2,7 +2,7 @@ package mapper
 
 import (
 	"PlantSite/internal/api/plant-api/request"
-	plantspec "PlantSite/internal/api/plant-spec"
+	"PlantSite/internal/api/plant-api/spec"
 	"PlantSite/internal/models/plant"
 	"fmt"
 
@@ -18,11 +18,11 @@ type CreatePlantBase struct {
 }
 
 type CreateConiferousPlantRequest struct {
-	Spec plantspec.ConiferousSpecification `json:"specification" form:"specification" binding:"required"`
+	Spec spec.ConiferousSpecification `json:"specification" form:"specification" binding:"required"`
 }
 
 type CreateDeciduousPlantRequest struct {
-	Spec plantspec.DeciduousSpecification `json:"specification" form:"specification" binding:"required"`
+	Spec spec.DeciduousSpecification `json:"specification" form:"specification" binding:"required"`
 }
 
 type PlantCategory struct {
@@ -34,7 +34,7 @@ func MapCreatePlantRequest(c *gin.Context) (*request.CreatePlantRequest, error) 
 	if err := c.ShouldBind(&reqBase); err != nil {
 		return nil, fmt.Errorf("can't bind base: %w", err)
 	}
-	var reqSpec plantspec.PlantSpecification
+	var reqSpec spec.PlantSpecification
 	switch reqBase.Category {
 	case plant.ConiferousCategory:
 		var req CreateConiferousPlantRequest
@@ -78,24 +78,24 @@ func MapGetPlantRequest(c *gin.Context) (*request.GetPlantRequest, error) {
 	}, nil
 }
 
-type UpdatePlantSpecRequestID struct {
+type UpdatespecRequestID struct {
 	ID string `uri:"id" binding:"required"`
 }
 
-type UpdatePlantSpecRequestCategory struct {
+type UpdatespecRequestCategory struct {
 	Category string `json:"category" form:"category" binding:"required"`
 }
 
 type UpdatePlantConiferousRequestBody struct {
-	Spec plantspec.ConiferousSpecification `json:"specification" form:"specification" binding:"required"`
+	Spec spec.ConiferousSpecification `json:"specification" form:"specification" binding:"required"`
 }
 
 type UpdatePlantDeciduousRequestBody struct {
-	Spec plantspec.DeciduousSpecification `json:"specification" form:"specification" binding:"required"`
+	Spec spec.DeciduousSpecification `json:"specification" form:"specification" binding:"required"`
 }
 
 func MapUpdatePlantSpecRequest(c *gin.Context) (*request.UpdatePlantSpecRequest, error) {
-	var reqID UpdatePlantSpecRequestID
+	var reqID UpdatespecRequestID
 	if err := c.ShouldBindUri(&reqID); err != nil {
 		return nil, fmt.Errorf("can't bind uri: %w", err)
 	}
@@ -103,12 +103,12 @@ func MapUpdatePlantSpecRequest(c *gin.Context) (*request.UpdatePlantSpecRequest,
 	if err != nil {
 		return nil, fmt.Errorf("can't parse id: %w", err)
 	}
-	var req UpdatePlantSpecRequestCategory
+	var req UpdatespecRequestCategory
 	if err := c.ShouldBind(&req); err != nil {
 		return nil, fmt.Errorf("can't bind category: %w", err)
 	}
 
-	var reqSpec request.PlantSpecification
+	var reqSpec spec.PlantSpecification
 	switch req.Category {
 	case plant.ConiferousCategory:
 		var reqBody UpdatePlantConiferousRequestBody

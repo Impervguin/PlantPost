@@ -10,6 +10,7 @@ WORKDIR /build
 
 COPY go.* .
 RUN go mod download
+RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 
 COPY ./cmd/api/ ./cmd/api/

@@ -25,12 +25,20 @@ import (
 	"PlantSite/internal/utils/logs"
 	"context"
 
+	docs "PlantSite/cmd/docs"
+
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
 	ctx := context.Background()
 	engine := gin.New()
+
+	docs.SwaggerInfo.BasePath = "/api"
+	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	engine.Use(middleware.RequestIDMiddleware())
 	apiGroup := engine.Group(GetApiUrlPrefix())
 

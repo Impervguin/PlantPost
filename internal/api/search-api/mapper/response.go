@@ -1,7 +1,7 @@
 package mapper
 
 import (
-	plantspec "PlantSite/internal/api/plant-spec"
+	"PlantSite/internal/api/plant-api/spec"
 	"PlantSite/internal/api/search-api/response"
 	searchservice "PlantSite/internal/services/search-service"
 	"fmt"
@@ -44,7 +44,7 @@ func MapSearchPlantsResponse(plants []*searchservice.SearchPlant) (response.Sear
 	resp := make(response.SearchPlantResponse, 0, len(plants))
 
 	for _, p := range plants {
-		respSpec, err := plantspec.MapSpecification(p.Specification)
+		respSpec, err := spec.MapSpecification(p.Specification)
 		if err != nil {
 			return nil, fmt.Errorf("can't map specification to mapper: %w", err)
 		}
@@ -60,4 +60,68 @@ func MapSearchPlantsResponse(plants []*searchservice.SearchPlant) (response.Sear
 		})
 	}
 	return resp, nil
+}
+
+func MapGetPlantResponse(pl *searchservice.GetPlant) (*response.GetPlantResponse, error) {
+	if pl == nil {
+		return nil, nil
+	}
+	spec, err := spec.MapSpecification(pl.Specification)
+	if err != nil {
+		return nil, fmt.Errorf("can't map specification to mapper: %w", err)
+	}
+
+	photos := make([]response.GetPlantPhoto, 0, len(pl.Photos))
+	for _, photo := range pl.Photos {
+		photos = append(photos, response.GetPlantPhoto{
+			ID:          photo.ID.String(),
+			Key:         photo.File.URL,
+			Description: photo.Description,
+		})
+	}
+
+	return &response.GetPlantResponse{
+		ID:            pl.ID.String(),
+		Name:          pl.Name,
+		LatinName:     pl.LatinName,
+		Description:   pl.Description,
+		MainPhotoKey:  pl.MainPhoto.URL,
+		Photos:        photos,
+		Category:      pl.Category,
+		Specification: spec,
+		CreatedAt:     pl.CreatedAt.Format(timeFormat),
+	}, nil
+}
+
+func MapGetPostResponse(pst *searchservice.GetPost) *response.GetPostResponse {
+	if pst == nil {
+		return nil
+	}
+	return &response.GetPostResponse{
+		ID:          pst.ID,
+		Title:       pst.Title,
+		Content:     pst.Content.Text,
+		ContentType: string(pst.Content.ContentType),
+		Tags:        pst.Tags,
+		Photos:      MapGetPostPhotos(pst.Photos),
+
+		AuthorID:  pst.AuthorID,
+		UpdatedAt: pst.UpdatedAt.Format(timeFormat),
+		CreatedAt: pst.CreatedAt.Format(timeFormat),
+	}
+}
+
+func MapGetPostPhotos(photos []searchservice.GetPostPhoto) []response.GetPostPhoto {
+	if photos == nil {
+		return nil
+	}
+	res := make([]response.GetPostPhoto, 0)
+	for _, photo := range photos {
+		res = append(res, response.GetPostPhoto{
+			ID:          photo.ID,
+			PlaceNumber: photo.PlaceNumber,
+			Key:         photo.File.URL,
+		})
+	}
+	return res
 }

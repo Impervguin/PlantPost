@@ -2,7 +2,7 @@ package mapper
 
 import (
 	"PlantSite/internal/api/plant-api/response"
-	plantspec "PlantSite/internal/api/plant-spec"
+	"PlantSite/internal/api/plant-api/spec"
 	plantservice "PlantSite/internal/services/plant-service"
 	"fmt"
 )
@@ -13,7 +13,7 @@ func MapGetPlantResponse(pl *plantservice.GetPlant) (*response.GetPlantResponse,
 	if pl == nil {
 		return nil, nil
 	}
-	spec, err := plantspec.MapSpecification(pl.Specification)
+	spec, err := spec.MapSpecification(pl.Specification)
 	if err != nil {
 		return nil, fmt.Errorf("can't map specification to mapper: %w", err)
 	}

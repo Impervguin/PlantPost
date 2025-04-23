@@ -2,6 +2,7 @@ package postservice
 
 import (
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
 	"context"
 )
@@ -15,10 +16,10 @@ type CreatePostTextData struct {
 func (s *PostService) CreatePost(ctx context.Context, data CreatePostTextData, files []models.FileData) (*post.Post, error) {
 	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return nil, ErrNotAuthor
+		return nil, auth.ErrNoAuthorRights
 	}
 
 	// photos := make([]post.PostPhoto, 0, len(files))
