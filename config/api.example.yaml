@@ -11,6 +11,7 @@ hasher:
 
 api:
   urlprefix:
+  port:
 
 minio:
   post:
@@ -30,3 +31,6 @@ hasher:
 admins:
   - login:
     password: 
+
+auth:
+  session_expire_time:

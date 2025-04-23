@@ -24,6 +24,7 @@ import (
 	"PlantSite/internal/utils/bcrypthasher"
 	"PlantSite/internal/utils/logs"
 	"context"
+	"fmt"
 
 	docs "PlantSite/cmd/docs"
 
@@ -67,6 +68,7 @@ func main() {
 	logg.Info("admins map initialized")
 
 	// ------------- AUTH -------------
+	authservice.UpdateSessionExpireTime(GetSessionExpireTime())
 	authService := authservice.NewAuthService(sessStorage, storageWithAdmins, hasher)
 
 	apiGroup.Use(middleware.AuthMiddleware(authService))
@@ -145,5 +147,5 @@ func main() {
 	searchRouter := searchapi.SearchRouter{}
 	searchRouter.Init(apiGroup, searchService)
 
-	engine.Run(":8080")
+	engine.Run(fmt.Sprintf(":%d", GetApiPort()))
 }
