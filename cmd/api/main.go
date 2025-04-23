@@ -1,17 +1,26 @@
 package main
 
 import (
+	albumapi "PlantSite/internal/api/album-api"
 	authapi "PlantSite/internal/api/auth-api"
 	"PlantSite/internal/api/middleware"
+	plantapi "PlantSite/internal/api/plant-api"
 	postapi "PlantSite/internal/api/post-api"
+	searchapi "PlantSite/internal/api/search-api"
 	minioclient "PlantSite/internal/infra/minio-client"
 	sessionstorage "PlantSite/internal/infra/session-storage"
 	authrepo "PlantSite/internal/repositories/authrepo"
 	filestorage "PlantSite/internal/repositories/pgminio/file-storage"
+	albumstorage "PlantSite/internal/repositories/postgres/album-storage"
 	authstorage "PlantSite/internal/repositories/postgres/auth-storage"
+	plantstorage "PlantSite/internal/repositories/postgres/plant-storage"
 	poststorage "PlantSite/internal/repositories/postgres/post-storage"
+	searchstorage "PlantSite/internal/repositories/postgres/search-storage"
+	albumservice "PlantSite/internal/services/album-service"
 	authservice "PlantSite/internal/services/auth-service"
+	plantservice "PlantSite/internal/services/plant-service"
 	postservice "PlantSite/internal/services/post-service"
+	searchservice "PlantSite/internal/services/search-service"
 	"PlantSite/internal/utils/bcrypthasher"
 	"PlantSite/internal/utils/logs"
 	"context"
@@ -78,6 +87,55 @@ func main() {
 
 	postRouter := postapi.PostRouter{}
 	postRouter.Init(apiGroup, postservice)
+
+	// ------------- PLANT STORAGE -------------
+	plantMinioCl, err := minioclient.NewMinioClient(GetPlantMinioConfig())
+	if err != nil {
+		panic(err)
+	}
+	plantFStorage, err := filestorage.NewPgMinioStorage(ctx, sqpgx, plantMinioCl)
+	if err != nil {
+		panic(err)
+	}
+	plantRepo, err := plantstorage.NewPostgresPlantRepository(ctx, sqpgx)
+	if err != nil {
+		panic(err)
+	}
+
+	plantCategoryRepo, err := plantstorage.NewPostgresPlantCategoryRepository(sqpgx)
+	if err != nil {
+		panic(err)
+	}
+
+	// ------------- PLANTS -------------
+	plantService := plantservice.NewPlantService(plantRepo, plantCategoryRepo, plantFStorage, authService)
+
+	plantRouter := plantapi.PlantRouter{}
+	plantRouter.Init(apiGroup, plantService)
+
+	// ------------- ALBUM STORAGE -------------
+	albumRepo, err := albumstorage.NewPostgresAlbumRepository(ctx, sqpgx)
+	if err != nil {
+		panic(err)
+	}
+
+	// ------------- ALBUMS -------------
+	albumService := albumservice.NewAlbumService(albumRepo, authService)
+
+	albumRouter := albumapi.AlbumRouter{}
+	albumRouter.Init(apiGroup, albumService)
+
+	// ------------- SEARCH STORAGE -------------
+	searchRepo, err := searchstorage.NewPostgresSearchRepository(ctx, sqpgx)
+	if err != nil {
+		panic(err)
+	}
+
+	// ------------- SEARCH -------------
+	searchService := searchservice.NewSearchService(searchRepo, plantFStorage, postFStorage)
+
+	searchRouter := searchapi.SearchRouter{}
+	searchRouter.Init(apiGroup, searchService)
 
 	engine.Run(":8080")
 }

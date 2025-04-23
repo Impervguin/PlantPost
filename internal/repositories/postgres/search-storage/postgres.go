@@ -218,14 +218,9 @@ func (repo *PostgresSearchRepository) SearchPlants(ctx context.Context, srch *se
 			From("plant").
 			Where(whereClause),
 	)
-	fmt.Println(squirrel.Select("id", "name", "latin_name", "description", "main_photo_id", "category", "updated_at", "created_at", "specification").
-		From("plant").
-		Where(whereClause).ToSql())
 	if err != nil {
 		return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
 	}
-	fmt.Println("hui")
-
 	defer rows.Close()
 	plants := make([]Plant, 0)
 	for rows.Next() {
@@ -236,7 +231,6 @@ func (repo *PostgresSearchRepository) SearchPlants(ctx context.Context, srch *se
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println("huitmp")
 
 		plnt.Specification, err = specificationmapper.SpecificationFromDB(plnt.Category, tmpSpec)
 		if err != nil {
@@ -245,7 +239,6 @@ func (repo *PostgresSearchRepository) SearchPlants(ctx context.Context, srch *se
 		plants = append(plants, plnt)
 	}
 	if rows.Err() != nil {
-		fmt.Println("hui2")
 		return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", rows.Err())
 	}
 

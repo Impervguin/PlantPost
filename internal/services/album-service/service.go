@@ -28,10 +28,19 @@ func (s *AlbumService) CreateAlbum(ctx context.Context, alb *album.Album) (*albu
 	if !user.HasMemberRights() {
 		return nil, ErrNotMember
 	}
-	if alb.GetOwnerID() != user.ID() {
-		return nil, ErrNotOwner
+	ownerAlb, err := album.CreateAlbum(
+		alb.ID(),
+		alb.Name(),
+		alb.Description(),
+		alb.PlantIDs(),
+		user.ID(),
+		alb.CreatedAt(),
+		alb.UpdatedAt(),
+	)
+	if err != nil {
+		return nil, Wrap(err)
 	}
-	alb, err := s.albumRepository.Create(ctx, alb)
+	alb, err = s.albumRepository.Create(ctx, ownerAlb)
 	if err != nil {
 		return nil, Wrap(err)
 	}

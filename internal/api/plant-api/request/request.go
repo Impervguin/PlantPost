@@ -1,0 +1,34 @@
+package request
+
+import (
+	plantspec "PlantSite/internal/api/plant-spec"
+
+	"github.com/google/uuid"
+)
+
+type CreatePlantRequest struct {
+	Name        string
+	LatinName   string
+	Description string
+	Category    string
+	Spec        plantspec.PlantSpecification
+}
+
+type GetPlantRequest struct {
+	ID uuid.UUID `uri:"id" binding:"required"`
+}
+
+type UpdatePlantSpecRequest struct {
+	ID       uuid.UUID          `uri:"id" binding:"required"`
+	Category string             `json:"category" form:"category" binding:"required"`
+	Spec     PlantSpecification `json:"specification" form:"specification" binding:"required"`
+}
+
+type DeletePlantRequest struct {
+	ID uuid.UUID `uri:"id" binding:"required"`
+}
+
+type UploadPlantPhotoRequest struct {
+	ID          uuid.UUID `uri:"id" binding:"required"`
+	Description string    `json:"description" form:"description" binding:"required"`
+}

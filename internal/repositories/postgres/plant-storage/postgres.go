@@ -4,6 +4,7 @@ import (
 	"PlantSite/internal/infra/sqdb"
 	"PlantSite/internal/models/plant"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -127,21 +128,23 @@ func (repo *PostgresPlantRepository) Update(ctx context.Context, plantID uuid.UU
 
 		_, err = tx.Delete(ctx, squirrel.Delete("plant_photo").
 			Where(squirrel.Eq{"plant_id": plantID}))
-		if err != nil {
+		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
 			return err
 		}
-		query := squirrel.Insert("plant_photo").
-			Columns("id", "plant_id", "file_id", "description")
-		err = plnt.GetPhotos().Iterate(func(e plant.PlantPhoto) error {
-			query = query.Values(e.ID(), plnt.ID(), e.FileID(), e.Description())
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-		_, err = tx.Insert(ctx, query)
-		if err != nil {
-			return err
+		if plnt.GetPhotos().Len() > 0 {
+			query := squirrel.Insert("plant_photo").
+				Columns("id", "plant_id", "file_id", "description")
+			err = plnt.GetPhotos().Iterate(func(e plant.PlantPhoto) error {
+				query = query.Values(e.ID(), plnt.ID(), e.FileID(), e.Description())
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			_, err = tx.Insert(ctx, query)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
@@ -154,7 +157,7 @@ func (repo *PostgresPlantRepository) Update(ctx context.Context, plantID uuid.UU
 func (repo *PostgresPlantRepository) Delete(ctx context.Context, plantID uuid.UUID) error {
 	err := repo.db.Transaction(ctx, func(tx sqdb.SquirrelQuirier) error {
 		_, err := tx.Delete(ctx, squirrel.Delete("plant_photo").Where(squirrel.Eq{"plant_id": plantID}))
-		if err != nil {
+		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
 			return err
 		}
 		_, err = tx.Delete(ctx, squirrel.Delete("plant").Where(squirrel.Eq{"id": plantID}))
