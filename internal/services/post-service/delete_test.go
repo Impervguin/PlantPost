@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"PlantSite/internal/models/auth"
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
 	postservice "PlantSite/internal/services/post-service"
@@ -94,7 +95,7 @@ func TestDeletePost(t *testing.T) {
 
 		err := svc.Delete(ctx, validPostID)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, postservice.ErrNotAuthor)
+		assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
 	})
 
 	t.Run("RepositoryError", func(t *testing.T) {

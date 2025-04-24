@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/plant"
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
@@ -156,7 +157,7 @@ func TestGetPlant(t *testing.T) {
 
 		_, err := svc.GetPlant(ctx, validPlantID)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, plantservice.ErrNotAuthor)
+		assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
 	})
 
 	t.Run("PlantNotFound", func(t *testing.T) {

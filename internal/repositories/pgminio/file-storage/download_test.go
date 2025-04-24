@@ -19,7 +19,7 @@ func (s *FileStorageTestSuite) TestDownloadFile() {
 	testData := createTestFileData()
 
 	// Upload test file first
-	uploadedFile, err := s.storage.UploadFile(ctx, testData)
+	uploadedFile, err := s.storage.Upload(ctx, &testData)
 	require.NoError(s.T(), err)
 
 	// Test download

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"PlantSite/internal/models/album"
+	"PlantSite/internal/models/auth"
 	albumservice "PlantSite/internal/services/album-service"
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
@@ -131,7 +132,7 @@ func TestAlbumService(t *testing.T) {
 			svc := albumservice.NewAlbumService(repo, asvc)
 
 			_, err := svc.CreateAlbum(ctx, validAlbum)
-			assert.ErrorIs(t, err, albumservice.ErrNotMember)
+			assert.ErrorIs(t, err, auth.ErrNoMemberRights)
 		})
 	})
 

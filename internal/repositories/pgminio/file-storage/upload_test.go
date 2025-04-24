@@ -10,12 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func (s *FileStorageTestSuite) TestUploadFile() {
+func (s *FileStorageTestSuite) TestUpload() {
 	ctx := context.Background()
 	testData := createTestFileData()
 
 	// Test upload
-	file, err := s.storage.UploadFile(ctx, testData)
+	file, err := s.storage.Upload(ctx, &testData)
 	require.NoError(s.T(), err)
 
 	// Verify returned file
@@ -32,30 +32,30 @@ func (s *FileStorageTestSuite) TestUploadFile() {
 	assert.Equal(s.T(), file.URL, dbFile.URL)
 }
 
-func (s *FileStorageTestSuite) TestUploadFileWithEmptyName() {
+func (s *FileStorageTestSuite) TestUploadWithEmptyName() {
 	ctx := context.Background()
 	testData := createTestFileData()
 	testData.Name = ""
 
-	_, err := s.storage.UploadFile(ctx, testData)
+	_, err := s.storage.Upload(ctx, &testData)
 	require.Error(s.T(), err)
 }
 
-func (s *FileStorageTestSuite) TestUploadFileWithNilReader() {
+func (s *FileStorageTestSuite) TestUploadWithNilReader() {
 	ctx := context.Background()
 	testData := createTestFileData()
 	testData.Reader = nil
 
-	_, err := s.storage.UploadFile(ctx, testData)
+	_, err := s.storage.Upload(ctx, &testData)
 	require.Error(s.T(), err)
 }
 
-func (s *FileStorageTestSuite) TestUploadFileWithEmptyContentType() {
+func (s *FileStorageTestSuite) TestUploadWithEmptyContentType() {
 	ctx := context.Background()
 	testData := createTestFileData()
 	testData.ContentType = ""
 
-	file, err := s.storage.UploadFile(ctx, testData)
+	file, err := s.storage.Upload(ctx, &testData)
 	require.NoError(s.T(), err)
 	assert.NotNil(s.T(), file)
 }

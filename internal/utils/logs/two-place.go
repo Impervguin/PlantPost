@@ -1,6 +1,7 @@
 package logs
 
 import (
+	"fmt"
 	"os"
 
 	"go.uber.org/zap"
@@ -32,24 +33,24 @@ const (
 	LevelFatal = "fatal"
 )
 
-func MapLevels(level string) zapcore.Level {
+func MapLevels(level string) (zapcore.Level, error) {
 	switch level {
 	case LevelDebug:
-		return zapcore.DebugLevel
+		return zapcore.DebugLevel, nil
 	case LevelInfo:
-		return zapcore.InfoLevel
+		return zapcore.InfoLevel, nil
 	case LevelWarn:
-		return zapcore.WarnLevel
+		return zapcore.WarnLevel, nil
 	case LevelError:
-		return zapcore.ErrorLevel
+		return zapcore.ErrorLevel, nil
 	case LevelFatal:
-		return zapcore.FatalLevel
+		return zapcore.FatalLevel, nil
 	default:
-		return zapcore.InfoLevel
+		return zap.DPanicLevel, fmt.Errorf("unknown logger error")
 	}
 }
 
-func InitTwoPlaceLogger(tpCfg *TwoPlaceConfig) *zap.SugaredLogger {
+func InitTwoPlaceLogger(tpCfg *TwoPlaceConfig) (*zap.SugaredLogger, error) {
 	var cfg zapcore.EncoderConfig
 	switch tpCfg.Type {
 	case TypeDev:
@@ -57,27 +58,49 @@ func InitTwoPlaceLogger(tpCfg *TwoPlaceConfig) *zap.SugaredLogger {
 	case TypeProd:
 		cfg = zap.NewProductionEncoderConfig()
 	default:
-		cfg = zap.NewDevelopmentEncoderConfig()
+		return nil, fmt.Errorf("invalid log type: %s", tpCfg.Type)
 	}
 	fileEncoder := zapcore.NewJSONEncoder(cfg)
+	if fileEncoder == nil {
+		return nil, fmt.Errorf("failed to create file encoder")
+	}
 	consoleEncoder := zapcore.NewConsoleEncoder(cfg)
+	if consoleEncoder == nil {
+		return nil, fmt.Errorf("failed to create console encoder")
+	}
+
+	consoleLevel, err := MapLevels(tpCfg.ConsoleLevel)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map console level: %w", err)
+	}
+	fileLevel, err := MapLevels(tpCfg.FileLevel)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map file level: %w", err)
+	}
+
 	tee := zapcore.NewTee(
 		zapcore.NewCore(
 			consoleEncoder,
 			zapcore.Lock(os.Stdout),
-			MapLevels(tpCfg.ConsoleLevel),
+			consoleLevel,
 		),
 		zapcore.NewCore(
 			fileEncoder,
 			zapcore.Lock(tpCfg.LogFileFactory),
-			MapLevels(tpCfg.FileLevel),
+			fileLevel,
 		),
 	)
 
 	l := zap.New(tee,
 		zap.AddStacktrace(zapcore.ErrorLevel),
 		zap.AddCaller())
+	if l == nil {
+		return nil, fmt.Errorf("can't create logger")
+	}
 
 	s := l.Sugar()
-	return s
+	if s == nil {
+		return nil, fmt.Errorf("can't sugar logger")
+	}
+	return s, nil
 }

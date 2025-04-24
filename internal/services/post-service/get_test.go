@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
@@ -150,7 +151,7 @@ func TestGetPost(t *testing.T) {
 
 		_, err := svc.GetPost(ctx, validPostID)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, postservice.ErrNotAuthor)
+		assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
 	})
 
 	t.Run("PostNotFound", func(t *testing.T) {

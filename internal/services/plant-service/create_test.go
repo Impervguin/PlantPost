@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/plant"
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
@@ -128,7 +129,7 @@ func TestCreatePlant(t *testing.T) {
 
 		err := svc.CreatePlant(ctx, validData, validMainPhoto)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, plantservice.ErrNotAuthor)
+		assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
 	})
 
 	t.Run("InvalidCategory", func(t *testing.T) {

@@ -14,13 +14,16 @@ type EveryDayFileFactory struct {
 	fileSuffix  string
 }
 
-func NewEveryDayFileFactory(filePrefix string, fileSuffix string) *EveryDayFileFactory {
-	return &EveryDayFileFactory{
+func NewEveryDayFileFactory(filePrefix string, fileSuffix string) (*EveryDayFileFactory, error) {
+	fact := &EveryDayFileFactory{
 		currentFile: nil,
 		lastDay:     time.Time{},
 		filePrefix:  filePrefix,
 		fileSuffix:  fileSuffix,
 	}
+
+	_, err := fact.Write([]byte("every day file factory test"))
+	return fact, err
 }
 
 func (fa *EveryDayFileFactory) updFile() error {

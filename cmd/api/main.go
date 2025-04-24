@@ -44,14 +44,39 @@ func main() {
 	apiGroup := engine.Group(GetApiUrlPrefix())
 
 	// ------------- LOGGING -------------
-	logg := logs.InitTwoPlaceLogger(
+	logconf := GetLoggerConfig()
+
+	switch logconf.LogFileType {
+	case LogFileTypeJson:
+		break
+	default:
+		panic("unknown log file type")
+	}
+
+	var ff logs.LogFileFactory
+
+	switch logconf.FileFactory {
+	case EveryDayFileFactory:
+		var err error
+		ff, err = logs.NewEveryDayFileFactory(logconf.LogDir, ".json")
+		if err != nil {
+			panic(err)
+		}
+	default:
+		panic("unknown file factory")
+	}
+
+	logg, err := logs.InitTwoPlaceLogger(
 		&logs.TwoPlaceConfig{
-			Type:           logs.TypeDev,
-			FileLevel:      logs.LevelInfo,
-			ConsoleLevel:   logs.LevelDebug,
-			LogFileFactory: logs.NewEveryDayFileFactory("/logs/", ".json"),
+			Type:           logconf.LogType,
+			FileLevel:      logconf.LogFileLevel,
+			ConsoleLevel:   logconf.LogConsoleLevel,
+			LogFileFactory: ff,
 		},
 	)
+	if err != nil {
+		panic(fmt.Errorf("failed to init logger: %w", err))
+	}
 	apiGroup.Use(middleware.LogMiddleware(logg))
 
 	// ------------- AUTH STORAGE -------------

@@ -155,7 +155,7 @@ func (s *SearchRepositoryTestSuite) uploadTestPhoto(ctx context.Context) uuid.UU
 		Reader:      bytes.NewReader([]byte("test photo content")),
 		ContentType: "image/jpeg",
 	}
-	file, err := s.fileRepo.UploadFile(ctx, fileData)
+	file, err := s.fileRepo.Upload(ctx, &fileData)
 	require.NoError(s.T(), err)
 	return file.ID
 }

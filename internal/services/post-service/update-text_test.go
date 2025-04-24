@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
@@ -150,7 +151,7 @@ func TestUpdatePost(t *testing.T) {
 
 		_, err := svc.UpdatePost(ctx, validPostID, updateData)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, postservice.ErrNotAuthor)
+		assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
 	})
 
 	t.Run("PostNotFound", func(t *testing.T) {

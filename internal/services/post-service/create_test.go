@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
@@ -143,7 +144,7 @@ func TestCreatePost(t *testing.T) {
 
 		_, err := svc.CreatePost(ctx, validData, validFiles)
 		require.Error(t, err)
-		assert.ErrorIs(t, err, postservice.ErrNotAuthor)
+		assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
 	})
 
 	t.Run("InvalidFileContentType", func(t *testing.T) {
