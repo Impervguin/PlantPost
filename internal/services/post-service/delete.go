@@ -1,7 +1,7 @@
 package postservice
 
 import (
-	authservice "PlantSite/internal/services/auth-service"
+	"PlantSite/internal/models/auth"
 	"context"
 	"fmt"
 
@@ -9,12 +9,12 @@ import (
 )
 
 func (s *PostService) Delete(ctx context.Context, id uuid.UUID) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return ErrNotAuthor
+		return auth.ErrNoAuthorRights
 	}
 	if id == uuid.Nil {
 		return fmt.Errorf("nil post")

@@ -135,7 +135,7 @@ func (s *AlbumRepositoryTestSuite) pushTestPlant() *plant.Plant {
 
 	plUUID := uuid.New()
 	// Create file
-	photo, err := s.fileRepo.UploadFile(ctx, models.FileData{
+	photo, err := s.fileRepo.Upload(ctx, &models.FileData{
 		Name:        plUUID.String(),
 		Reader:      bytes.NewReader([]byte("test")),
 		ContentType: "image/jpeg",

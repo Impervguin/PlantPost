@@ -14,16 +14,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func (s *FileStorageTestSuite) TestDeleteFile() {
+func (s *FileStorageTestSuite) TestDelete() {
 	ctx := context.Background()
 	testData := createTestFileData()
 
 	// Upload test file first
-	uploadedFile, err := s.storage.UploadFile(ctx, testData)
+	uploadedFile, err := s.storage.Upload(ctx, &testData)
 	require.NoError(s.T(), err)
 
 	// Test delete
-	err = s.storage.DeleteFile(ctx, uploadedFile.ID)
+	err = s.storage.Delete(ctx, uploadedFile.ID)
 	require.NoError(s.T(), err)
 
 	// Verify deleted from database
@@ -39,16 +39,16 @@ func (s *FileStorageTestSuite) TestDeleteNonExistentFile() {
 	ctx := context.Background()
 	nonExistentID := uuid.New()
 
-	err := s.storage.DeleteFile(ctx, nonExistentID)
+	err := s.storage.Delete(ctx, nonExistentID)
 	require.Error(s.T(), err)
 }
 
-func (s *FileStorageTestSuite) TestDeleteFileMissingInMinio() {
+func (s *FileStorageTestSuite) TestDeleteMissingInMinio() {
 	ctx := context.Background()
 	testData := createTestFileData()
 
 	// Upload test file first
-	uploadedFile, err := s.storage.UploadFile(ctx, testData)
+	uploadedFile, err := s.storage.Upload(ctx, &testData)
 	require.NoError(s.T(), err)
 
 	// Delete from MinIO first
@@ -56,7 +56,7 @@ func (s *FileStorageTestSuite) TestDeleteFileMissingInMinio() {
 	require.NoError(s.T(), err)
 
 	// Test delete should still succeed for DB cleanup
-	err = s.storage.DeleteFile(ctx, uploadedFile.ID)
+	err = s.storage.Delete(ctx, uploadedFile.ID)
 	require.NoError(s.T(), err)
 
 	// Verify deleted from database and MinIO

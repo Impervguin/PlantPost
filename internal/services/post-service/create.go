@@ -2,8 +2,8 @@ package postservice
 
 import (
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
-	authservice "PlantSite/internal/services/auth-service"
 	"context"
 )
 
@@ -14,12 +14,12 @@ type CreatePostTextData struct {
 }
 
 func (s *PostService) CreatePost(ctx context.Context, data CreatePostTextData, files []models.FileData) (*post.Post, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return nil, ErrNotAuthor
+		return nil, auth.ErrNoAuthorRights
 	}
 
 	// photos := make([]post.PostPhoto, 0, len(files))
@@ -30,16 +30,16 @@ func (s *PostService) CreatePost(ctx context.Context, data CreatePostTextData, f
 		}
 		f, err := s.fileRepo.Upload(ctx, &file)
 		if err != nil {
-			return nil, err
+			return nil, Wrap(err)
 		}
 		photo, err := post.NewPostPhoto(f.ID, i+1)
 		if err != nil {
-			return nil, err
+			return nil, Wrap(err)
 		}
 		// photos = append(photos, *photo)
 		err = photos.Add(photo)
 		if err != nil {
-			return nil, err
+			return nil, Wrap(err)
 		}
 	}
 

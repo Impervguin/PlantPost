@@ -1,0 +1,36 @@
+database:
+  name:
+  user:
+  password:
+  host:
+  port:
+  max_connections:
+  max_conn_life_time: 
+hasher:
+  hash_cost: 
+
+api:
+  urlprefix:
+  port:
+
+minio:
+  post:
+    endpoint:
+    user:
+    password:
+    bucket: 
+  plant:
+    endpoint:
+    user:
+    password:
+    bucket:
+  
+hasher:
+  hash_cost:
+
+admins:
+  - login:
+    password: 
+
+auth:
+  session_expire_time:

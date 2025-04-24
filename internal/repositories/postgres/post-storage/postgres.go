@@ -5,6 +5,7 @@ import (
 	"PlantSite/internal/models/post"
 	postget "PlantSite/internal/repositories/postgres/post-get"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -42,15 +43,17 @@ func (repo *PostgresPostRepository) Create(ctx context.Context, pst *post.Post) 
 			}
 		}
 
-		query := squirrel.Insert("post_tag").
-			Columns("id", "post_id", "tag")
+		if len(pst.Tags()) > 0 {
+			query := squirrel.Insert("post_tag").
+				Columns("id", "post_id", "tag")
 
-		for _, tag := range pst.Tags() {
-			query = query.Values(uuid.New(), pst.ID(), tag)
-		}
-		_, err = tx.Insert(ctx, query)
-		if err != nil {
-			return err
+			for _, tag := range pst.Tags() {
+				query = query.Values(uuid.New(), pst.ID(), tag)
+			}
+			_, err = tx.Insert(ctx, query)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
@@ -107,7 +110,7 @@ func (repo *PostgresPostRepository) Update(ctx context.Context, id uuid.UUID, up
 		}
 		_, err = tx.Delete(ctx, squirrel.Delete("post_photo").
 			Where(squirrel.Eq{"post_id": id}))
-		if err != nil {
+		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
 			return err
 		}
 		for _, photo := range updatedPst.Photos().List() {
@@ -120,7 +123,7 @@ func (repo *PostgresPostRepository) Update(ctx context.Context, id uuid.UUID, up
 		}
 		_, err = tx.Delete(ctx, squirrel.Delete("post_tag").
 			Where(squirrel.Eq{"post_id": id}))
-		if err != nil {
+		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
 			return err
 		}
 		for _, tag := range updatedPst.Tags() {
@@ -143,12 +146,13 @@ func (repo *PostgresPostRepository) Delete(ctx context.Context, postID uuid.UUID
 	err := repo.db.Transaction(ctx, func(tx sqdb.SquirrelQuirier) error {
 		_, err := tx.Delete(ctx, squirrel.Delete("post_photo").
 			Where(squirrel.Eq{"post_id": postID}))
-		if err != nil {
+		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
 			return err
 		}
 		_, err = tx.Delete(ctx, squirrel.Delete("post_tag").
 			Where(squirrel.Eq{"post_id": postID}))
-		if err != nil {
+
+		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
 			return err
 		}
 		_, err = tx.Delete(ctx, squirrel.Delete("post").

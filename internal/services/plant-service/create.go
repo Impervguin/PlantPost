@@ -2,8 +2,8 @@ package plantservice
 
 import (
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/plant"
-	authservice "PlantSite/internal/services/auth-service"
 	"context"
 )
 
@@ -16,12 +16,12 @@ type CreatePlantData struct {
 }
 
 func (s *PlantService) CreatePlant(ctx context.Context, data CreatePlantData, mainPhotoFile models.FileData) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return ErrNotAuthor
+		return auth.ErrNoAuthorRights
 	}
 
 	_, err := s.categoryrepo.GetCategory(ctx, data.Category)

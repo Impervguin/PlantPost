@@ -37,7 +37,7 @@ func (s *PlantRepositoryTestSuite) TestCreatePlantWithInvalidPhoto() {
 	photos := testPlant.GetPhotos()
 	if photos.Len() > 0 {
 		photos.Iterate(func(e plant.PlantPhoto) error {
-			return s.fileRepo.DeleteFile(ctx, e.FileID())
+			return s.fileRepo.Delete(ctx, e.FileID())
 		})
 	}
 

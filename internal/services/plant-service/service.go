@@ -2,6 +2,7 @@ package plantservice
 
 import (
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/plant"
 	authservice "PlantSite/internal/services/auth-service"
 	"context"
@@ -13,9 +14,10 @@ type PlantService struct {
 	plantrepo    plant.PlantRepository
 	categoryrepo plant.PlantCategoryRepository
 	filerepo     models.FileRepository
+	auth         *authservice.AuthService
 }
 
-func NewPlantService(repository plant.PlantRepository, crep plant.PlantCategoryRepository, filerepo models.FileRepository) *PlantService {
+func NewPlantService(repository plant.PlantRepository, crep plant.PlantCategoryRepository, filerepo models.FileRepository, auth *authservice.AuthService) *PlantService {
 	if repository == nil {
 		panic("nil repository")
 	}
@@ -25,20 +27,24 @@ func NewPlantService(repository plant.PlantRepository, crep plant.PlantCategoryR
 	if filerepo == nil {
 		panic("nil file repository")
 	}
+	if auth == nil {
+		panic("nil auth")
+	}
 	return &PlantService{plantrepo: repository,
 		categoryrepo: crep,
 		filerepo:     filerepo,
+		auth:         auth,
 	}
 }
 
 func (s *PlantService) UpdatePlantSpec(ctx context.Context, id uuid.UUID, spec plant.PlantSpecification) error {
 
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return ErrNotAuthor
+		return auth.ErrNoAuthorRights
 	}
 	_, err := s.plantrepo.Update(ctx, id, func(p *plant.Plant) (*plant.Plant, error) {
 		err := p.UpdateSpec(spec)
@@ -48,23 +54,23 @@ func (s *PlantService) UpdatePlantSpec(ctx context.Context, id uuid.UUID, spec p
 }
 
 func (s *PlantService) DeletePlant(ctx context.Context, id uuid.UUID) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return ErrNotAuthor
+		return auth.ErrNoAuthorRights
 	}
 	return s.plantrepo.Delete(ctx, id)
 }
 
 func (s *PlantService) UploadPlantPhoto(ctx context.Context, id uuid.UUID, fdata models.FileData, description string) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return ErrNotAuthor
+		return auth.ErrNoAuthorRights
 	}
 	file, err := s.filerepo.Upload(ctx, &fdata)
 	if err != nil {
@@ -82,23 +88,23 @@ func (s *PlantService) UploadPlantPhoto(ctx context.Context, id uuid.UUID, fdata
 }
 
 func (s *PlantService) GetPlantCategory(ctx context.Context, name string) (*plant.PlantCategory, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return nil, ErrNotAuthor
+		return nil, auth.ErrNoAuthorRights
 	}
 	return s.categoryrepo.GetCategory(ctx, name)
 }
 
 func (s *PlantService) ListCategories(ctx context.Context) ([]plant.PlantCategory, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return nil, ErrNotAuthor
+		return nil, auth.ErrNoAuthorRights
 	}
 	return s.categoryrepo.GetCategories(ctx)
 }

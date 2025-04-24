@@ -2,6 +2,7 @@ package albumservice
 
 import (
 	"PlantSite/internal/models/album"
+	"PlantSite/internal/models/auth"
 	authservice "PlantSite/internal/services/auth-service"
 	"context"
 
@@ -10,24 +11,37 @@ import (
 
 type AlbumService struct {
 	albumRepository album.AlbumRepository
+	auth            *authservice.AuthService
 }
 
-func NewAlbumService(repo album.AlbumRepository) *AlbumService {
-	return &AlbumService{albumRepository: repo}
+func NewAlbumService(repo album.AlbumRepository, auth *authservice.AuthService) *AlbumService {
+	return &AlbumService{
+		albumRepository: repo,
+		auth:            auth,
+	}
 }
 
 func (s *AlbumService) CreateAlbum(ctx context.Context, alb *album.Album) (*album.Album, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasMemberRights() {
-		return nil, ErrNotMember
+		return nil, auth.ErrNoMemberRights
 	}
-	if alb.GetOwnerID() != user.ID() {
-		return nil, ErrNotOwner
+	ownerAlb, err := album.CreateAlbum(
+		alb.ID(),
+		alb.Name(),
+		alb.Description(),
+		alb.PlantIDs(),
+		user.ID(),
+		alb.CreatedAt(),
+		alb.UpdatedAt(),
+	)
+	if err != nil {
+		return nil, Wrap(err)
 	}
-	alb, err := s.albumRepository.Create(ctx, alb)
+	alb, err = s.albumRepository.Create(ctx, ownerAlb)
 	if err != nil {
 		return nil, Wrap(err)
 	}
@@ -35,12 +49,12 @@ func (s *AlbumService) CreateAlbum(ctx context.Context, alb *album.Album) (*albu
 }
 
 func (s *AlbumService) GetAlbum(ctx context.Context, id uuid.UUID) (*album.Album, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasMemberRights() {
-		return nil, ErrNotMember
+		return nil, auth.ErrNoMemberRights
 	}
 	alb, err := s.albumRepository.Get(ctx, id)
 	if err != nil {
@@ -53,12 +67,12 @@ func (s *AlbumService) GetAlbum(ctx context.Context, id uuid.UUID) (*album.Album
 }
 
 func (s *AlbumService) UpdateAlbumName(ctx context.Context, id uuid.UUID, name string) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasMemberRights() {
-		return ErrNotMember
+		return auth.ErrNoMemberRights
 	}
 	_, err := s.albumRepository.Update(ctx, id, func(a *album.Album) (*album.Album, error) {
 		if a.GetOwnerID() != user.ID() {
@@ -74,12 +88,12 @@ func (s *AlbumService) UpdateAlbumName(ctx context.Context, id uuid.UUID, name s
 }
 
 func (s *AlbumService) UpdateAlbumDescription(ctx context.Context, id uuid.UUID, description string) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasMemberRights() {
-		return ErrNotMember
+		return auth.ErrNoMemberRights
 	}
 	_, err := s.albumRepository.Update(ctx, id, func(a *album.Album) (*album.Album, error) {
 		if a.GetOwnerID() != user.ID() {
@@ -95,12 +109,12 @@ func (s *AlbumService) UpdateAlbumDescription(ctx context.Context, id uuid.UUID,
 }
 
 func (s *AlbumService) AddPlantToAlbum(ctx context.Context, id uuid.UUID, plantID uuid.UUID) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasMemberRights() {
-		return ErrNotMember
+		return auth.ErrNoMemberRights
 	}
 	_, err := s.albumRepository.Update(ctx, id, func(a *album.Album) (*album.Album, error) {
 		if a.GetOwnerID() != user.ID() {
@@ -116,12 +130,12 @@ func (s *AlbumService) AddPlantToAlbum(ctx context.Context, id uuid.UUID, plantI
 }
 
 func (s *AlbumService) RemovePlantFromAlbum(ctx context.Context, id uuid.UUID, plantID uuid.UUID) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasMemberRights() {
-		return ErrNotMember
+		return auth.ErrNoMemberRights
 	}
 	_, err := s.albumRepository.Update(ctx, id, func(a *album.Album) (*album.Album, error) {
 		if a.GetOwnerID() != user.ID() {
@@ -137,12 +151,12 @@ func (s *AlbumService) RemovePlantFromAlbum(ctx context.Context, id uuid.UUID, p
 }
 
 func (s *AlbumService) DeleteAlbum(ctx context.Context, id uuid.UUID) error {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return ErrNotAuthorized
+		return auth.ErrNotAuthorized
 	}
 	if !user.HasMemberRights() {
-		return ErrNotMember
+		return auth.ErrNoMemberRights
 	}
 	alb, err := s.albumRepository.Get(ctx, id)
 	if err != nil {
@@ -159,12 +173,12 @@ func (s *AlbumService) DeleteAlbum(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s *AlbumService) ListAlbums(ctx context.Context) ([]*album.Album, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasMemberRights() {
-		return nil, ErrNotMember
+		return nil, auth.ErrNoMemberRights
 	}
 	albs, err := s.albumRepository.List(ctx, user.ID())
 	if err != nil {

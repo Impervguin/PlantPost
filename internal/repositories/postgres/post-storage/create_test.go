@@ -50,7 +50,7 @@ func (s *PostRepositoryTestSuite) TestCreatePostWithInvalidPhoto() {
 	// Delete a photo from storage
 	photos := testPost.Photos().List()
 	if len(photos) > 0 {
-		err := s.fileRepo.DeleteFile(ctx, photos[0].FileID())
+		err := s.fileRepo.Delete(ctx, photos[0].FileID())
 		require.NoError(s.T(), err)
 	}
 

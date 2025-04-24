@@ -1,0 +1,1616 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/album/add/{id}": {
+            "post": {
+                "description": "Adds a plant to an album",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "album"
+                ],
+                "summary": "Add plant to album",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Add plant to album request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_album-api_mapper.AddPlantToAlbumRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plant added to album successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to add plant to album"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to add plant to album"
+                    }
+                }
+            }
+        },
+        "/album/create": {
+            "post": {
+                "description": "Creates a new album with the provided name and description",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "album"
+                ],
+                "summary": "Create an album",
+                "parameters": [
+                    {
+                        "description": "Create album request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_album-api_mapper.CreateAlbumRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Album created successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to create album"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to create album"
+                    }
+                }
+            }
+        },
+        "/album/delete/{id}": {
+            "delete": {
+                "description": "Deletes an album by ID",
+                "tags": [
+                    "album"
+                ],
+                "summary": "Delete album",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Album deleted successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to delete album"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to delete album"
+                    }
+                }
+            }
+        },
+        "/album/description/{id}": {
+            "put": {
+                "description": "Updates the description of an album",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "album"
+                ],
+                "summary": "Update album description",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update album description request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_album-api_mapper.UpdateAlbumDescriptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Album description updated successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to update album description"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to update album description"
+                    }
+                }
+            }
+        },
+        "/album/get/{id}": {
+            "get": {
+                "description": "Gets an album by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "album"
+                ],
+                "summary": "Get album",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Album fetch successfully",
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_album-api_response.GetAlbumResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to get album"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to get album"
+                    }
+                }
+            }
+        },
+        "/album/list": {
+            "get": {
+                "description": "Lists all albums of authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "album"
+                ],
+                "summary": "List albums",
+                "responses": {
+                    "200": {
+                        "description": "Albums fetch successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/PlantSite_internal_api_album-api_response.ListAlbum"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to list albums"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to list albums"
+                    }
+                }
+            }
+        },
+        "/album/name/{id}": {
+            "put": {
+                "description": "Updates the name of an album",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "album"
+                ],
+                "summary": "Update album name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update album name request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_album-api_mapper.UpdateAlbumNameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Album name updated successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to update album name"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to update album name"
+                    }
+                }
+            }
+        },
+        "/album/remove/{id}": {
+            "delete": {
+                "description": "Removes a plant from an album",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "album"
+                ],
+                "summary": "Remove plant from album",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Remove plant from album request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_album-api_mapper.RemovePlantFromAlbumRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plant removed from album successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to remove plant from album"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to remove plant from album"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "description": "Authenticates a user and creates a session",
+                "consumes": [
+                    "application/json",
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_api_auth-api.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Session for user created"
+                    },
+                    "400": {
+                        "description": "Wrong input parameters"
+                    },
+                    "401": {
+                        "description": "Auth error"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "description": "Logouts a user",
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logouts a user",
+                "responses": {
+                    "200": {
+                        "description": "User logged out"
+                    },
+                    "401": {
+                        "description": "Logout error"
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Registers a new user. Requires login afterwards",
+                "consumes": [
+                    "application/json",
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "Register credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_api_auth-api.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User registered"
+                    },
+                    "400": {
+                        "description": "Wrong input parameters"
+                    },
+                    "401": {
+                        "description": "Auth error"
+                    }
+                }
+            }
+        },
+        "/plant/create": {
+            "post": {
+                "description": "Creates a new plant with the provided name, latin name, description, category and specification",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "plant"
+                ],
+                "summary": "Create plant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "plant name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "plant latin name",
+                        "name": "latin_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "plant description",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "plant category",
+                        "name": "category",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "plant main image",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "description": "plant specification",
+                        "name": "specification",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_plant-api_spec.UnionSpecification"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "plant specification",
+                        "name": "specification",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plant created successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to create plant"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to create plant"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to create plant"
+                    }
+                }
+            }
+        },
+        "/plant/delete/{id}": {
+            "delete": {
+                "description": "Deletes a plant by ID",
+                "tags": [
+                    "plant"
+                ],
+                "summary": "Delete plant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Plant ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plant deleted successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to delete plant"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to delete plant"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to delete plant\"// @Param specification body spec.UnionSpecification false \"plant specification"
+                    }
+                }
+            }
+        },
+        "/plant/get/{id}": {
+            "get": {
+                "description": "Gets a plant by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plant"
+                ],
+                "summary": "Get plant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Plant ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plant fetch successfully",
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_plant-api_response.GetPlantResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to get plant"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to get plant"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to get plant"
+                    }
+                }
+            }
+        },
+        "/plant/specification/{id}": {
+            "put": {
+                "description": "Updates the specification of a plant",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plant"
+                ],
+                "summary": "Update plant specification",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Plant ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "plant specification",
+                        "name": "specification",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_plant-api_spec.UnionSpecification"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "plant specification",
+                        "name": "specification",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plant specification updated successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to update plant specification"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to update plant specification"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to update plant specification"
+                    }
+                }
+            }
+        },
+        "/plant/upload/{id}": {
+            "post": {
+                "description": "Uploads a plant photo",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "plant"
+                ],
+                "summary": "Upload plant photo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Plant ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Plant photo",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Plant photo description",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plant photo uploaded successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to upload plant photo"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to upload plant photo"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to upload plant photo"
+                    }
+                }
+            }
+        },
+        "/post/create": {
+            "post": {
+                "description": "Creates a new post with text content and optional images",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "post"
+                ],
+                "summary": "Create a new post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Post title",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Post content",
+                        "name": "content",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "List of tags",
+                        "name": "tags",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Attached files",
+                        "name": "files",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post created successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to create post"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to create post"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to create post"
+                    }
+                }
+            }
+        },
+        "/post/delete/{id}": {
+            "delete": {
+                "description": "Deletes a post by ID",
+                "tags": [
+                    "post"
+                ],
+                "summary": "Delete post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Post ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post deleted successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to delete post"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to delete post"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to delete post"
+                    }
+                }
+            }
+        },
+        "/post/get/{id}": {
+            "get": {
+                "description": "Gets a post by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "post"
+                ],
+                "summary": "Get post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Post ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post fetch successfully",
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_post-api_response.GetPostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to get post"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to get post"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to get post"
+                    }
+                }
+            }
+        },
+        "/post/text/{id}": {
+            "put": {
+                "description": "Updates the text data of a post",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "post"
+                ],
+                "summary": "Update post text data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Post ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update post request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_post-api_mapper.UpdatePostRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post updated successfully"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input or missing required fields"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to update post"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to update post"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to update post"
+                    }
+                }
+            }
+        },
+        "/search/plant/{id}": {
+            "get": {
+                "description": "Gets a plant by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Get plant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Plant ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plant fetch successfully",
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_search-api_response.GetPlantResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to get plant"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to get plant"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to get plant"
+                    }
+                }
+            }
+        },
+        "/search/plants": {
+            "post": {
+                "description": "Search plants using an array of different filter types",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Search plants with multiple filters",
+                "parameters": [
+                    {
+                        "description": "Array of search filters",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/PlantSite_internal_api_search-api_mapper.SearchPlantsItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/PlantSite_internal_api_search-api_response.SearchPlantItem"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format or missing required fields"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/search/post/{id}": {
+            "get": {
+                "description": "Gets a post by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Get post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Post ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post fetch successfully",
+                        "schema": {
+                            "$ref": "#/definitions/PlantSite_internal_api_search-api_response.GetPostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized - Not authorized to get post"
+                    },
+                    "403": {
+                        "description": "Forbidden - Does not have author rights to get post"
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to get post"
+                    }
+                }
+            }
+        },
+        "/search/posts": {
+            "post": {
+                "description": "Search posts using an array of different filter types",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Search posts with multiple filters",
+                "parameters": [
+                    {
+                        "description": "Array of search filters",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/PlantSite_internal_api_search-api_mapper.SearchPostsItem"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/PlantSite_internal_api_search-api_response.SearchPostItem"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format or missing required fields"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "PlantSite_internal_api_album-api_mapper.AddPlantToAlbumRequest": {
+            "type": "object",
+            "required": [
+                "plant_id"
+            ],
+            "properties": {
+                "plant_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_album-api_mapper.CreateAlbumRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "name",
+                "plant_ids"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plant_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "PlantSite_internal_api_album-api_mapper.RemovePlantFromAlbumRequest": {
+            "type": "object",
+            "required": [
+                "plant_id"
+            ],
+            "properties": {
+                "plant_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_album-api_mapper.UpdateAlbumDescriptionRequest": {
+            "type": "object",
+            "required": [
+                "description"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_album-api_mapper.UpdateAlbumNameRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_album-api_response.GetAlbumResponse": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "description",
+                "id",
+                "name",
+                "updated_at"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plantIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_album-api_response.ListAlbum": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "description",
+                "id",
+                "name",
+                "updated_at"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plantIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_plant-api_response.GetPlantPhoto": {
+            "type": "object",
+            "required": [
+                "description",
+                "id",
+                "key"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_plant-api_response.GetPlantResponse": {
+            "type": "object",
+            "required": [
+                "category",
+                "created_at",
+                "description",
+                "id",
+                "latin_name",
+                "main_photo_key",
+                "name"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latin_name": {
+                    "type": "string"
+                },
+                "main_photo_key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PlantSite_internal_api_plant-api_response.GetPlantPhoto"
+                    }
+                },
+                "specification": {}
+            }
+        },
+        "PlantSite_internal_api_plant-api_spec.UnionSpecification": {
+            "type": "object",
+            "required": [
+                "diameter_m",
+                "flowering_period",
+                "height_m",
+                "light_relation",
+                "soil_acidity",
+                "soil_moisture",
+                "soil_type",
+                "winter_hardiness"
+            ],
+            "properties": {
+                "diameter_m": {
+                    "type": "number"
+                },
+                "flowering_period": {
+                    "type": "string"
+                },
+                "height_m": {
+                    "type": "number"
+                },
+                "light_relation": {
+                    "type": "string"
+                },
+                "soil_acidity": {
+                    "type": "integer"
+                },
+                "soil_moisture": {
+                    "type": "string"
+                },
+                "soil_type": {
+                    "type": "string"
+                },
+                "winter_hardiness": {
+                    "type": "integer"
+                }
+            }
+        },
+        "PlantSite_internal_api_post-api_mapper.UpdatePostRequestBody": {
+            "type": "object",
+            "required": [
+                "content",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_post-api_response.GetPostPhoto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "place_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "PlantSite_internal_api_post-api_response.GetPostResponse": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "content_type": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PlantSite_internal_api_post-api_response.GetPostPhoto"
+                    }
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_search-api_mapper.SearchPlantsItem": {
+            "type": "object",
+            "required": [
+                "params",
+                "type"
+            ],
+            "properties": {
+                "params": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_search-api_mapper.SearchPostsItem": {
+            "type": "object",
+            "required": [
+                "params",
+                "type"
+            ],
+            "properties": {
+                "params": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_search-api_response.GetPlantPhoto": {
+            "type": "object",
+            "required": [
+                "description",
+                "id",
+                "key"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_search-api_response.GetPlantResponse": {
+            "type": "object",
+            "required": [
+                "category",
+                "created_at",
+                "description",
+                "id",
+                "latin_name",
+                "main_photo_key",
+                "name"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latin_name": {
+                    "type": "string"
+                },
+                "main_photo_key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PlantSite_internal_api_search-api_response.GetPlantPhoto"
+                    }
+                },
+                "specification": {}
+            }
+        },
+        "PlantSite_internal_api_search-api_response.GetPostPhoto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "place_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "PlantSite_internal_api_search-api_response.GetPostResponse": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "content_type": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PlantSite_internal_api_search-api_response.GetPostPhoto"
+                    }
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_search-api_response.SearchPlantItem": {
+            "type": "object",
+            "required": [
+                "category",
+                "created_at",
+                "description",
+                "id",
+                "latin_name",
+                "main_photo_key",
+                "name",
+                "specification"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latin_name": {
+                    "type": "string"
+                },
+                "main_photo_key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "specification": {}
+            }
+        },
+        "PlantSite_internal_api_search-api_response.SearchPostItem": {
+            "type": "object",
+            "required": [
+                "author_id",
+                "content",
+                "created_at",
+                "id",
+                "title",
+                "updated_at"
+            ],
+            "properties": {
+                "author_id": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PlantSite_internal_api_search-api_response.SearchPostPhoto"
+                    }
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "PlantSite_internal_api_search-api_response.SearchPostPhoto": {
+            "type": "object",
+            "required": [
+                "id",
+                "key",
+                "place_number"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "place_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_api_auth-api.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_api_auth-api.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

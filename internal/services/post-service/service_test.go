@@ -4,9 +4,7 @@ import (
 	"context"
 
 	"PlantSite/internal/models"
-	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
-	authservice "PlantSite/internal/services/auth-service"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -87,42 +85,4 @@ func (m *MockFileRepository) Update(ctx context.Context, fileID uuid.UUID, data 
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.File), args.Error(1)
-}
-
-// MockUser implements auth.User interface
-type MockUser struct {
-	mock.Mock
-}
-
-func (m *MockUser) ID() uuid.UUID {
-	return m.Called().Get(0).(uuid.UUID)
-}
-
-func (m *MockUser) Name() string {
-	return m.Called().String(0)
-}
-
-func (m *MockUser) Email() string {
-	return m.Called().String(0)
-}
-
-func (m *MockUser) HashedPassword() []byte {
-	return m.Called().Get(0).([]byte)
-}
-
-func (m *MockUser) Auth(password []byte, compareFn func(hashPasswd, plainPasswd []byte) (bool, error)) bool {
-	args := m.Called(password, compareFn)
-	return args.Bool(0)
-}
-
-func (m *MockUser) HasMemberRights() bool {
-	return m.Called().Bool(0)
-}
-
-func (m *MockUser) HasAuthorRights() bool {
-	return m.Called().Bool(0)
-}
-
-func PutUserInContext(ctx context.Context, user auth.User) context.Context {
-	return context.WithValue(ctx, authservice.AuthContextKey, user)
 }

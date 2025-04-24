@@ -2,8 +2,8 @@ package postservice
 
 import (
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
-	authservice "PlantSite/internal/services/auth-service"
 	"context"
 	"fmt"
 	"time"
@@ -30,12 +30,12 @@ type GetPostPhoto struct {
 }
 
 func (s *PostService) GetPost(ctx context.Context, id uuid.UUID) (*GetPost, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return nil, ErrNotAuthor
+		return nil, auth.ErrNoAuthorRights
 	}
 	if id == uuid.Nil {
 		return nil, fmt.Errorf("id must be non-nil")

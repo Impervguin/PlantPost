@@ -1,8 +1,8 @@
 package postservice
 
 import (
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
-	authservice "PlantSite/internal/services/auth-service"
 	"context"
 
 	"github.com/google/uuid"
@@ -15,12 +15,12 @@ type UpdatePostTextData struct {
 }
 
 func (s *PostService) UpdatePost(ctx context.Context, id uuid.UUID, data UpdatePostTextData) (*post.Post, error) {
-	user := authservice.UserFromContext(ctx)
+	user := s.auth.UserFromContext(ctx)
 	if user == nil {
-		return nil, ErrNotAuthorized
+		return nil, auth.ErrNotAuthorized
 	}
 	if !user.HasAuthorRights() {
-		return nil, ErrNotAuthor
+		return nil, auth.ErrNoAuthorRights
 	}
 
 	p, err := s.postRepo.Update(ctx, id, func(p *post.Post) (*post.Post, error) {
