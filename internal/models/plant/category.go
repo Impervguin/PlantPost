@@ -10,7 +10,6 @@ const (
 	ParameterTypeNumber ParamType = "number"
 	ParameterTypeFloat  ParamType = "float"
 	ParameterTypeString ParamType = "string"
-	ParameterTypeSelect ParamType = "select"
 )
 
 type PlantParam struct {
