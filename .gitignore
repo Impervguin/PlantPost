@@ -8,3 +8,19 @@ config/*.yaml
 
 # coverage
 out/*.out
+
+# executables
+*.bin
+
+# air logs
+./tmp
+
+# templ autogen
+*_templ.go
+
+# taiwind autogen
+internal/view/static/css/tailwind.css
+
+# traefik configs
+!config/traefik.yaml
+!config/dynamic.yaml
