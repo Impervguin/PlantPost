@@ -23,6 +23,7 @@ import (
 	searchservice "PlantSite/internal/services/search-service"
 	"PlantSite/internal/utils/bcrypthasher"
 	"PlantSite/internal/utils/logs"
+	"PlantSite/internal/view"
 	"context"
 	"fmt"
 
@@ -171,6 +172,12 @@ func main() {
 
 	searchRouter := searchapi.SearchRouter{}
 	searchRouter.Init(apiGroup, searchService)
+
+	// ------------- VIEW -------------
+	viewRouter := view.ViewRouter{}
+	viewGroup := engine.Group("")
+
+	viewRouter.Init(viewGroup, GetStaticPath())
 
 	engine.Run(fmt.Sprintf(":%d", GetApiPort()))
 }

@@ -30,7 +30,7 @@ func (r *PlantRouter) Init(router *gin.RouterGroup, plantService *plantservice.P
 	gr.POST("/upload/:id", r.UploadPhoto)
 }
 
-// Create plant Handler
+// Create plant handler
 // @Summary Create plant
 // @Description Creates a new plant with the provided name, latin name, description, category and specification
 // @Tags plant

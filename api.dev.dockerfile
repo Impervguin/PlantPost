@@ -4,8 +4,9 @@ LABEL AUTHOR="Impervguin"
 RUN apk add --no-cache make curl libstdc++ libgcc
 
 RUN mkdir /logs
-RUN mkdir /build
 WORKDIR /build
+
+RUN go install github.com/air-verse/air@latest
 
 COPY go.* .
 RUN go mod download
@@ -16,11 +17,5 @@ RUN curl -LO https://github.com/tailwindlabs/tailwindcss/releases/latest/downloa
 RUN mv tailwindcss-linux-x64-musl /usr/local/bin/tailwindcss
 RUN chmod +x /usr/local/bin/tailwindcss
 
-COPY ./cmd/api/ ./cmd/api/
-COPY ./internal/ ./internal/
-COPY ./config/*.yaml ./config/
-COPY tailwind.config.js .
-COPY ./makefile .
-
-CMD ["make", "api"]
+CMD ["air"]
 

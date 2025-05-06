@@ -1,36 +1,42 @@
 database:
-  name:
-  user:
-  password:
-  host:
-  port:
-  max_connections:
-  max_conn_life_time: 
+name: example_value
+user: example_value
+password: your_password_here
+host: example.com
+port: 8080
+max_connections: 12345
+max_conn_life_time: example_value
 hasher:
-  hash_cost: 
+hash_cost: 12345
 
 api:
-  urlprefix:
-  port:
+urlprefix: https://example.com/path
+port: 8080
+static: example_value
 
 minio:
   post:
-    endpoint:
-    user:
-    password:
-    bucket: 
+endpoint: example_value
+user: example_value
+password: your_password_here
+bucket: example_value
   plant:
-    endpoint:
-    user:
-    password:
-    bucket:
-  
-hasher:
-  hash_cost:
+endpoint: example_value
+user: example_value
+password: your_password_here
+bucket: example_value
 
 admins:
-  - login:
-    password: 
+- login: example_value
+password: your_password_here
 
 auth:
-  session_expire_time:
+session_expire_time: example_value
+
+log:
+console_level: example_value
+file_level: example_value
+dir: example_value
+type: example_value
+file_factory: example_value
+file_type: example_value

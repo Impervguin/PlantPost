@@ -6,6 +6,7 @@ const (
 	ApiPrefix       = "api"
 	ApiUrlPrefixKey = "urlprefix"
 	ApiPortKey      = "port"
+	ApiStaticKey    = "static"
 )
 
 func GetApiUrlPrefix() string {
@@ -20,4 +21,11 @@ func GetApiPort() uint {
 		panic(err)
 	}
 	return viper.GetUint(Key(ApiPrefix, ApiPortKey))
+}
+
+func GetStaticPath() string {
+	if err := ReadInConfig(); err != nil {
+		panic(err)
+	}
+	return viper.GetString(Key(ApiPrefix, ApiStaticKey))
 }

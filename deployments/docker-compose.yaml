@@ -5,7 +5,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"  # Dashboard
+      - "8080:8080"
     volumes:
       - ../config/traefik.yaml:/etc/traefik/traefik.yml:ro
       - ../config/dynamic.yaml:/etc/traefik/dynamic.yml:ro
@@ -15,17 +15,12 @@ services:
     container_name: api
     build:
       context: ../
-      dockerfile: ./api.dev.dockerfile
-    ports:
-      - "23450:23450"
-      - "23460:23460"
+      dockerfile: ./api.dockerfile
     deploy:
       resources:
         limits:
           cpus: '8'
           memory: 4G
-    volumes:
-      - ../:/build/
     depends_on:
       pg:
         condition: service_healthy 
@@ -59,8 +54,6 @@ services:
       - db.env
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U impi -d plantpost"]
       interval: 10s
@@ -95,9 +88,6 @@ services:
     hostname: minio
     image: minio/minio:RELEASE.2025-04-08T15-41-24Z-cpuv1
     command: server --console-address ":9001" --address ":9000" /data
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
