@@ -176,6 +176,9 @@ func main() {
 	// ------------- VIEW -------------
 	viewRouter := view.ViewRouter{}
 	viewGroup := engine.Group("")
+	viewGroup.Use(middleware.RequestIDMiddleware())
+	viewGroup.Use(middleware.LogMiddleware(logg))
+	viewGroup.Use(middleware.AuthMiddleware(authService))
 
 	viewRouter.Init(viewGroup, GetStaticPath(), authService)
 

@@ -1,0 +1,10 @@
+package components
+
+import (
+    "PlantSite/internal/view/layout"
+    "PlantSite/internal/models/auth"
+)
+
+templ Index(usr auth.User) {
+    @layout.Standard(usr) {}
+}

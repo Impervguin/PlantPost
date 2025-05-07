@@ -1,0 +1,56 @@
+package layout
+
+import "PlantSite/internal/models/auth"
+
+templ Navbar(usr auth.User) {
+<script src="/static/js/navbar.js" type="module"></script>
+<nav class="bg-emerald-600">
+  <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+    <div class="relative flex h-16 items-center justify-between">
+      <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+        <div class="flex shrink-0 items-center">
+          <a href="/view"><img class="h-8 w-auto transition delay-150 duration-300 ease-in-out hover:hue-rotate-180" src="/static/logo.png" alt="Plant-Post"></a>
+        </div>
+        <div class="hidden sm:ml-6 sm:block">
+          <div class="flex space-x-4">
+            <a href="/view/plants" class="transition delay-50 duration-150 ease-in-out rounded-md px-3 py-2 text-lg font-medium text-white hover:bg-amber-500 hover:text-black">Plants</a>
+            <a href="/view/posts" class="transition delay-50 duration-150 ease-in-out rounded-md px-3 py-2 text-lg font-medium text-white hover:bg-amber-500 hover:text-black">Posts</a>
+            <a href="/view/albums" class="transition delay-50 duration-150 ease-in-out rounded-md px-3 py-2 text-lg font-medium text-white hover:bg-amber-500 hover:text-black">Albums</a>
+          </div>
+        </div>
+      </div>
+      <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+
+        <!-- Profile dropdown -->
+        
+        <div class="relative ml-3">
+          <div>
+            if usr.IsAuthenticated() {
+              <button type="button" class="relative flex rounded-full bg-gray-800 text-sm hover:ring-2 hover:ring-white hover:ring-offset-2 hover:ring-offset-gray-800 hover:outline-hidden" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                <img class="size-8 rounded-full" src="/static/user.png" alt="">
+              </button>
+            } else {
+                <a href="/view/login" class="transition delay-50 duration-150 ease-in-out rounded-md px-3 py-2 text-lg font-medium text-white hover:bg-amber-500 hover:text-black">Log in</a>
+            }
+          </div>
+
+          if usr.IsAuthenticated() {
+            <div class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-hidden" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" id="user-menu" tabindex="-1">
+              <a href="/view/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:outline-hidden" role="menuitem" tabindex="-1" id="user-menu-item-2">Sign out</a>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile menu, show/hide based on menu state. -->
+  <div class="sm:hidden" id="mobile-menu">
+    <div class="space-y-1 px-2 pt-2 pb-3">
+      <a href="/view/plants" class="block transition delay-50 duration-150 ease-in-out rounded-md px-3 py-2 text-base font-medium text-white hover:bg-amber-500 hover:text-black">Plants</a>
+      <a href="/view/posts" class="block transition delay-50 duration-150 ease-in-out rounded-md px-3 py-2 text-base font-medium text-white hover:bg-amber-500 hover:text-black">Posts</a>
+      <a href="/view/albums" class="block transition delay-50 duration-150 ease-in-out rounded-md px-3 py-2 text-base font-medium text-white hover:bg-amber-500 hover:text-black">Albums</a>
+    </div>
+  </div>
+</nav>
+}

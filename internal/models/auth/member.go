@@ -128,5 +128,5 @@ func (m *Member) UpdateHashedPassword(hashPasswd []byte) error {
 }
 
 func (m *Member) IsAuthenticated() bool {
-	return false
+	return true
 }
