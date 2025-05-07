@@ -12,7 +12,7 @@ SWAGGER:=./cmd/docs
 API_APP:=./cmd/api/main.go
 API_DIR:=./cmd/api
 API_BUILD := ./api.bin
-TEMPL_DIR:=./internal/view/components
+TEMPL_DIR:=./internal/view
 
 
 .PHONY: test
@@ -35,6 +35,7 @@ api-build:
 	swag init --parseInternal --parseDependency --parseDepth $(PARSEDEPTH) -g $(API_APP) -o $(SWAGGER)
 	tailwindcss -o ./internal/view/static/css/tailwind.css --minify
 	go tool templ generate -path $(TEMPL_DIR)
+	npm install && npm run build
 	go build -o $(API_BUILD) $(API_DIR)
 
 .PHONY: api-run

@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var _ User = (*Author)(nil)
+
 type Author struct {
 	Member
 	rights     bool
@@ -93,4 +95,8 @@ func (a *Author) UpdateEmail(email string) error {
 
 func (a *Author) UpdateHashedPassword(hashPasswd []byte) error {
 	return a.Member.UpdateHashedPassword(hashPasswd)
+}
+
+func (a *Author) IsAuthenticated() bool {
+	return true
 }

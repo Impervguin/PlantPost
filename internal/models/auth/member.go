@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var _ User = (*Member)(nil)
+
 type Member struct {
 	id         uuid.UUID
 	name       string
@@ -123,4 +125,8 @@ func (m *Member) UpdateHashedPassword(hashPasswd []byte) error {
 		return err
 	}
 	return nil
+}
+
+func (m *Member) IsAuthenticated() bool {
+	return false
 }

@@ -71,3 +71,7 @@ func (a *Admin) Login() string {
 func (a *Admin) HashedPassword() []byte {
 	return []byte(a.hashPassword)
 }
+
+func (a *Admin) IsAuthenticated() bool {
+	return true
+}

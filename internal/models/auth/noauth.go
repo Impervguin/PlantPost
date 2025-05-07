@@ -23,3 +23,7 @@ func (u NoAuthUser) Auth(_ []byte, _ func(hashPasswd []byte, plainPasswd []byte)
 func (u NoAuthUser) ID() uuid.UUID {
 	return uuid.Nil
 }
+
+func (u NoAuthUser) IsAuthenticated() bool {
+	return false
+}

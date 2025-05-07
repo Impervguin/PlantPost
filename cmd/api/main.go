@@ -177,7 +177,7 @@ func main() {
 	viewRouter := view.ViewRouter{}
 	viewGroup := engine.Group("")
 
-	viewRouter.Init(viewGroup, GetStaticPath())
+	viewRouter.Init(viewGroup, GetStaticPath(), authService)
 
 	engine.Run(fmt.Sprintf(":%d", GetApiPort()))
 }
