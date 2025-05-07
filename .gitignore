@@ -24,3 +24,12 @@ internal/view/static/css/tailwind.css
 # traefik configs
 !config/traefik.yaml
 !config/dynamic.yaml
+
+# typescript
+node_modules
+internal/view/static/js/*.js
+internal/view/static/js/*.map
+internal/view/static/js/*.d.ts
+package-lock.json
+
+internal/tsconfig.tsbuildinfo
