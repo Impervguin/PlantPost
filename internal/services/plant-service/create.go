@@ -5,6 +5,7 @@ import (
 	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/plant"
 	"context"
+	"fmt"
 )
 
 type CreatePlantData struct {
@@ -31,7 +32,7 @@ func (s *PlantService) CreatePlant(ctx context.Context, data CreatePlantData, ma
 
 	f, err := s.filerepo.Upload(ctx, &mainPhotoFile)
 	if err != nil {
-		return Wrap(err)
+		return fmt.Errorf("failed to upload main photo: %w", err)
 	}
 	plant, err := plant.NewPlant(data.Name, data.LatinName, data.Description, f.ID, *plant.NewPlantPhotos(), data.Category, data.Spec)
 	if err != nil {

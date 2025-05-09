@@ -7,6 +7,7 @@ const (
 	ApiUrlPrefixKey = "urlprefix"
 	ApiPortKey      = "port"
 	ApiStaticKey    = "static"
+	ApiMediaKey     = "media"
 )
 
 func GetApiUrlPrefix() string {
@@ -28,4 +29,11 @@ func GetStaticPath() string {
 		panic(err)
 	}
 	return viper.GetString(Key(ApiPrefix, ApiStaticKey))
+}
+
+func GetMediaPath() string {
+	if err := ReadInConfig(); err != nil {
+		panic(err)
+	}
+	return viper.GetString(Key(ApiPrefix, ApiMediaKey))
 }
