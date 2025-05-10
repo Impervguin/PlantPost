@@ -186,6 +186,7 @@ func (r *PlantRouter) UpdateSpecification(c *gin.Context) {
 		c.Error(err)
 		return
 	}
+	
 
 	spec, err := req.Spec.ToDomain()
 	if err != nil {

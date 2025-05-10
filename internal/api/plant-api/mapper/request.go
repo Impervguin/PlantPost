@@ -115,11 +115,13 @@ func MapUpdatePlantSpecRequest(c *gin.Context) (*request.UpdatePlantSpecRequest,
 		if err := c.ShouldBind(&reqBody); err != nil {
 			return nil, fmt.Errorf("can't bind body: %w", err)
 		}
+		reqSpec = &reqBody.Spec
 	case plant.DeciduousCategory:
 		var reqBody UpdatePlantDeciduousRequestBody
 		if err := c.ShouldBind(&reqBody); err != nil {
 			return nil, fmt.Errorf("can't bind body: %w", err)
 		}
+		reqSpec = &reqBody.Spec
 	default:
 		return nil, fmt.Errorf("invalid category: %s", req.Category)
 	}

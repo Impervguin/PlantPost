@@ -4,7 +4,11 @@ import (
     "PlantSite/internal/models/auth"
     "PlantSite/internal/services/search-service"
     "PlantSite/internal/view/layout"
+    "PlantSite/internal/models/plant"
+    "github.com/google/uuid"
 	"strings"
+	"slices"
+    "fmt"
 )
 
 const (
@@ -35,7 +39,7 @@ type OptionNode struct {
     }
 }
 
-var filterNodes = []struct {
+type PlantNode struct {
     name       string
     label      string
     nodeType   string
@@ -43,7 +47,9 @@ var filterNodes = []struct {
     intMinMax   *IntMinMaxNode
     string     *StringNode
     option     *OptionNode
-}{
+}
+
+var filterNodes = []PlantNode{
     {
         name:     "name",
         label:    "Name",
@@ -404,6 +410,15 @@ templ Plants(usr auth.User, plants []*searchservice.SearchPlant) {
                                         Search
                                     </button>
                                 </div>
+                                <div class="mt-4">
+                                    <a 
+                                        id="create-ref"
+                                        href="/view/plant/create"
+                                        class="w-full rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                    >
+                                        Create
+                                    </a>
+                                </div>
                             </form>
 
                             <div class="lg:col-span-3">
@@ -424,5 +439,367 @@ templ Plants(usr auth.User, plants []*searchservice.SearchPlant) {
                 </main>
             </div>
         </div>
+    }
+}
+
+var categoryFields = map[string][]string{
+    "coniferous": []string{"height", "diameter", "soil-acidity", "soil-moisture", "light-relation", "soil-type", "winter-hardiness"},
+    "deciduous":  []string{"height", "diameter", "soil-acidity", "soil-moisture", "light-relation", "soil-type", "winter-hardiness", "flowering-period"},
+}
+
+
+func CategoryNodeMap() map[string][]*PlantNode {
+    m := make(map[string][]*PlantNode)
+    for cat := range categoryFields {
+        m[cat] = make([]*PlantNode, 0, len(categoryFields[cat]))
+    }
+
+    for i, _ := range filterNodes {
+        node := &filterNodes[i]
+        for cat, catFields := range categoryFields {
+            if slices.Contains(catFields, node.name) {
+                m[cat] = append(m[cat], node)
+            }
+        }
+    }
+    return m
+}
+
+
+templ PlantField(field *PlantNode, cat string, defaultValue string) {
+    <div>
+        <label for={field.name} class="block text-sm font-medium text-gray-700">{field.label}</label>
+        switch field.nodeType {
+            case StringNodeType:
+                <input 
+                    type="text" 
+                    id={cat+"."+field.name}
+                    name={field.name}
+                    value={defaultValue}
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+                />
+            case FloatMinMaxNodeType:
+                <input 
+                    type="number" 
+                    id={cat+"."+field.name} 
+                    name={cat+"."+field.name} 
+                    value={defaultValue}
+                    step="0.1"
+                    min={fmt.Sprintf("%f", field.floatMinMax.Min)}
+                    max={fmt.Sprintf("%f", field.floatMinMax.Max)}
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+                />
+            case IntMinMaxNodeType:
+                <input 
+                    type="number" 
+                    id={cat+"."+field.name} 
+                    name={cat+"."+field.name} 
+                    value={defaultValue}
+                    min={fmt.Sprintf("%d", field.intMinMax.Min)}
+                    max={fmt.Sprintf("%d", field.intMinMax.Max)}
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+                />
+            case OptionNodeType:
+                <select 
+                    id={cat+"."+field.name} 
+                    name={cat+"."+field.name} 
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+                >
+                    for _, option := range field.option.LabelValuePairs {
+                        <option value={option.Value} selected={option.Value == defaultValue}>{option.Label}</option>
+                    }
+                </select>
+        }
+    </div>
+}
+
+
+templ CreatePlant(usr auth.User) {
+    @layout.Standard(usr) {
+    <script src="/static/js/plant/category.js" type="module"></script>
+    <script src="/static/js/plant/create-listener.js" type="module"></script>
+    <div class="max-w-md mx-auto">
+        <div class="border-b border-gray-200 pt-6 pb-6">
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900">Create New Plant</h1>
+        </div>
+        <form id="create-plant-form" class="space-y-6 pt-6" enctype="multipart/form-data">
+            <!-- Basic Info -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+                
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Plant Name</label>
+                    <input type="text" id="name" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="latin-name" class="block text-sm font-medium text-gray-700">Latin Name</label>
+                    <input type="text" id="latin-name" name="latin-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="description" name="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                </div>
+                
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+                    <select id="category" name="category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option value="">Select a category</option>
+                        <option value="coniferous">Coniferous</option>
+                        <option value="deciduous">Deciduous</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="photo" class="block text-sm font-medium text-gray-700">Main Photo</label>
+                    <input type="file" id="photo" name="photo" accept="image/*" required class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+            </div>
+            
+            for cat, fields := range CategoryNodeMap() {
+                    <div id={cat+"-spec"} class="hidden space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900">{strings.Title(cat)} Specifications</h3>
+                        for _, field := range fields {
+                            @PlantField(field, cat, "")
+                        }
+                    </div>
+                }
+                       
+            <div>
+                <button id="create-button" type="button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Create Plant
+                </button>
+            </div>
+        </form>
+    </div>
+    }
+}
+
+type SpecificationMap map[string]any
+
+func (m SpecificationMap) SetSpecificationValues(spec plant.PlantSpecification) {
+    switch sp := spec.(type) {
+        case *plant.ConiferousSpecification:
+            m["height"] = sp.GetHeightM()
+            m["diameter"] = sp.GetDiameterM()
+            m["soil-acidity"] = sp.GetSoilAcidity()
+            m["soil-moisture"] = sp.GetSoilMoisture()
+            m["light-relation"] = sp.GetLightRelation()
+            m["soil-type"] = sp.GetSoilType()
+            m["winter-hardiness"] = sp.GetWinterHardiness()
+        case *plant.DeciduousSpecification:
+            m["height"] = sp.GetHeightM()
+            m["diameter"] = sp.GetDiameterM()
+            m["soil-acidity"] = sp.GetSoilAcidity()
+            m["soil-moisture"] = sp.GetSoilMoisture()
+            m["light-relation"] = sp.GetLightRelation()
+            m["soil-type"] = sp.GetSoilType()
+            m["winter-hardiness"] = sp.GetWinterHardiness()
+            m["flowering-period"] = sp.GetFloweringPeriod()
+        default:
+            panic("invalid specification type")
+    }
+}
+
+func (m SpecificationMap) Get(key string) any {
+    if _, ok := m[key]; !ok {
+        return ""
+    }
+    return m[key]
+}
+
+templ UpdatePlantSpecification(usr auth.User, plnt *searchservice.GetPlant) {
+    @layout.Standard(usr) {
+         <script src="/static/js/plant/category.js" type="module"></script>
+        <script src="/static/js/plant/update-listener.js" type="module"></script>
+
+        <div class="max-w-md mx-auto">
+        <div class="border-b border-gray-200 pt-6 pb-6">
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900">Update {plnt.Name} Specification</h1>
+        </div>
+        <form id="update-plant-form" class="space-y-6 pt-6" enctype="multipart/form-data">
+            <div class="border-l-4 border-emerald-600 pl-4">
+                <h3 class="text-sm font-medium text-gray-900">Latin Name</h3>
+                <p class="mt-2 text-sm text-gray-500">{plnt.LatinName}</p>
+            </div>
+            <div class="border-l-4 border-emerald-600 pl-4">
+                <h3 class="text-sm font-medium text-gray-900">Description</h3>
+                <p class="mt-2 text-sm text-gray-500">{plnt.Description}</p>
+            </div>
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+                <select id="category" name="category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                    <option value="coniferous" selected={plnt.Category == "coniferous"}>Coniferous</option>
+                    <option value="deciduous" selected={plnt.Category == "deciduous"}>Deciduous</option>
+                </select>
+            </div>
+            
+            {{ specMap := make(SpecificationMap) }}
+            {{ specMap.SetSpecificationValues(plnt.Specification) }}
+            for cat, fields := range CategoryNodeMap() {
+                if (plnt.Category == cat) {
+                    <div id={cat+"-spec"} class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900">{strings.Title(cat)} Specifications</h3>
+                        for _, field := range fields {
+                            @PlantField(field, cat, fmt.Sprintf("%v", specMap.Get(field.name)))
+                        }
+                    </div>
+                } else {
+                    <div id={cat+"-spec"} class="hidden space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900">{strings.Title(cat)} Specifications</h3>
+                        for _, field := range fields {
+                            @PlantField(field, cat, fmt.Sprintf("%v", specMap.Get(field.name)))
+                        }
+                    </div>
+                }
+                }
+        <div>
+            <button id="update-button" type="button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                Update Plant
+            </button>
+        </div>
+        </form>
+    </div>
+
+    }
+}
+
+templ PlantCharacteristic(title, value string) {
+    <div class="border-l-4 border-emerald-600 pl-4">
+        <h3 class="text-sm font-medium text-gray-900">{title}</h3>
+        <p class="mt-2 text-sm text-gray-500">{value}</p>
+    </div>
+}
+
+
+templ PlantView(usr auth.User, plnt *searchservice.GetPlant) {
+    @layout.Standard(usr) {
+        <script src="/static/js/plant/delete-listener.js" type="module"></script>
+        <div class="bg-white">
+            <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+                <!-- Plant Header -->
+                <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
+                    <!-- Image gallery -->
+                    <div class="flex flex-col-reverse">
+                        <div class="mx-auto mt-6 hidden w-full max-w-2xl sm:block lg:max-w-none">
+                            <div class="grid grid-cols-4 gap-6">
+                                if plnt.MainPhoto.ID != uuid.Nil {
+                                    <div class="aspect-h-2 aspect-w-3 overflow-hidden rounded-lg">
+                                        <img src={plnt.MainPhoto.URL} alt="Main plant photo" class="h-full w-full object-cover object-center">
+                                    </div>
+                                }
+                                for _, photo := range plnt.Photos {
+                                    <div class="aspect-h-2 aspect-w-3 overflow-hidden rounded-lg">
+                                        <img src={photo.File.URL} alt={photo.Description} class="h-full w-full object-cover object-center">
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Main image -->
+                        <div class="aspect-h-1 aspect-w-1 w-full">
+                            if plnt.MainPhoto.ID != uuid.Nil {
+                                <img src={plnt.MainPhoto.URL} alt="Main plant photo" class="h-full w-full object-cover object-center sm:rounded-lg">
+                            } else {
+                                <div class="h-full w-full bg-gray-200 flex items-center justify-center rounded-lg">
+                                    <span class="text-gray-500">No image available</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Plant info -->
+                    <div class="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
+                        <h1 class="text-3xl font-bold tracking-tight text-gray-900">{plnt.Name}</h1>
+                        <h2 class="mt-2 text-xl italic text-gray-600">{plnt.LatinName}</h2>
+
+                        <!-- Description -->
+                        <div class="mt-6">
+                            <h3 class="sr-only">Description</h3>
+                            <div class="space-y-6 text-base text-gray-700">
+                                <p>{plnt.Description}</p>
+                            </div>
+                        </div>
+
+                        <!-- Category badge -->
+                        <div class="mt-4">
+                            <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                {strings.Title(string(plnt.Category))}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specifications -->
+                switch spec := plnt.Specification.(type) {
+                    case *plant.ConiferousSpecification:
+                        <div class="mt-16">
+                    <h2 class="text-2xl font-bold tracking-tight text-gray-900">Specifications</h2>
+                    <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                        @PlantCharacteristic("Height", fmt.Sprintf("%.2f m", spec.GetHeightM()))
+                        @PlantCharacteristic("Diameter", fmt.Sprintf("%.2f m", spec.GetDiameterM()))
+                        @PlantCharacteristic("Soil Type", strings.Title(string(spec.GetSoilType())))
+                        @PlantCharacteristic("Soil Acidity (pH)", fmt.Sprintf("%d", spec.GetSoilAcidity()))
+                        @PlantCharacteristic("Soil Moisture", strings.Title(string(spec.GetSoilMoisture())))
+                        @PlantCharacteristic("Light Relation", strings.Title(string(spec.GetLightRelation())))
+                        @PlantCharacteristic("Winter Hardiness Zone", fmt.Sprintf("%d", spec.GetWinterHardiness()))
+                    </div>
+                    </div>
+                    case *plant.DeciduousSpecification:
+                        <div class="mt-16">
+                    <h2 class="text-2xl font-bold tracking-tight text-gray-900">Specifications</h2>
+                    <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                        @PlantCharacteristic("Height", fmt.Sprintf("%.2f m", spec.GetHeightM()))
+                        @PlantCharacteristic("Diameter", fmt.Sprintf("%.2f m", spec.GetDiameterM()))
+                        @PlantCharacteristic("Soil Type", strings.Title(string(spec.GetSoilType())))
+                        @PlantCharacteristic("Soil Acidity (pH)", fmt.Sprintf("%d", spec.GetSoilAcidity()))
+                        @PlantCharacteristic("Soil Moisture", strings.Title(string(spec.GetSoilMoisture())))
+                        @PlantCharacteristic("Light Relation", strings.Title(string(spec.GetLightRelation())))
+                        @PlantCharacteristic("Winter Hardiness Zone", fmt.Sprintf("%d", spec.GetWinterHardiness()))
+                        @PlantCharacteristic("Flowering Period", strings.Title(string(spec.GetFloweringPeriod())))
+                    </div>
+    
+                </div>
+    }
+                <!-- Created At -->
+                <div class="mt-8 border-t border-gray-200 pt-8">
+                    <p class="text-sm text-gray-500">Added on {plnt.CreatedAt.Format("January 2, 2006")}</p>
+                </div>
+                if usr.HasAuthorRights() {
+                <!-- Update Plant -->
+                <div class="mt-8 border-t border-gray-200 pt-8">
+                    <a href={templ.URL("/view/plant/" + plnt.ID.String() + "/update")} class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                        Update Plant
+                    </a>
+                </div>
+                // <!-- Delete Plant -->
+                <div class="mt-8 border-t border-gray-200 pt-8">
+                    <button id="delete-plant-button" type="button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete Plant
+                    </button>
+                </div>
+                
+                }
+            </div>
+        </div>
+        <div id="delete-plant-dialog" class="fixed hidden z-50 inset-0 bg-gray-900 bg-opacity-40 overflow-y-auto h-full w-full px-4">
+            <div class="relative top-40 mx-auto shadow-xl rounded-md bg-white max-w-md">
+                <div class="flex shrink-0 items-center pb-4 text-xl font-medium text-slate-800">
+                    Delete Plant?
+                </div>
+                <div class="relative border-t border-slate-200 py-4 leading-normal text-slate-600 font-light">
+                    Do you really want to delete this plant? This action cannot be undone.
+                </div>
+                <div class="flex shrink-0 flex-wrap items-center pt-4 justify-end">
+                    <button id="delete-cancel-button" class="rounded-md border border-transparent py-2 px-4 text-center text-sm transition-all text-slate-600 hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                    Cancel
+                </button>
+                <button id="delete-confirm-button" class="rounded-md bg-green-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-green-700 focus:shadow-none active:bg-green-700 hover:bg-green-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
     }
 }
