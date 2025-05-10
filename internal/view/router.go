@@ -35,10 +35,14 @@ func (r *ViewRouter) Init(router *gin.RouterGroup, staticPath string, auth *auth
 	gr.GET("/login", r.LoginHandler)
 	gr.GET("/register", r.RegisterHandler)
 	gr.GET("/logout", r.LogoutHandler)
+
 	gr.GET("/plants", r.PlantsHandler)
 	gr.GET("/plant/create", r.CreatePlantHandler)
 	gr.GET("/plant/:id", r.PlantViewHandler)
 	gr.GET("/plant/:id/update", r.UpdatePlantHandler)
+
+	gr.GET("/posts", r.PostsHandler)
+	gr.GET("/post/:id", r.PostViewHandler)
 }
 
 func (r *ViewRouter) IndexHandler(c *gin.Context) {
