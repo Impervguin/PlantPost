@@ -1,6 +1,7 @@
 package view
 
 import (
+	albumservice "PlantSite/internal/services/album-service"
 	authservice "PlantSite/internal/services/auth-service"
 	searchservice "PlantSite/internal/services/search-service"
 	"PlantSite/internal/view/components"
@@ -18,16 +19,26 @@ type ViewRouter struct {
 	StaticPath string
 	auth       *authservice.AuthService
 	srch       *searchservice.SearchService
+	albm       *albumservice.AlbumService
 	plantMedia MediaUrlStrategy
 	postMedia  MediaUrlStrategy
 }
 
-func (r *ViewRouter) Init(router *gin.RouterGroup, staticPath string, auth *authservice.AuthService, srch *searchservice.SearchService, plantMedia MediaUrlStrategy, postMedia MediaUrlStrategy) {
+func (r *ViewRouter) Init(
+	router *gin.RouterGroup,
+	staticPath string,
+	auth *authservice.AuthService,
+	srch *searchservice.SearchService,
+	albm *albumservice.AlbumService,
+	plantMedia MediaUrlStrategy,
+	postMedia MediaUrlStrategy) {
 	r.auth = auth
 	r.srch = srch
+	r.albm = albm
 	r.plantMedia = plantMedia
 	r.postMedia = postMedia
 	r.StaticPath = staticPath
+
 	router.StaticFS("/static", http.Dir(staticPath))
 
 	gr := router.Group("/view")
@@ -45,6 +56,11 @@ func (r *ViewRouter) Init(router *gin.RouterGroup, staticPath string, auth *auth
 	gr.GET("/post/:id", r.PostViewHandler)
 	gr.GET("/post/create", r.CreatePostHandler)
 	gr.GET("/post/:id/update", r.UpdatePostHandler)
+
+	gr.GET("/albums", r.AlbumsHandler)
+	gr.GET("/album/:id", r.AlbumViewHandler)
+	gr.GET("/album/create", r.AlbumsCreateHandler)
+	gr.GET("/album/:id/update", r.AlbumUpdateHandler)
 }
 
 func (r *ViewRouter) IndexHandler(c *gin.Context) {

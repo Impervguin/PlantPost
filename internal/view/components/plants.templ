@@ -410,6 +410,7 @@ templ Plants(usr auth.User, plants []*searchservice.SearchPlant) {
                                         Search
                                     </button>
                                 </div>
+                                if usr.HasAuthorRights() {
                                 <div class="mt-4">
                                     <a 
                                         id="create-ref"
@@ -419,6 +420,7 @@ templ Plants(usr auth.User, plants []*searchservice.SearchPlant) {
                                         Create
                                     </a>
                                 </div>
+                                }
                             </form>
 
                             <div class="lg:col-span-3">

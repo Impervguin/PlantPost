@@ -1,9 +1,12 @@
 package search
 
 import (
+	"PlantSite/internal/models/album"
 	"PlantSite/internal/models/plant"
 
 	"slices"
+
+	"github.com/google/uuid"
 )
 
 type PlantFilter interface {
@@ -261,6 +264,37 @@ func (p *PlantFloweringPeriodFilter) Filter(pl *plant.Plant) bool {
 	switch impl := spec.(type) {
 	case *plant.DeciduousSpecification:
 		return slices.Contains(p.PossibleFloweringPeriods, impl.GetFloweringPeriod())
+	}
+	return false
+}
+
+type PlantAlbumFilter struct {
+	AlbumID uuid.UUID
+	Albums  []*album.Album
+}
+
+func NewPlantAlbumFilter(albmID uuid.UUID, albms []*album.Album) *PlantAlbumFilter {
+	if albms == nil {
+		albms = make([]*album.Album, 0)
+	}
+	return &PlantAlbumFilter{AlbumID: albmID, Albums: albms}
+}
+
+var _ PlantFilter = &PlantAlbumFilter{}
+
+func (p *PlantAlbumFilter) Identifier() string {
+	return PlantAlbumFilterID
+}
+
+func NewPlantAlnumFilter(albmID uuid.UUID) *PlantAlbumFilter {
+	return &PlantAlbumFilter{AlbumID: albmID}
+}
+
+func (p *PlantAlbumFilter) Filter(pl *plant.Plant) bool {
+	for _, albm := range p.Albums {
+		if albm.ID() == p.AlbumID && slices.Contains(albm.PlantIDs(), pl.ID()) {
+			return true
+		}
 	}
 	return false
 }

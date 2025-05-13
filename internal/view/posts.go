@@ -85,6 +85,10 @@ func (r *ViewRouter) PostViewHandler(c *gin.Context) {
 func (r *ViewRouter) CreatePostHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 	user := r.auth.UserFromContext(ctx)
+	if !user.HasAuthorRights() {
+		c.Redirect(http.StatusFound, "/view/plants")
+		return
+	}
 
 	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.PostCreate(user))
 	c.Render(http.StatusOK, rend)
@@ -93,6 +97,10 @@ func (r *ViewRouter) CreatePostHandler(c *gin.Context) {
 func (r *ViewRouter) UpdatePostHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 	user := r.auth.UserFromContext(ctx)
+	if !user.HasAuthorRights() {
+		c.Redirect(http.StatusFound, "/view/plants")
+		return
+	}
 
 	var postView postView
 

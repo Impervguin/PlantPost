@@ -130,3 +130,7 @@ func (m *Member) UpdateHashedPassword(hashPasswd []byte) error {
 func (m *Member) IsAuthenticated() bool {
 	return true
 }
+
+func (m *Member) Username() string {
+	return m.name
+}

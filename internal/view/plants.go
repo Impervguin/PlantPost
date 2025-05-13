@@ -36,6 +36,10 @@ func (r *ViewRouter) PlantsHandler(c *gin.Context) {
 func (r *ViewRouter) CreatePlantHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 	user := r.auth.UserFromContext(ctx)
+	if !user.HasAuthorRights() {
+		c.Redirect(http.StatusFound, "/view/plants")
+		return
+	}
 
 	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.CreatePlant(user))
 	c.Render(http.StatusOK, rend)
@@ -80,6 +84,10 @@ func (r *ViewRouter) PlantViewHandler(c *gin.Context) {
 func (r *ViewRouter) UpdatePlantHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 	user := r.auth.UserFromContext(ctx)
+	if !user.HasAuthorRights() {
+		c.Redirect(http.StatusFound, "/view/plants")
+		return
+	}
 
 	var plntView plantView
 

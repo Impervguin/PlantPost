@@ -185,7 +185,7 @@ func main() {
 
 	mediaStrategy := &urllib.StaticUrlStrategy{BaseUrl: GetMediaPath()}
 
-	viewRouter.Init(viewGroup, GetStaticPath(), authService, searchService, mediaStrategy, mediaStrategy)
+	viewRouter.Init(viewGroup, GetStaticPath(), authService, searchService, albumService, mediaStrategy, mediaStrategy)
 
 	engine.Run(fmt.Sprintf(":%d", GetApiPort()))
 }

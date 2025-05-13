@@ -1,0 +1,242 @@
+package components
+
+import (
+    "PlantSite/internal/view/layout"
+	"PlantSite/internal/models/auth"
+    "PlantSite/internal/models/album"
+	"PlantSite/internal/services/search-service"
+	"github.com/google/uuid"
+    "strings"
+)
+
+
+templ Albums(usr auth.User, albms []*album.Album) {
+    @layout.Standard(usr) {
+        <div class="bg-white">
+            <div>
+                if usr.HasMemberRights() {
+                <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-baseline justify-between border-b border-gray-200 pt-24 pb-6">
+                        <h1 class="text-4xl font-bold tracking-tight text-gray-900">{usr.Username()}'s Albums</h1>
+                        <a href="/view/album/create" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                            Create Album
+                        </a>
+                    </div>
+
+                    if len(albms) == 0 {
+                        <div class="flex h-screen items-center justify-center">
+                            <div class="text-center">
+                                <h1 class="text-4xl font-bold tracking-tight text-gray-900">You don't have any albums</h1>
+                                <a href="/view/album/create" class="text-lg font-bold tracking-tight text-gray-700 hover:text-gray-500"> Let's create one? </a>
+                            </div>
+                        </div>
+                    } else {
+                        <div class="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-3">
+                            for _, albm := range albms {
+                                <div class="mx-6 my-4">
+                                    <a href={templ.URL("/view/album/" + albm.ID().String())} class="group duration-300 ease-in-out hover:opacity-75 hover:scale-200 hover:shadow-xl">
+                                        <h3 class="mt-2 text-lg font-medium text-gray-900">{albm.Name()}</h3>
+                                        <p class="mt-4 text-sm text-gray-600 line-clamp-7">{albm.Description()}</p>
+                                        if len(albm.PlantIDs()) == 1 {
+                                            <p class="mt-4 text-sm text-gray-600">{len(albm.PlantIDs())} plant</p>
+                                        } else {
+                                            <p class="mt-4 text-sm text-gray-600">{len(albm.PlantIDs())} plants</p>
+                                        }
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                </main>
+                } else {
+                    <div class="flex h-screen items-center justify-center">
+                        <div class="text-center">
+                            <h1 class="text-4xl font-bold tracking-tight text-gray-900">You don't have access to this page</h1>
+                            <a href="/view/login" class="text-lg font-bold tracking-tight text-gray-700 hover:text-gray-500"> Login </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+}
+
+templ AlbumView(usr auth.User, albm *album.Album, plants map[uuid.UUID]*searchservice.SearchPlant) {
+    @layout.Standard(usr) {
+        <script src="/static/js/album/delete-listener.js" type="module"></script>
+        <div class="bg-white">
+            <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="items-baseline border-b border-gray-200 pt-24 pb-6">
+                    <div class="flex justify-between">
+                        <h1 class="text-4xl font-bold tracking-tight text-gray-900">{albm.Name()}</h1>
+                        <div class="flex">
+                            <a href={templ.URL("/view/album/" + albm.ID().String() + "/update")} class="inline-flex mx-2 my-2 items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                                Update Album
+                            </a>
+                            <button id="delete-album-button" type="button" class="inline-flex mx-2 my-2 items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Delete Album
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <p class="mt-4 text-md text-gray-600">{albm.Description()}</p>
+                </div>
+                <div class="grid grid-cols-1 mx-4 my-4 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+                    for _, plntID := range albm.PlantIDs() {
+                        {{ plnt, ok := plants[plntID] }}
+                        if !ok {
+                            <div class="flex h-full items-center justify-center">
+                                Plant not found
+                            </div>
+                        } else {
+                            <a href={templ.SafeURL("/view/plant/" + plnt.ID.String())} class="group">
+                                <img src={plnt.MainPhoto.URL} alt="" class="aspect-square w-full rounded-lg bg-gray-200 object-cover group-hover:opacity-75 xl:aspect-7/8">
+                                <p class="mt-1 text-lg font-medium text-gray-900">{plnt.LatinName}</p>
+                                <h3 class="mt-4 text-sm text-justify text-gray-700">{plnt.Name}</h3>
+                                <p class="mt-1 text-sm font-medium text-gray-900">{plnt.Category}</p>
+                            </a>
+                        }
+                    }
+                </div>
+            </main>
+            <div id="delete-album-dialog" class="fixed hidden z-50 inset-0 bg-gray-900 bg-opacity-40 overflow-y-auto h-full w-full px-4">
+                <div class="relative top-40 mx-auto shadow-xl rounded-md bg-white max-w-md">
+                    <div class="flex shrink-0 items-center pb-4 text-xl font-medium text-slate-800">
+                        Delete album?
+                    </div>
+                    <div class="relative border-t border-slate-200 py-4 leading-normal text-slate-600 font-light">
+                        Do you really want to delete this album? This action cannot be undone.
+                    </div>
+                    <div class="flex shrink-0 flex-wrap items-center pt-4 justify-end">
+                        <button id="delete-cancel-button" class="rounded-md border border-transparent py-2 px-4 text-center text-sm transition-all text-slate-600 hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                            Cancel
+                        </button>
+                        <button id="delete-confirm-button" class="rounded-md bg-green-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-green-700 focus:shadow-none active:bg-green-700 hover:bg-green-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+}
+
+templ AlbumCreate(usr auth.User) {
+    @layout.Standard(usr) {
+        <div class="max-w-md mx-auto">
+            <div class="border-b border-gray-200 pt-6 pb-6">
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900">Create New Album</h1>
+            </div>
+            <form id="create-post-form" class="space-y-6 pt-6" enctype="multipart/form-data">
+                <!-- Basic Info -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">Album Name</label>
+                        <input type="text" id="name" name="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Album Description</label>
+                        <textarea id="description" name="description" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Album Plants</label>
+                        
+                        <div class="relative">
+                            <div id="selected-items" class="flex flex-wrap gap-2 my-2 mx-2">
+                                <!-- Selected items will appear here -->
+                            </div>
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    id="search-input"
+                                    placeholder="Search and select options..."
+                                    class="w-full rounded-lg border border-gray-300 py-2 pl-4 pr-10 focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+                                />
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                             <!-- Dropdown Results -->
+                            <div id="search-results" class="hidden absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-60 overflow-auto divide-y divide-gray-100">
+                                <!-- Results will be created by TS -->
+                            </div>
+                        </div> 
+                    </div>
+                    <button id="create-button" type="button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                        Create album
+                    </button>
+                </div>
+            </form>
+        </div>
+    <script src="/static/js/album/create-listener.js" type="module"></script>
+    }
+}
+
+templ AlbumUpdate(usr auth.User, albm *album.Album) {
+    @layout.Standard(usr) {
+        <script src="/static/js/album/update-listener.js" type="module"></script>
+        <div class="max-w-md mx-auto">
+            <div class="border-b border-gray-200 pt-6 pb-6">
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900">Update Album</h1>
+            </div>
+            <form id="create-post-form" class="space-y-6 pt-6" enctype="multipart/form-data">
+                <!-- Basic Info -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">Album Name</label>
+                        <input type="text" id="name" name="name" value={albm.Name()} required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Album Description</label>
+                        <textarea id="description" name="description" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">{albm.Description()}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Album Plants</label>
+                        
+                        <div class="relative">
+                            <div id="selected-items" class="flex flex-wrap gap-2 my-2 mx-2">
+                                <!-- Selected items will appear here -->
+                            </div>
+                            <div class="relative">
+                                {{jsonStr := ""}}
+                                for _, plntID := range albm.PlantIDs() {
+                                    {{ jsonStr += plntID.String() + "," }}
+                                }
+                                {{jsonStr =strings.TrimSuffix(jsonStr, ",")}}
+                                <input 
+                                    type="text" 
+                                    id="search-input"
+                                    data-init-selected-ids={jsonStr}
+                                    placeholder="Search and select options..."
+                                    class="w-full rounded-lg border border-gray-300 py-2 pl-4 pr-10 focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
+                                />
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                             <!-- Dropdown Results -->
+                            <div id="search-results" class="hidden absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-60 overflow-auto divide-y divide-gray-100">
+                                <!-- Results will be created by TS -->
+                            </div>
+                        </div> 
+                    </div>
+                    <button id="update-button" type="button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                        Update album
+                    </button>
+                </div>
+            </form>
+        </div>
+    }
+}

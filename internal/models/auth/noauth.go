@@ -27,3 +27,7 @@ func (u NoAuthUser) ID() uuid.UUID {
 func (u NoAuthUser) IsAuthenticated() bool {
 	return false
 }
+
+func (u NoAuthUser) Username() string {
+	return ""
+}
