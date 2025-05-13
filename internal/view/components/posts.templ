@@ -99,6 +99,7 @@ templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, aut
                                         Search
                                     </button>
                                 </div>
+                                if usr.HasAuthorRights() {
                                 <div class="mt-4">
                                     <a 
                                         id="create-button"
@@ -108,6 +109,7 @@ templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, aut
                                         Create
                                     </a>
                                 </div>
+                                }
                             </form>
 
                             <div class="lg:col-span-3">
@@ -139,6 +141,7 @@ templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, aut
 
 templ PostView(usr auth.User, post *searchservice.GetPost) {
     @layout.Standard(usr) {
+        <script src="/static/js/post/delete-listener.js" type="module"></script>
         <div class="bg-white">
             <main class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
                 <div class="grid grid-cols-6">
@@ -168,8 +171,154 @@ templ PostView(usr auth.User, post *searchservice.GetPost) {
                         <p class="text-md font-medium text-gray-900 py-1">{line}</p>
                     }
                 </div>
-
+                if usr.HasAuthorRights() {
+                <div class="mt-8 border-t border-gray-200 pt-8">
+                    <a href={templ.URL("/view/post/" + post.ID.String() + "/update")} class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                        Update Post Text
+                    </a>
+                </div>
+                <div class="mt-8 border-t border-gray-200 pt-8">
+                    <button id="delete-post-button" type="button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete Post
+                    </button>
+                </div>
+                }
             </main>
+            <div id="delete-post-dialog" class="fixed hidden z-50 inset-0 bg-gray-900 bg-opacity-40 overflow-y-auto h-full w-full px-4">
+                <div class="relative top-40 mx-auto shadow-xl rounded-md bg-white max-w-md">
+                    <div class="flex shrink-0 items-center pb-4 text-xl font-medium text-slate-800">
+                        Delete post?
+                    </div>
+                    <div class="relative border-t border-slate-200 py-4 leading-normal text-slate-600 font-light">
+                        Do you really want to delete this post? This action cannot be undone.
+                    </div>
+                    <div class="flex shrink-0 flex-wrap items-center pt-4 justify-end">
+                        <button id="delete-cancel-button" class="rounded-md border border-transparent py-2 px-4 text-center text-sm transition-all text-slate-600 hover:bg-slate-100 focus:bg-slate-100 active:bg-slate-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button">
+                            Cancel
+                        </button>
+                        <button id="delete-confirm-button" class="rounded-md bg-green-600 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-green-700 focus:shadow-none active:bg-green-700 hover:bg-green-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
+    }
+}
+
+templ PostCreate(usr auth.User) {
+    @layout.Standard(usr) {
+    <script src="/static/js/post/post-tag.js" type="module"></script>
+    <script src="/static/js/post/create-listener.js" type="module"></script>
+    <div class="max-w-md mx-auto">
+        <div class="border-b border-gray-200 pt-6 pb-6">
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900">Create New Post</h1>
+        </div>
+        <form id="create-post-form" class="space-y-6 pt-6" enctype="multipart/form-data">
+            <!-- Basic Info -->
+            <div class="space-y-4">                
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700">Post Title</label>
+                    <input type="text" id="title" name="title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="content" class="block text-sm font-medium text-gray-700">Post Content</label>
+                    <textarea id="content" name="content" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"></textarea>
+                </div>
+
+                <div id="tags-container">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                    <div id="tags-input-container" class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                        <div class="transition-all duration-200 ease-out animate-in fade-in h-[42px]">
+                            <button 
+                                type="button"
+                                id="create-tag-button"
+                                class="w-full h-full flex items-center justify-center rounded-md border-2 border-dashed border-gray-300 hover:border-emerald-500 text-gray-400 hover:text-emerald-600 p-2 transition-all duration-200 hover:scale-[1.02]"
+                                >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-1">
+                                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                </svg>
+                                Add Tag
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label for="photo" class="block text-sm font-medium text-gray-700">Post Photo</label>
+                    <input type="file" id="photos" name="photos[]" accept="image/*" multiple required class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                </div>
+                <button id="create-button" type="button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                    Create Post
+                </button>
+            </div>
+        </form>
+    </div>
+   }
+}
+
+
+templ PostUpdate(usr auth.User, post *searchservice.GetPost) {
+    @layout.Standard(usr) {
+        <script src="/static/js/post/post-tag.js" type="module"></script>
+        <script src="/static/js/post/update-text-listener.js" type="module"></script>
+        <div class="max-w-md mx-auto">
+        <div class="border-b border-gray-200 pt-6 pb-6">
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900">Create New Post</h1>
+        </div>
+        <form id="update-post-form" class="space-y-6 pt-6" enctype="multipart/form-data">
+            <!-- Basic Info -->
+            <div class="space-y-4">                
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700">Post Title</label>
+                    <input type="text" id="title" name="title" value={post.Title} required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">
+                </div>
+                
+                <div>
+                    <label for="content" class="block text-sm font-medium text-gray-700">Post Content</label>
+                    <textarea id="content" name="content" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm">{post.Content.Text}</textarea>
+                </div>
+
+                <div id="tags-container">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                    <div id="tags-input-container" class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                        for _, tag := range post.Tags {
+                            <div class="relative transition-all duration-200 ease-out  animate-in fade-in relative group h-[42px]">
+                                <input 
+                                    type="text" 
+                                    name="tags[]" 
+                                    value={tag}
+                                    class="block h-full w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm pr-8 transition-all duration-200"
+                                >
+                                <button 
+                                    type="button"
+                                    class="delete-tag-button absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors duration-200"
+                                    >
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        }
+                        <div class="transition-all duration-200 ease-out animate-in fade-in h-[42px]">
+                            <button 
+                                type="button"
+                                id="create-tag-button"
+                                class="w-full h-full flex items-center justify-center rounded-md border-2 border-dashed border-gray-300 hover:border-emerald-500 text-gray-400 hover:text-emerald-600 p-2 transition-all duration-200 hover:scale-[1.02]"
+                                >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-1">
+                                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                </svg>
+                                Add Tag
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button id="update-button" type="button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                    Update Post
+                </button>
+            </div>
+        </form>
+    </div>
     }
 }

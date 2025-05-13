@@ -81,3 +81,37 @@ func (r *ViewRouter) PostViewHandler(c *gin.Context) {
 	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.PostView(user, post))
 	c.Render(http.StatusOK, rend)
 }
+
+func (r *ViewRouter) CreatePostHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	user := r.auth.UserFromContext(ctx)
+
+	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.PostCreate(user))
+	c.Render(http.StatusOK, rend)
+}
+
+func (r *ViewRouter) UpdatePostHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	user := r.auth.UserFromContext(ctx)
+
+	var postView postView
+
+	if err := c.ShouldBindUri(&postView); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	id, err := uuid.Parse(postView.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	post, err := r.srch.GetPost(ctx, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.PostUpdate(user, post))
+	c.Render(http.StatusOK, rend)
+}

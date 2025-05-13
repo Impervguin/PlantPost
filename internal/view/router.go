@@ -43,6 +43,8 @@ func (r *ViewRouter) Init(router *gin.RouterGroup, staticPath string, auth *auth
 
 	gr.GET("/posts", r.PostsHandler)
 	gr.GET("/post/:id", r.PostViewHandler)
+	gr.GET("/post/create", r.CreatePostHandler)
+	gr.GET("/post/:id/update", r.UpdatePostHandler)
 }
 
 func (r *ViewRouter) IndexHandler(c *gin.Context) {
