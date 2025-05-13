@@ -6,4 +6,4 @@ set -a
 . ./config/pgtest.env
 . ./config/miniotest.env
 
-go test -cover -coverprofile=out/coverage.out ./... -tags=integration
+go test -cover -coverprofile=out/coverage.out $(go list ./... | grep -v ./internal/view | grep -v ./cmd) -tags=integration

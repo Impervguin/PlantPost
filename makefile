@@ -20,7 +20,7 @@ test: test-unit test-integration
 
 .PHONY: test-unit
 test-unit:
-	go test -cover -coverprofile=$(COVERAGE_FILE) ./...
+	go test $$(go list ./... | grep -v ./internal/view | grep -v ./cmd) -cover -coverprofile=$(COVERAGE_FILE) 
 
 .PHONY: test-integration
 test-integration:

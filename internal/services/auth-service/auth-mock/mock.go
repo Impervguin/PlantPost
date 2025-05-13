@@ -105,6 +105,8 @@ type MockUser struct {
 	mock.Mock
 }
 
+var _ auth.User = &MockUser{}
+
 func (m *MockUser) ID() uuid.UUID {
 	return m.Called().Get(0).(uuid.UUID)
 }
@@ -132,4 +134,12 @@ func (m *MockUser) HasMemberRights() bool {
 
 func (m *MockUser) HasAuthorRights() bool {
 	return m.Called().Bool(0)
+}
+
+func (m *MockUser) IsAuthenticated() bool {
+	return m.Called().Bool(0)
+}
+
+func (m *MockUser) Username() string {
+	return m.Called().String(0)
 }
