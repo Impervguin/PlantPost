@@ -79,7 +79,8 @@ func (s *AuthService) Login(ctx context.Context, identifier, password string) (u
 }
 
 func (s *AuthService) Logout(ctx context.Context) error {
-	sess, err := s.sessions.Get(ctx, uuid.Nil)
+	sid := s.sessionFromContext(ctx)
+	sess, err := s.sessions.Get(ctx, sid)
 	if err != nil {
 		return err
 	}
@@ -107,6 +108,7 @@ func (s *AuthService) Authenticate(ctx context.Context, sid uuid.UUID) context.C
 	}
 
 	ctx = context.WithValue(ctx, AuthContextKey, userID)
+	ctx = context.WithValue(ctx, sessionContextKey, sid)
 
 	return ctx
 }
@@ -125,4 +127,11 @@ func (s *AuthService) UserFromContext(ctx context.Context) auth.User {
 	}
 
 	return auth.NewNoAuthUser()
+}
+
+func (s *AuthService) sessionFromContext(ctx context.Context) uuid.UUID {
+	if sid, ok := ctx.Value(sessionContextKey).(uuid.UUID); ok {
+		return sid
+	}
+	return uuid.Nil
 }

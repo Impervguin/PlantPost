@@ -1,0 +1,10 @@
+package layout
+
+import "PlantSite/internal/models/auth"
+
+templ Standard(usr auth.User) {
+    @Minimalistic() {
+        @Navbar(usr)
+        { children... }
+    }
+}

@@ -12,6 +12,7 @@ const (
 	PlantSoilTypeFilterID        = "PlantSoilTypeFilter"
 	PlantWinterHardinessFilterID = "PlantWinterHardinessFilter"
 	PlantFloweringPeriodFilterID = "PlantFloweringPeriodFilter"
+	PlantAlbumFilterID           = "PlantAlbumFilter"
 )
 
 const (

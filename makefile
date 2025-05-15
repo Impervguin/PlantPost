@@ -11,7 +11,8 @@ PARSEDEPTH:= 10
 SWAGGER:=./cmd/docs
 API_APP:=./cmd/api/main.go
 API_DIR:=./cmd/api
-API_BUILD := api
+API_BUILD := ./api.bin
+TEMPL_DIR:=./internal/view
 
 
 .PHONY: test
@@ -19,7 +20,7 @@ test: test-unit test-integration
 
 .PHONY: test-unit
 test-unit:
-	go test -cover -coverprofile=$(COVERAGE_FILE) ./...
+	go test $$(go list ./... | grep -v ./internal/view | grep -v ./cmd) -cover -coverprofile=$(COVERAGE_FILE) 
 
 .PHONY: test-integration
 test-integration:
@@ -32,11 +33,14 @@ show-coverage:
 .PHONY: api-build
 api-build:
 	swag init --parseInternal --parseDependency --parseDepth $(PARSEDEPTH) -g $(API_APP) -o $(SWAGGER)
+	tailwindcss -o ./internal/view/static/css/tailwind.css --minify
+	go tool templ generate -path $(TEMPL_DIR)
+	npm install && npm run build
 	go build -o $(API_BUILD) $(API_DIR)
 
 .PHONY: api-run
 api-run:
-	./api
+	$(API_BUILD)
 
 .PHONY: api
 api: api-build api-run
@@ -45,10 +49,11 @@ api: api-build api-run
 dev-up:
 	docker compose -f $(COMPOSEFILE_DEV) up 
 
-.PHONY: dev-up-upd
+.PHONY: dev-upd
 dev-upd:
 	docker compose -f $(COMPOSEFILE_DEV) up -d 
 
+.PHONY: dev-update
 dev-update:
 	docker compose -f $(COMPOSEFILE_DEV) up --build
 

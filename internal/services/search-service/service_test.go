@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"PlantSite/internal/models"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/plant"
 	"PlantSite/internal/models/post"
 	"PlantSite/internal/models/search"
@@ -63,6 +64,22 @@ func (m *MockSearchRepository) GetPlantByID(ctx context.Context, id uuid.UUID) (
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*plant.Plant), args.Error(1)
+}
+
+func (m *MockSearchRepository) GetPostAuthors(ctx context.Context) ([]*auth.Author, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*auth.Author), args.Error(1)
+}
+
+func (m *MockSearchRepository) GetPostTags(ctx context.Context) ([]string, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]string), args.Error(1)
 }
 
 // MockFileRepository implements models.FileRepository interface

@@ -1,0 +1,9 @@
+{
+    "scripts": {
+      "build": "tsc && esbuild internal/view/**/ts/*.ts --bundle --minify --outdir=internal/view/static/js"
+    },
+    "devDependencies": {
+      "esbuild": "^0.19.2",
+      "typescript": "^5.3.2"
+    }
+  }

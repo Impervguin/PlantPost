@@ -9,8 +9,10 @@ import (
 type User interface {
 	HasAuthorRights() bool
 	HasMemberRights() bool
+	IsAuthenticated() bool
 	Auth(passwd []byte, authFunc func(hashPasswd []byte, plainPasswd []byte) (bool, error)) bool
 	ID() uuid.UUID
+	Username() string
 }
 
 type AuthRepository interface {

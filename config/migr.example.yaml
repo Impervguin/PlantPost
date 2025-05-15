@@ -1,6 +1,6 @@
-migration_dir: 
-database: 
-user: 
-password: 
-host: 
-port: 
+migration_dir: example_value
+database: your_database_name
+user: example_value
+password: your_password_here
+host: example.com
+port: 8080

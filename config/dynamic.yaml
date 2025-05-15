@@ -1,0 +1,45 @@
+http:
+  routers:
+    static-router:
+      rule: "PathPrefix(`/static`)"
+      service: api-static
+    
+    media-router:
+      rule: "PathPrefix(`/media`)"
+      service: minio-media
+      middlewares: ["strip-media"]
+    
+    view-router:
+      rule: "PathPrefix(`/view`)"
+      service: view
+    
+    api-router:
+      rule: "PathPrefix(`/api`)"
+      service: api
+
+  services:
+    api-static:
+      loadBalancer:
+        servers:
+          - url: "http://api:23450"
+    
+    minio-media:
+      loadBalancer:
+        servers:
+          - url: "http://minio:9000"
+    
+    view:
+      loadBalancer:
+        servers:
+          - url: "http://api:23450"
+    
+    api:
+      loadBalancer:
+        servers:
+          - url: "http://api:23450"
+  
+  middlewares:
+    strip-media:
+      stripPrefix:
+        prefixes: 
+          - "/media"

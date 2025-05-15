@@ -1,10 +1,11 @@
 package searchapi
 
 import (
+	plantsquery "PlantSite/internal/api-utils/query-filters/plants-query"
+	postsquery "PlantSite/internal/api-utils/query-filters/posts-query"
 	"PlantSite/internal/api/search-api/mapper"
 	_ "PlantSite/internal/api/search-api/request"
 	_ "PlantSite/internal/api/search-api/response"
-	"PlantSite/internal/models/search"
 	searchservice "PlantSite/internal/services/search-service"
 	"net/http"
 
@@ -18,8 +19,8 @@ type SearchRouter struct {
 func (r *SearchRouter) Init(router *gin.RouterGroup, search *searchservice.SearchService) {
 	r.search = search
 	gr := router.Group("/search")
-	gr.POST("/posts", r.SearchPosts)
-	gr.POST("/plants", r.SearchPlants)
+	gr.GET("/posts", r.SearchPosts)
+	gr.GET("/plants", r.SearchPlants)
 	gr.GET("/plant/:id", r.GetPlant)
 	gr.GET("/post/:id", r.GetPost)
 }
@@ -37,25 +38,14 @@ func (r *SearchRouter) Init(router *gin.RouterGroup, search *searchservice.Searc
 func (r *SearchRouter) SearchPosts(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	req, err := mapper.MapSearchPostsRequest(c)
+	srch, err := postsquery.ParseGinQueryPostSearch(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
 	}
 
-	srchReq := search.NewPostSearch()
-	for _, f := range req {
-		filt, err := f.ToDomain()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			c.Error(err)
-			return
-		}
-		srchReq.AddFilter(filt)
-	}
-
-	posts, err := r.search.SearchPosts(ctx, srchReq)
+	posts, err := r.search.SearchPosts(ctx, srch)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)
@@ -83,25 +73,14 @@ func (r *SearchRouter) SearchPosts(c *gin.Context) {
 func (r *SearchRouter) SearchPlants(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	req, err := mapper.MapSearchPlantsRequest(c)
+	srch, err := plantsquery.ParseGinQueryPlantSearch(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
 	}
 
-	srchReq := search.NewPlantSearch()
-	for _, f := range req {
-		filt, err := f.ToDomain()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			c.Error(err)
-			return
-		}
-		srchReq.AddFilter(filt)
-	}
-
-	plants, err := r.search.SearchPlants(ctx, srchReq)
+	plants, err := r.search.SearchPlants(ctx, srch)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)

@@ -4,6 +4,7 @@ import (
 	"PlantSite/internal/infra/filters"
 	specificationmapper "PlantSite/internal/infra/specification-mapper"
 	"PlantSite/internal/infra/sqdb"
+	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/plant"
 	"PlantSite/internal/models/post"
 	"PlantSite/internal/models/search"
@@ -302,4 +303,66 @@ func (repo *PostgresSearchRepository) fetchPlantPhotos(ctx context.Context, plan
 		return nil, rows.Err()
 	}
 	return photos, nil
+}
+
+func (s *PostgresSearchRepository) GetPostAuthors(ctx context.Context) ([]*auth.Author, error) {
+	rows, err := s.db.Query(ctx, squirrel.Select("app_user.id", "app_user.username", "app_user.email", "app_user.password_hash", "app_user.created_at", "author.has_rights", "author.grant_at", "author.revoke_at").
+		From("author").Join("app_user ON author.id = app_user.id").
+		Where(squirrel.Expr("EXISTS (SELECT 1 FROM post WHERE post.author_id = author.id)")))
+	if errors.Is(err, sqdb.ErrNoRows) {
+		return []*auth.Author{}, nil
+	} else if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	authors := make([]*auth.Author, 0)
+	for rows.Next() {
+		var memberID uuid.UUID
+		var username, email string
+		var passwordHash []byte
+		var hasRights bool
+		var grantAt, revokeAt, createdAt time.Time
+		err := rows.Scan(&memberID, &username, &email, &passwordHash, &createdAt, &hasRights, &grantAt, &revokeAt)
+		if err != nil {
+			return nil, err
+		}
+		member, err := auth.CreateMember(memberID, username, email, passwordHash, createdAt)
+		if err != nil {
+			return nil, err
+		}
+		author, err := auth.CreateAuthor(*member, grantAt, hasRights, revokeAt)
+		if err != nil {
+			return nil, err
+		}
+		authors = append(authors, author)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return authors, nil
+}
+
+func (s *PostgresSearchRepository) GetPostTags(ctx context.Context) ([]string, error) {
+	rows, err := s.db.Query(ctx, squirrel.Select("DISTINCT tag").
+		From("post_tag").
+		Where(squirrel.Expr("EXISTS (SELECT 1 FROM post WHERE post.id = post_tag.post_id)")))
+	if errors.Is(err, sqdb.ErrNoRows) {
+		return []string{}, nil
+	} else if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	tags := make([]string, 0)
+	for rows.Next() {
+		var tag string
+		err := rows.Scan(&tag)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, tag)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return tags, nil
 }

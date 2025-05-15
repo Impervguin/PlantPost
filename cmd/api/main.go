@@ -1,6 +1,7 @@
 package main
 
 import (
+	"PlantSite/internal/api-utils/urllib"
 	albumapi "PlantSite/internal/api/album-api"
 	authapi "PlantSite/internal/api/auth-api"
 	"PlantSite/internal/api/middleware"
@@ -23,6 +24,7 @@ import (
 	searchservice "PlantSite/internal/services/search-service"
 	"PlantSite/internal/utils/bcrypthasher"
 	"PlantSite/internal/utils/logs"
+	"PlantSite/internal/view"
 	"context"
 	"fmt"
 
@@ -34,6 +36,7 @@ import (
 )
 
 func main() {
+	fmt.Println(GetPlantMinioConfig())
 	ctx := context.Background()
 	engine := gin.New()
 
@@ -124,6 +127,7 @@ func main() {
 	postRouter.Init(apiGroup, postservice)
 
 	// ------------- PLANT STORAGE -------------
+	logg.Info("plant minio config: %v", GetPlantMinioConfig())
 	plantMinioCl, err := minioclient.NewMinioClient(GetPlantMinioConfig())
 	if err != nil {
 		panic(err)
@@ -171,6 +175,17 @@ func main() {
 
 	searchRouter := searchapi.SearchRouter{}
 	searchRouter.Init(apiGroup, searchService)
+
+	// ------------- VIEW -------------
+	viewRouter := view.ViewRouter{}
+	viewGroup := engine.Group("")
+	viewGroup.Use(middleware.RequestIDMiddleware())
+	viewGroup.Use(middleware.LogMiddleware(logg))
+	viewGroup.Use(middleware.AuthMiddleware(authService))
+
+	mediaStrategy := &urllib.StaticUrlStrategy{BaseUrl: GetMediaPath()}
+
+	viewRouter.Init(viewGroup, GetStaticPath(), authService, searchService, albumService, mediaStrategy, mediaStrategy)
 
 	engine.Run(fmt.Sprintf(":%d", GetApiPort()))
 }

@@ -1,16 +1,31 @@
 services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Dashboard
+    volumes:
+      - ../config/traefik.yaml:/etc/traefik/traefik.yml:ro
+      - ../config/dynamic.yaml:/etc/traefik/dynamic.yml:ro
+    networks:
+      - minio-net
   api:
     container_name: api
     build:
       context: ../
-      dockerfile: ./api.dockerfile
+      dockerfile: ./api.dev.dockerfile
     ports:
       - "23450:23450"
+      - "23460:23460"
     deploy:
       resources:
         limits:
           cpus: '8'
           memory: 4G
+    volumes:
+      - ../:/build/
     depends_on:
       pg:
         condition: service_healthy 

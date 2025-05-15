@@ -11,7 +11,8 @@ var (
 type authContextKey int
 
 const (
-	AuthContextKey authContextKey = iota
+	AuthContextKey    authContextKey = iota
+	sessionContextKey authContextKey = iota
 )
 
 func UpdateSessionExpireTime(t time.Duration) {

@@ -136,3 +136,12 @@ func (pp PostPhotos) List() []PostPhoto {
 func (pp PostPhotos) Len() int {
 	return len(pp.photos)
 }
+
+func (pp *PostPhotos) Iterate(fn func(PostPhoto) error) error {
+	for _, photo := range pp.photos {
+		if err := fn(photo); err != nil {
+			return err
+		}
+	}
+	return nil
+}
