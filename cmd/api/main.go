@@ -9,9 +9,12 @@ import (
 	postapi "PlantSite/internal/api/post-api"
 	searchapi "PlantSite/internal/api/search-api"
 	minioclient "PlantSite/internal/infra/minio-client"
+	filedir "PlantSite/internal/infra/os/file-dir"
 	sessionstorage "PlantSite/internal/infra/session-storage"
+	"PlantSite/internal/models"
 	authrepo "PlantSite/internal/repositories/authrepo"
-	filestorage "PlantSite/internal/repositories/pgminio/file-storage"
+	miniofilestorage "PlantSite/internal/repositories/pgminio/file-storage"
+	fsfilestorage "PlantSite/internal/repositories/pgos/file-storage"
 	albumstorage "PlantSite/internal/repositories/postgres/album-storage"
 	authstorage "PlantSite/internal/repositories/postgres/auth-storage"
 	plantstorage "PlantSite/internal/repositories/postgres/plant-storage"
@@ -82,9 +85,47 @@ func main() {
 	}
 	apiGroup.Use(middleware.LogMiddleware(logg))
 
+	sqpgx := GetSqpgx(context.Background())
+
+	// ------------- MEDIA STORAGES -------------
+
+	mediaType := GetMediaStorage()
+	var postFStorage models.FileRepository
+	var plantFStorage models.FileRepository
+
+	switch mediaType {
+	case MediaStorageFs:
+		root := GetFsRoot()
+		fClient, err := filedir.NewFileClient(root)
+		if err != nil {
+			panic(err)
+		}
+		postFStorage = fsfilestorage.NewPgOsFileStorage(GetFsBucket(FSPostBucketPrefix), fClient, sqpgx)
+		plantFStorage = fsfilestorage.NewPgOsFileStorage(GetFsBucket(FSPlantBucketPrefix), fClient, sqpgx)
+	case MediaStorageMinio:
+		postMinioCl, err := minioclient.NewMinioClient(GetPostMinioConfig())
+		if err != nil {
+			panic(err)
+		}
+		postFStorage, err = miniofilestorage.NewPgMinioStorage(ctx, sqpgx, postMinioCl)
+		if err != nil {
+			panic(err)
+		}
+
+		plantMinioCl, err := minioclient.NewMinioClient(GetPlantMinioConfig())
+		if err != nil {
+			panic(err)
+		}
+		plantFStorage, err = miniofilestorage.NewPgMinioStorage(ctx, sqpgx, plantMinioCl)
+		if err != nil {
+			panic(err)
+		}
+	default:
+		panic("unknown media storage")
+	}
+
 	// ------------- AUTH STORAGE -------------
 	sessStorage := sessionstorage.NewMapSessionStorage()
-	sqpgx := GetSqpgx(context.Background())
 	hasher := bcrypthasher.NewBcryptHasher(GetHashCost())
 	authRepo, err := authstorage.NewPostgresAuthRepository(ctx, sqpgx)
 	if err != nil {
@@ -104,17 +145,6 @@ func main() {
 	authRouter := authapi.AuthRouter{}
 	authRouter.Init(apiGroup, authService)
 
-	// ------------- POST STORAGE -------------
-	postMinioCl, err := minioclient.NewMinioClient(GetPostMinioConfig())
-	if err != nil {
-		panic(err)
-	}
-
-	postFStorage, err := filestorage.NewPgMinioStorage(ctx, sqpgx, postMinioCl)
-	if err != nil {
-		panic(err)
-	}
-
 	// ------------- SEARCH STORAGE -------------
 	searchRepo, err := searchstorage.NewPostgresSearchRepository(ctx, sqpgx)
 	if err != nil {
@@ -129,15 +159,6 @@ func main() {
 	}
 
 	// ------------- PLANT STORAGE -------------
-	logg.Info("plant minio config: %v", GetPlantMinioConfig())
-	plantMinioCl, err := minioclient.NewMinioClient(GetPlantMinioConfig())
-	if err != nil {
-		panic(err)
-	}
-	plantFStorage, err := filestorage.NewPgMinioStorage(ctx, sqpgx, plantMinioCl)
-	if err != nil {
-		panic(err)
-	}
 	plantRepo, err := plantstorage.NewPostgresPlantRepository(ctx, sqpgx)
 	if err != nil {
 		panic(err)
