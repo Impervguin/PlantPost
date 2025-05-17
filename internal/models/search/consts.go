@@ -1,6 +1,8 @@
 package search
 
 const (
+	ExactPlantNameFilterID       = "ExactPlantNameFilter"
+	PlantIDsFilterID             = "PlantIDsFilter"
 	PlantNameFilterID            = "PlantNameFilter"
 	PlantCategoryFilterID        = "PlantCategoryFilter"
 	PlantLatinNameFilterID       = "PlantLatinNameFilter"

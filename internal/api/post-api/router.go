@@ -7,6 +7,7 @@ import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
+	"PlantSite/internal/models/post/parser"
 	postservice "PlantSite/internal/services/post-service"
 	"errors"
 	"net/http"
@@ -76,7 +77,7 @@ func (r *PostRouter) Create(c *gin.Context) {
 		})
 	}
 
-	content, err := post.NewContent(req.Content, post.ContentTypePlainText)
+	content, err := post.NewContent(req.Content, post.WithPlantContentType(parser.LatexLikePlantParserType))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Error(err)
@@ -210,12 +211,13 @@ func (r *PostRouter) Update(c *gin.Context) {
 		return
 	}
 
-	newContent, err := post.NewContent(req.Content, post.ContentTypePlainText)
+	newContent, err := post.NewContent(req.Content, post.WithPlantContentType(parser.LatexLikePlantParserType))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
 	}
+
 	_, err = r.post.UpdatePost(ctx, req.ID, postservice.UpdatePostTextData{
 		Title:   req.Title,
 		Content: *newContent,

@@ -16,7 +16,9 @@ import (
 	"PlantSite/internal/models/post"
 	filestorage "PlantSite/internal/repositories/pgminio/file-storage"
 	authstorage "PlantSite/internal/repositories/postgres/auth-storage"
+	plantstorage "PlantSite/internal/repositories/postgres/plant-storage"
 	poststorage "PlantSite/internal/repositories/postgres/post-storage"
+	searchstorage "PlantSite/internal/repositories/postgres/search-storage"
 	"PlantSite/internal/repositories/tests"
 	"PlantSite/internal/testutils/miniotest"
 	"PlantSite/internal/testutils/pgtest"
@@ -35,6 +37,7 @@ type PostRepositoryTestSuite struct {
 	fileRepo       *filestorage.PgMinioStorage
 	repo           *poststorage.PostgresPostRepository
 	userRepo       *authstorage.PostgresAuthRepository
+	plantRepo      *plantstorage.PostgresPlantRepository
 	prevDir        string
 }
 
@@ -100,8 +103,19 @@ func (s *PostRepositoryTestSuite) SetupSuite() {
 	s.fileRepo, err = filestorage.NewPgMinioStorage(ctx, s.db, minioClient)
 	require.NoError(s.T(), err)
 
+	// Create plant repository
+	s.plantRepo, err = plantstorage.NewPostgresPlantRepository(ctx, s.db)
+	require.NoError(s.T(), err)
+
+	// Create search repository
+	searchRepo, err := searchstorage.NewPostgresSearchRepository(ctx, s.db)
+	require.NoError(s.T(), err)
+
+	// Create search plant getter
+	plntGetter := searchstorage.NewSearchPlantGetter(searchRepo)
+
 	// Create post repository
-	s.repo, err = poststorage.NewPostgresPostRepository(ctx, s.db)
+	s.repo, err = poststorage.NewPostgresPostRepository(ctx, s.db, plntGetter)
 	require.NoError(s.T(), err)
 
 	// Create user repository
