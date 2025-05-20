@@ -39,13 +39,14 @@ func (repo *PostgresSearchRepository) GetPlantByID(ctx context.Context, id uuid.
 }
 
 type Post struct {
-	ID        uuid.UUID
-	Title     string
-	Body      string
-	AuthorID  uuid.UUID
-	Tags      []string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          uuid.UUID
+	Title       string
+	Body        string
+	AuthorID    uuid.UUID
+	Tags        []string
+	ContentType string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type PostPhoto struct {
@@ -69,7 +70,7 @@ func (repo *PostgresSearchRepository) SearchPosts(ctx context.Context, srch *sea
 	})
 
 	rows, err := repo.db.Query(ctx,
-		squirrel.Select("id", "title", "body", "author_id", "updated_at", "created_at").
+		squirrel.Select("id", "title", "body", "author_id", "content_type", "updated_at", "created_at").
 			From("post").
 			Where(whereClause),
 	)
@@ -81,7 +82,7 @@ func (repo *PostgresSearchRepository) SearchPosts(ctx context.Context, srch *sea
 	psts := make([]Post, 0)
 	for rows.Next() {
 		var pst Post
-		err := rows.Scan(&pst.ID, &pst.Title, &pst.Body, &pst.AuthorID, &pst.UpdatedAt, &pst.CreatedAt)
+		err := rows.Scan(&pst.ID, &pst.Title, &pst.Body, &pst.AuthorID, &pst.ContentType, &pst.UpdatedAt, &pst.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -100,7 +101,7 @@ func (repo *PostgresSearchRepository) SearchPosts(ctx context.Context, srch *sea
 		if err != nil {
 			return nil, fmt.Errorf("PostgresSearchRepository.SearchPosts failed %w", err)
 		}
-		content, err := post.NewContent(pst.Body, post.ContentTypePlainText)
+		content, err := post.NewContent(pst.Body, post.ContentFormat(pst.ContentType))
 		if err != nil {
 			return nil, fmt.Errorf("PostgresSearchRepository.SearchPosts failed %w", err)
 		}
