@@ -14,6 +14,48 @@ import (
 	"github.com/google/uuid"
 )
 
+func (r *ViewRouter) handlePostsWithPlant(c *gin.Context, psts []*searchservice.SearchPost) (map[uuid.UUID]*searchservice.SearchPlant, error) {
+	plantMap := make(map[uuid.UUID]*searchservice.SearchPlant)
+	plants := make(map[uuid.UUID]struct{})
+	for _, pst := range psts {
+		if post.CheckContentWithPlant(&pst.Content) {
+			parser, err := parser.GetParser(&pst.Content, r.plntGet)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return nil, err
+			}
+			content, err := post.NewContentWithPlant(pst.Content.Text, pst.Content.ContentType, parser)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return nil, err
+			}
+			plantIDs := content.PlantIDs()
+			for _, plntID := range plantIDs {
+				if _, ok := plants[plntID]; !ok {
+					plants[plntID] = struct{}{}
+				}
+			}
+		}
+	}
+	srch := search.NewPlantSearch()
+	plantIDs := make([]uuid.UUID, 0, len(plants))
+	for plntID := range plants {
+		plantIDs = append(plantIDs, plntID)
+	}
+	srch.AddFilter(search.NewPlantIDsFilter(plantIDs))
+
+	plnts, err := r.srch.SearchPlants(c.Request.Context(), srch)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return nil, err
+	}
+
+	for _, plnt := range plnts {
+		plantMap[plnt.ID] = plnt
+	}
+	return plantMap, nil
+}
+
 func (r *ViewRouter) PostsHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 	user := r.auth.UserFromContext(ctx)
@@ -48,7 +90,17 @@ func (r *ViewRouter) PostsHandler(c *gin.Context) {
 		return
 	}
 
-	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.Posts(user, posts, tags, authors))
+	plantMap, err := r.handlePostsWithPlant(c, posts)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for _, plnt := range plantMap {
+		plnt.MainPhoto.URL = r.plantMedia.GetUrl(plnt.MainPhoto.URL)
+	}
+
+	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.Posts(user, posts, tags, authors, plantMap))
 	c.Render(http.StatusOK, rend)
 }
 
@@ -111,10 +163,13 @@ func (r *ViewRouter) PostViewHandler(c *gin.Context) {
 		pst.Photos[i].File.URL = r.postMedia.GetUrl(pst.Photos[i].File.URL)
 	}
 
-	plantMap, err := r.handlePostWithPlant(c, pst)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	plantMap := make(map[uuid.UUID]*searchservice.SearchPlant)
+	if post.CheckContentWithPlant(&pst.Content) {
+		plantMap, err = r.handlePostWithPlant(c, pst)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	for _, plnt := range plantMap {

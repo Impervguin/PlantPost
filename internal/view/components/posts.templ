@@ -26,7 +26,27 @@ templ postFilterHeader(title string, name string) {
     </h3>
 }
 
-templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, authors []*auth.Author) {
+templ WithPlantContent(lineClass, contentClass, hrefClass string, content string, plantMap map[uuid.UUID]*searchservice.SearchPlant) {
+    {{ content = stringutils.ReplaceFunc(content, "\\plant{%s}", func(match string) string {
+        plntID, err := uuid.Parse(match)
+        if err != nil {
+            return match
+        }
+        if plant, ok := plantMap[plntID]; ok {
+            return fmt.Sprintf(`<a class=%s href="/view/plant/%s">%s</a>` , hrefClass, plant.ID.String(), plant.Name)
+        }
+        return "not found"
+    })}}
+    {{ lines := strings.Split(content, "\n") }}
+    <div class={lineClass}>
+    for _, line := range lines {
+        <p>@templ.Raw(line)</p>
+    }
+    </div>
+}
+
+
+templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, authors []*auth.Author, plantMap map[uuid.UUID]*searchservice.SearchPlant) {
     @layout.Standard(usr) {
         <script src="/static/js/posts/buttons.js" type="module"></script>
         <script src="/static/js/posts/listener.js" type="module"></script>
@@ -123,7 +143,7 @@ templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, aut
                                             }
                                             <p class="mt-1 text-xs font-medium text-gray-600">{post.CreatedAt.Format("January 2, 2006")}</p>
                                             <h3 class="mt-1 text-lg font-medium text-gray-900">{post.Title}</h3>
-                                            <p class="mt-4 text-sm text-gray-600 line-clamp-3">{post.Content.Text}</p>
+                                            @WithPlantContent("text-sm text-gray-600 line-clamp-3", "", "text-green-800", post.Content.Text, plantMap)
                                             for _, tag := range post.Tags {
                                                 <span class="inline-flex items-center mx-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                                                     {tag}
@@ -140,22 +160,6 @@ templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, aut
     }
 }
 
-templ WithPlantContent(content string, plantMap map[uuid.UUID]*searchservice.SearchPlant) {
-    {{ content = stringutils.ReplaceFunc(content, "\\plant{%s}", func(match string) string {
-        plntID, err := uuid.Parse(match)
-        if err != nil {
-            return match
-        }
-        if plant, ok := plantMap[plntID]; ok {
-            return fmt.Sprintf(`<a class="text-emerald-800" href="/view/plant/%s">%s</a>`, plant.ID.String(), plant.Name)
-        }
-        return match
-    })}}
-    {{ lines := strings.Split(content, "\n") }}
-    for _, line := range lines {
-        <p class="text-md font-medium text-gray-900 py-1">@templ.Raw(line)</p>
-    }
-}
 
 templ PostView(usr auth.User, post *searchservice.GetPost, plants map[uuid.UUID]*searchservice.SearchPlant) {
     @layout.Standard(usr) {
@@ -184,7 +188,7 @@ templ PostView(usr auth.User, post *searchservice.GetPost, plants map[uuid.UUID]
                     </div>
                 </div>
                 <div class="border-l-4 rounded-lg border-emerald-600 pl-4 px-4 py-4 mx-4 my-4">
-                    @WithPlantContent(post.Content.Text, plants)
+                    @WithPlantContent("text-md font-medium text-gray-900", "py-1", "text-emerald-800", post.Content.Text, plants)
                 </div>
                 if len(plants) > 0 {
                     <div class="mt-8 border-t border-gray-200 pt-8">

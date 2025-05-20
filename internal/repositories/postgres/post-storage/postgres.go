@@ -223,16 +223,17 @@ func (repo *PostgresPostRepository) Delete(ctx context.Context, postID uuid.UUID
 		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
 			return err
 		}
-		_, err = tx.Delete(ctx, squirrel.Delete("post").
-			Where(squirrel.Eq{"id": postID}))
-		if err != nil {
-			return err
-		}
 
 		_, err = tx.Delete(ctx, squirrel.Delete("plant_post").
 			Where(squirrel.Eq{"post_id": postID}))
 		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
 			return fmt.Errorf("PostgresPostRepository.Delete can't delete post plants: %w", err)
+		}
+
+		_, err = tx.Delete(ctx, squirrel.Delete("post").
+			Where(squirrel.Eq{"id": postID}))
+		if err != nil {
+			return err
 		}
 
 		return nil
