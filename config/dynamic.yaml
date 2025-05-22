@@ -4,9 +4,14 @@ http:
       rule: "PathPrefix(`/static`)"
       service: api-static
     
-    media-router:
+    # media-router:
+    #   rule: "PathPrefix(`/media`)"
+    #   service: minio-media
+    #   middlewares: ["strip-media"]
+
+    media-fs-router:
       rule: "PathPrefix(`/media`)"
-      service: minio-media
+      service: fileserver
       middlewares: ["strip-media"]
     
     view-router:
@@ -27,6 +32,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://minio:9000"
+    
+    fileserver:
+      loadBalancer:
+        servers:
+          - url: "http://fileserver:9000"
     
     view:
       loadBalancer:

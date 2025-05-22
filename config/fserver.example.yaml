@@ -1,0 +1,3 @@
+fileserver:
+root: example_value
+port: 8080

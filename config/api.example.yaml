@@ -13,6 +13,9 @@ api:
 urlprefix: https://example.com/path
 port: 8080
 static: example_value
+media: example_value
+media-storage: example_value
+
 
 minio:
   post:
@@ -24,6 +27,13 @@ bucket: example_value
 endpoint: example_value
 user: example_value
 password: your_password_here
+bucket: example_value
+
+fs:
+root: example_value
+  post:
+bucket: example_value
+  plant:
 bucket: example_value
 
 admins:
