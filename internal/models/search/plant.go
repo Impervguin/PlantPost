@@ -3,6 +3,7 @@ package search
 import (
 	"PlantSite/internal/models/album"
 	"PlantSite/internal/models/plant"
+	"strings"
 
 	"slices"
 
@@ -14,8 +15,44 @@ type PlantFilter interface {
 	Identifier() string
 }
 
+type ExactPlantNameFilter struct {
+	Name string
+}
+
 type PlantNameFilter struct {
 	Name string
+}
+
+var _ PlantFilter = &ExactPlantNameFilter{}
+
+func (p *ExactPlantNameFilter) Identifier() string {
+	return ExactPlantNameFilterID
+}
+
+func (p *ExactPlantNameFilter) Filter(plant *plant.Plant) bool {
+	return plant.GetName() == p.Name
+}
+
+func NewExactPlantNameFilter(name string) *ExactPlantNameFilter {
+	return &ExactPlantNameFilter{Name: name}
+}
+
+type PlantIDsFilter struct {
+	IDs []uuid.UUID
+}
+
+var _ PlantFilter = &PlantIDsFilter{}
+
+func (p *PlantIDsFilter) Identifier() string {
+	return PlantIDsFilterID
+}
+
+func (p *PlantIDsFilter) Filter(plant *plant.Plant) bool {
+	return slices.Contains(p.IDs, plant.ID())
+}
+
+func NewPlantIDsFilter(ids []uuid.UUID) *PlantIDsFilter {
+	return &PlantIDsFilter{IDs: ids}
 }
 
 var _ PlantFilter = &PlantNameFilter{}
@@ -29,7 +66,7 @@ func (p *PlantNameFilter) Identifier() string {
 }
 
 func (p *PlantNameFilter) Filter(plant *plant.Plant) bool {
-	return plant.GetName() == p.Name
+	return strings.Contains(plant.GetName(), p.Name)
 }
 
 type PlantCategoryFilter struct {

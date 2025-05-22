@@ -20,12 +20,13 @@ func NewPostgresPostGet(db sqdb.SquirrelDatabase) *PostgresPostGet {
 }
 
 type Post struct {
-	ID        uuid.UUID
-	Title     string
-	Body      string
-	AuthorID  uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          uuid.UUID
+	Title       string
+	Body        string
+	ContentType string
+	AuthorID    uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type PostPhoto struct {
@@ -36,7 +37,7 @@ type PostPhoto struct {
 
 func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post, error) {
 	var pst Post
-	row, err := g.db.QueryRow(ctx, squirrel.Select("id", "title", "body", "author_id", "created_at", "updated_at").
+	row, err := g.db.QueryRow(ctx, squirrel.Select("id", "title", "body", "content_type", "author_id", "created_at", "updated_at").
 		From("post").
 		Where(squirrel.Eq{"id": postID}),
 	)
@@ -46,7 +47,7 @@ func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post
 		return nil, err
 	}
 
-	err = row.Scan(&pst.ID, &pst.Title, &pst.Body, &pst.AuthorID, &pst.CreatedAt, &pst.UpdatedAt)
+	err = row.Scan(&pst.ID, &pst.Title, &pst.Body, &pst.ContentType, &pst.AuthorID, &pst.CreatedAt, &pst.UpdatedAt)
 	if errors.Is(err, sqdb.ErrNoRows) {
 		return nil, post.ErrPostNotFound
 	} else if err != nil {
@@ -94,7 +95,7 @@ func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post
 		tags = append(tags, tmpTag)
 	}
 
-	content, err := post.NewContent(pst.Body, post.ContentTypePlainText)
+	content, err := post.NewContent(pst.Body, post.ContentFormat(pst.ContentType))
 	if err != nil {
 		return nil, err
 	}

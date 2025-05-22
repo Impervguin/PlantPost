@@ -115,16 +115,18 @@ func main() {
 		panic(err)
 	}
 
-	postRepo, err := poststorage.NewPostgresPostRepository(ctx, sqpgx)
+	// ------------- SEARCH STORAGE -------------
+	searchRepo, err := searchstorage.NewPostgresSearchRepository(ctx, sqpgx)
 	if err != nil {
 		panic(err)
 	}
 
-	// ------------- POSTS -------------
-	postservice := postservice.NewPostService(postRepo, postFStorage, authService)
+	plantGetter := searchstorage.NewSearchPlantGetter(searchRepo)
 
-	postRouter := postapi.PostRouter{}
-	postRouter.Init(apiGroup, postservice)
+	postRepo, err := poststorage.NewPostgresPostRepository(ctx, sqpgx, plantGetter)
+	if err != nil {
+		panic(err)
+	}
 
 	// ------------- PLANT STORAGE -------------
 	logg.Info("plant minio config: %v", GetPlantMinioConfig())
@@ -152,6 +154,18 @@ func main() {
 	plantRouter := plantapi.PlantRouter{}
 	plantRouter.Init(apiGroup, plantService)
 
+	// ------------- SEARCH -------------
+	searchService := searchservice.NewSearchService(searchRepo, plantFStorage, postFStorage)
+
+	searchRouter := searchapi.SearchRouter{}
+	searchRouter.Init(apiGroup, searchService)
+
+	// ------------- POSTS -------------
+	postservice := postservice.NewPostService(postRepo, postFStorage, authService)
+
+	postRouter := postapi.PostRouter{}
+	postRouter.Init(apiGroup, postservice)
+
 	// ------------- ALBUM STORAGE -------------
 	albumRepo, err := albumstorage.NewPostgresAlbumRepository(ctx, sqpgx)
 	if err != nil {
@@ -164,18 +178,6 @@ func main() {
 	albumRouter := albumapi.AlbumRouter{}
 	albumRouter.Init(apiGroup, albumService)
 
-	// ------------- SEARCH STORAGE -------------
-	searchRepo, err := searchstorage.NewPostgresSearchRepository(ctx, sqpgx)
-	if err != nil {
-		panic(err)
-	}
-
-	// ------------- SEARCH -------------
-	searchService := searchservice.NewSearchService(searchRepo, plantFStorage, postFStorage)
-
-	searchRouter := searchapi.SearchRouter{}
-	searchRouter.Init(apiGroup, searchService)
-
 	// ------------- VIEW -------------
 	viewRouter := view.ViewRouter{}
 	viewGroup := engine.Group("")
@@ -185,7 +187,7 @@ func main() {
 
 	mediaStrategy := &urllib.StaticUrlStrategy{BaseUrl: GetMediaPath()}
 
-	viewRouter.Init(viewGroup, GetStaticPath(), authService, searchService, albumService, mediaStrategy, mediaStrategy)
+	viewRouter.Init(viewGroup, GetStaticPath(), authService, searchService, albumService, plantGetter, mediaStrategy, mediaStrategy)
 
 	engine.Run(fmt.Sprintf(":%d", GetApiPort()))
 }

@@ -1,0 +1,1 @@
+ALTER TABLE post ADD COLUMN content_type TEXT NOT NULL DEFAULT 'plain_text';

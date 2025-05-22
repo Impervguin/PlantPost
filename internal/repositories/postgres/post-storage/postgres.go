@@ -3,6 +3,7 @@ package poststorage
 import (
 	"PlantSite/internal/infra/sqdb"
 	"PlantSite/internal/models/post"
+	"PlantSite/internal/models/post/parser"
 	postget "PlantSite/internal/repositories/postgres/post-get"
 	"context"
 	"errors"
@@ -14,18 +15,34 @@ import (
 )
 
 type PostgresPostRepository struct {
-	db sqdb.SquirrelDatabase
+	db          sqdb.SquirrelDatabase
+	plantGetter parser.PlantGetter
 }
 
-func NewPostgresPostRepository(ctx context.Context, db sqdb.SquirrelDatabase) (*PostgresPostRepository, error) {
-	return &PostgresPostRepository{db: db}, nil
+func NewPostgresPostRepository(ctx context.Context, db sqdb.SquirrelDatabase, plantGetter parser.PlantGetter) (*PostgresPostRepository, error) {
+	return &PostgresPostRepository{db: db, plantGetter: plantGetter}, nil
 }
 
 func (repo *PostgresPostRepository) Create(ctx context.Context, pst *post.Post) (*post.Post, error) {
 	err := repo.db.Transaction(ctx, func(tx sqdb.SquirrelQuirier) error {
+		var content post.Content
+		var contentWithPlant *post.ContentWithPlant
+		content = pst.Content()
+		if post.CheckContentWithPlant(&content) {
+			plantParser, err := parser.GetParser(&content, repo.plantGetter)
+			if err != nil {
+				return fmt.Errorf("PostgresPostRepository.Create can't get plant parser: %w", err)
+			}
+			contentWithPlant, err = post.NewContentWithPlant(pst.Content().Text, post.ContentFormat(pst.Content().ContentType), plantParser)
+			if err != nil {
+				return fmt.Errorf("PostgresPostRepository.Create can't create plant content: %w", err)
+			}
+			content = contentWithPlant.Content
+		}
+
 		_, err := tx.Insert(ctx, squirrel.Insert("post").
-			Columns("id", "title", "body", "author_id", "created_at", "updated_at").
-			Values(pst.ID(), pst.Title(), pst.Content().Text, pst.AuthorID(), pst.CreatedAt(), pst.UpdatedAt()),
+			Columns("id", "title", "body", "content_type", "author_id", "created_at", "updated_at").
+			Values(pst.ID(), pst.Title(), content.Text, content.ContentType, pst.AuthorID(), pst.CreatedAt(), pst.UpdatedAt()),
 		)
 		if err != nil {
 			return err
@@ -55,6 +72,20 @@ func (repo *PostgresPostRepository) Create(ctx context.Context, pst *post.Post) 
 				return err
 			}
 		}
+
+		if contentWithPlant != nil {
+
+			if len(contentWithPlant.PlantIDs()) > 0 {
+				query := squirrel.Insert("plant_post").Columns("id", "plant_id", "post_id")
+				for _, plantID := range contentWithPlant.PlantIDs() {
+					query = query.Values(uuid.New(), plantID, pst.ID())
+				}
+				_, err = tx.Insert(ctx, query)
+				if err != nil {
+					return fmt.Errorf("PostgresPostRepository.Create can't insert plant posts: %w", err)
+				}
+			}
+		}
 		return nil
 	})
 	if err != nil {
@@ -65,12 +96,13 @@ func (repo *PostgresPostRepository) Create(ctx context.Context, pst *post.Post) 
 }
 
 type Post struct {
-	ID        uuid.UUID
-	Title     string
-	Body      string
-	AuthorID  uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          uuid.UUID
+	Title       string
+	Body        string
+	ContentType string
+	AuthorID    uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type PostPhoto struct {
@@ -99,9 +131,25 @@ func (repo *PostgresPostRepository) Update(ctx context.Context, id uuid.UUID, up
 	}
 
 	err = repo.db.Transaction(ctx, func(tx sqdb.SquirrelQuirier) error {
+		var content post.Content
+		var contentWithPlant *post.ContentWithPlant
+		content = pst.Content()
+		if post.CheckContentWithPlant(&content) {
+			plantParser, err := parser.GetParser(&content, repo.plantGetter)
+			if err != nil {
+				return fmt.Errorf("PostgresPostRepository.Create can't get plant parser: %w", err)
+			}
+			contentWithPlant, err = post.NewContentWithPlant(pst.Content().Text, post.ContentFormat(pst.Content().ContentType), plantParser)
+			if err != nil {
+				return fmt.Errorf("PostgresPostRepository.Create can't create plant content: %w", err)
+			}
+			content = contentWithPlant.Content
+		}
+
 		_, err := repo.db.Update(ctx, squirrel.Update("post").
 			Set("title", updatedPst.Title()).
-			Set("body", updatedPst.Content().Text).
+			Set("body", content.Text).
+			Set("content_type", content.ContentType).
 			Set("author_id", updatedPst.AuthorID()).
 			Set("updated_at", updatedPst.UpdatedAt()).
 			Where(squirrel.Eq{"id": id}))
@@ -134,6 +182,26 @@ func (repo *PostgresPostRepository) Update(ctx context.Context, id uuid.UUID, up
 				return err
 			}
 		}
+
+		_, err = tx.Delete(ctx, squirrel.Delete("plant_post").
+			Where(squirrel.Eq{"post_id": id}))
+		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
+			return fmt.Errorf("PostgresPostRepository.Update can't delete post plants: %w", err)
+		}
+
+		if contentWithPlant != nil {
+
+			if len(contentWithPlant.PlantIDs()) > 0 {
+				query := squirrel.Insert("plant_post").Columns("id", "plant_id", "post_id")
+				for _, plantID := range contentWithPlant.PlantIDs() {
+					query = query.Values(uuid.New(), plantID, pst.ID())
+				}
+				_, err = tx.Insert(ctx, query)
+				if err != nil {
+					return fmt.Errorf("PostgresPostRepository.Create can't insert plant posts: %w", err)
+				}
+			}
+		}
 		return nil
 	})
 	if err != nil {
@@ -155,11 +223,19 @@ func (repo *PostgresPostRepository) Delete(ctx context.Context, postID uuid.UUID
 		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
 			return err
 		}
+
+		_, err = tx.Delete(ctx, squirrel.Delete("plant_post").
+			Where(squirrel.Eq{"post_id": postID}))
+		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
+			return fmt.Errorf("PostgresPostRepository.Delete can't delete post plants: %w", err)
+		}
+
 		_, err = tx.Delete(ctx, squirrel.Delete("post").
 			Where(squirrel.Eq{"id": postID}))
 		if err != nil {
 			return err
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -169,12 +245,13 @@ func (repo *PostgresPostRepository) Delete(ctx context.Context, postID uuid.UUID
 }
 
 type PostRow struct {
-	ID        uuid.UUID
-	Title     string
-	Body      string
-	AuthorID  uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          uuid.UUID
+	Title       string
+	Body        string
+	ContentType string
+	AuthorID    uuid.UUID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func (repo *PostgresPostRepository) ListAuthorPosts(ctx context.Context, authorID uuid.UUID) ([]*post.Post, error) {
@@ -192,7 +269,7 @@ func (repo *PostgresPostRepository) ListAuthorPosts(ctx context.Context, authorI
 		if err != nil {
 			return nil, fmt.Errorf("PostgresPostRepository.ListAuthorPosts failed %w", err)
 		}
-		content, err := post.NewContent(postRow.Body, post.ContentTypePlainText)
+		content, err := post.NewContent(postRow.Body, post.ContentFormat(postRow.ContentType))
 		if err != nil {
 			return nil, fmt.Errorf("PostgresPostRepository.ListAuthorPosts failed %w", err)
 		}
@@ -206,7 +283,7 @@ func (repo *PostgresPostRepository) ListAuthorPosts(ctx context.Context, authorI
 }
 
 func (repo *PostgresPostRepository) fetchPostsByAuthor(ctx context.Context, authorID uuid.UUID) ([]*PostRow, error) {
-	rows, err := repo.db.Query(ctx, squirrel.Select("id", "title", "body", "author_id", "created_at", "updated_at").
+	rows, err := repo.db.Query(ctx, squirrel.Select("id", "title", "body", "content_type", "author_id", "created_at", "updated_at").
 		From("post").
 		Where(squirrel.Eq{"author_id": authorID}),
 	)
@@ -217,7 +294,7 @@ func (repo *PostgresPostRepository) fetchPostsByAuthor(ctx context.Context, auth
 	posts := make([]*PostRow, 0)
 	for rows.Next() {
 		var pst PostRow
-		err := rows.Scan(&pst.ID, &pst.Title, &pst.Body, &pst.AuthorID, &pst.CreatedAt, &pst.UpdatedAt)
+		err := rows.Scan(&pst.ID, &pst.Title, &pst.Body, &pst.ContentType, &pst.AuthorID, &pst.CreatedAt, &pst.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}

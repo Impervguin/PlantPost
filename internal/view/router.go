@@ -1,6 +1,7 @@
 package view
 
 import (
+	"PlantSite/internal/models/post/parser"
 	albumservice "PlantSite/internal/services/album-service"
 	authservice "PlantSite/internal/services/auth-service"
 	searchservice "PlantSite/internal/services/search-service"
@@ -20,6 +21,7 @@ type ViewRouter struct {
 	auth       *authservice.AuthService
 	srch       *searchservice.SearchService
 	albm       *albumservice.AlbumService
+	plntGet    parser.PlantGetter
 	plantMedia MediaUrlStrategy
 	postMedia  MediaUrlStrategy
 }
@@ -30,11 +32,13 @@ func (r *ViewRouter) Init(
 	auth *authservice.AuthService,
 	srch *searchservice.SearchService,
 	albm *albumservice.AlbumService,
+	sear parser.PlantGetter,
 	plantMedia MediaUrlStrategy,
 	postMedia MediaUrlStrategy) {
 	r.auth = auth
 	r.srch = srch
 	r.albm = albm
+	r.plntGet = sear
 	r.plantMedia = plantMedia
 	r.postMedia = postMedia
 	r.StaticPath = staticPath

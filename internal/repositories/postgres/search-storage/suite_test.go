@@ -106,13 +106,15 @@ func (s *SearchRepositoryTestSuite) SetupSuite() {
 	require.NoError(s.T(), err)
 
 	// Create repositories
+	s.searchRepo, err = searchstorage.NewPostgresSearchRepository(ctx, s.db)
+	require.NoError(s.T(), err)
+
 	s.plantRepo, err = plantstorage.NewPostgresPlantRepository(ctx, s.db)
 	require.NoError(s.T(), err)
 
-	s.postRepo, err = poststorage.NewPostgresPostRepository(ctx, s.db)
-	require.NoError(s.T(), err)
+	plntGetter := searchstorage.NewSearchPlantGetter(s.searchRepo)
 
-	s.searchRepo, err = searchstorage.NewPostgresSearchRepository(ctx, s.db)
+	s.postRepo, err = poststorage.NewPostgresPostRepository(ctx, s.db, plntGetter)
 	require.NoError(s.T(), err)
 
 	s.userRepo, err = authstorage.NewPostgresAuthRepository(ctx, s.db)

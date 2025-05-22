@@ -2,9 +2,12 @@ package components
 
 import (
 	"PlantSite/internal/models/auth"
+    "PlantSite/internal/utils/stringutils"
 	"PlantSite/internal/services/search-service"
 	"PlantSite/internal/view/layout"
     "strings"
+	"github.com/google/uuid"
+	"fmt"
 )
 
 templ postFilterHeader(title string, name string) {
@@ -23,7 +26,27 @@ templ postFilterHeader(title string, name string) {
     </h3>
 }
 
-templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, authors []*auth.Author) {
+templ WithPlantContent(lineClass, contentClass, hrefClass string, content string, plantMap map[uuid.UUID]*searchservice.SearchPlant) {
+    {{ content = stringutils.ReplaceFunc(content, "\\plant{%s}", func(match string) string {
+        plntID, err := uuid.Parse(match)
+        if err != nil {
+            return match
+        }
+        if plant, ok := plantMap[plntID]; ok {
+            return fmt.Sprintf(`<a class=%s href="/view/plant/%s">%s</a>` , hrefClass, plant.ID.String(), plant.Name)
+        }
+        return "not found"
+    })}}
+    {{ lines := strings.Split(content, "\n") }}
+    <div class={lineClass}>
+    for _, line := range lines {
+        <p>@templ.Raw(line)</p>
+    }
+    </div>
+}
+
+
+templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, authors []*auth.Author, plantMap map[uuid.UUID]*searchservice.SearchPlant) {
     @layout.Standard(usr) {
         <script src="/static/js/posts/buttons.js" type="module"></script>
         <script src="/static/js/posts/listener.js" type="module"></script>
@@ -120,7 +143,7 @@ templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, aut
                                             }
                                             <p class="mt-1 text-xs font-medium text-gray-600">{post.CreatedAt.Format("January 2, 2006")}</p>
                                             <h3 class="mt-1 text-lg font-medium text-gray-900">{post.Title}</h3>
-                                            <p class="mt-4 text-sm text-gray-600 line-clamp-3">{post.Content.Text}</p>
+                                            @WithPlantContent("text-sm text-gray-600 line-clamp-3", "", "text-green-800", post.Content.Text, plantMap)
                                             for _, tag := range post.Tags {
                                                 <span class="inline-flex items-center mx-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                                                     {tag}
@@ -137,7 +160,8 @@ templ Posts(usr auth.User, posts []*searchservice.SearchPost, tags []string, aut
     }
 }
 
-templ PostView(usr auth.User, post *searchservice.GetPost) {
+
+templ PostView(usr auth.User, post *searchservice.GetPost, plants map[uuid.UUID]*searchservice.SearchPlant) {
     @layout.Standard(usr) {
         <script src="/static/js/post/delete-listener.js" type="module"></script>
         <div class="bg-white">
@@ -164,11 +188,23 @@ templ PostView(usr auth.User, post *searchservice.GetPost) {
                     </div>
                 </div>
                 <div class="border-l-4 rounded-lg border-emerald-600 pl-4 px-4 py-4 mx-4 my-4">
-                    {{lines := strings.Split(post.Content.Text, "\n")}}
-                    for _, line := range lines {
-                        <p class="text-md font-medium text-gray-900 py-1">{line}</p>
+                    @WithPlantContent("text-md font-medium text-gray-900", "py-1", "text-emerald-800", post.Content.Text, plants)
+                </div>
+                if len(plants) > 0 {
+                    <div class="mt-8 border-t border-gray-200 pt-8">
+                        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Plants mentioned in this post</h2>
+                    </div>
+                    <div class="grid grid-cols-1 mx-4 my-4 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+                    for _, plnt := range plants {
+                        <a href={templ.SafeURL("/view/plant/" + plnt.ID.String())} class="group">
+                            <img src={plnt.MainPhoto.URL} alt="" class="aspect-square w-full rounded-lg bg-gray-200 object-cover group-hover:opacity-75 xl:aspect-7/8">
+                            <p class="mt-1 text-lg font-medium text-gray-900">{plnt.LatinName}</p>
+                            <h3 class="mt-4 text-sm text-justify text-gray-700">{plnt.Name}</h3>
+                            <p class="mt-1 text-sm font-medium text-gray-900">{plnt.Category}</p>
+                        </a>
                     }
                 </div>
+                }
                 if usr.HasAuthorRights() {
                 <div class="mt-8 border-t border-gray-200 pt-8">
                     <a href={templ.URL("/view/post/" + post.ID.String() + "/update")} class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">

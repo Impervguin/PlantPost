@@ -3,8 +3,13 @@
 package poststorage_test
 
 import (
+	"PlantSite/internal/models/plant"
+	"PlantSite/internal/models/post"
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -57,4 +62,50 @@ func (s *PostRepositoryTestSuite) TestCreatePostWithInvalidPhoto() {
 	// Should fail because photo doesn't exist
 	_, err := s.repo.Create(ctx, testPost)
 	require.Error(s.T(), err)
+}
+
+func (s *PostRepositoryTestSuite) TestCreatePostWithPlantContent() {
+	ctx := context.Background()
+	testPost := s.createTestPost(ctx)
+
+	// Create plant
+	mainPhotoID := s.uploadTestPhoto(ctx)
+	plntSpec, err := plant.NewConiferousSpecification(
+		1,
+		1,
+		10,
+		plant.DryMoisture,
+		plant.Light,
+		plant.HeavySoil,
+		9,
+	)
+	require.NoError(s.T(), err)
+
+	plnt, err := plant.CreatePlant(
+		uuid.New(),
+		"Testus Plantus",
+		"Testus Plantus",
+		"Test description",
+		mainPhotoID,
+		*plant.NewPlantPhotos(),
+		plntSpec.Category(),
+		plntSpec,
+		time.Now(),
+		time.Now(),
+	)
+	require.NoError(s.T(), err)
+
+	_, err = s.plantRepo.Create(ctx, plnt)
+	require.NoError(s.T(), err)
+
+	content, err := post.NewContent(
+		fmt.Sprintf("Test post content with plant %s", plnt.ID().String()),
+		post.ContentTypeWithPlant+"_"+"latex",
+	)
+	require.NoError(s.T(), err)
+
+	testPost.UpdateContent(*content)
+
+	_, err = s.repo.Create(ctx, testPost)
+	require.NoError(s.T(), err)
 }
