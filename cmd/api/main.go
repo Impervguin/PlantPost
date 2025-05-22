@@ -95,6 +95,7 @@ func main() {
 
 	switch mediaType {
 	case MediaStorageFs:
+		logg.Info("Choosed filesystem media storage")
 		root := GetFsRoot()
 		fClient, err := filedir.NewFileClient(root)
 		if err != nil {
@@ -103,6 +104,7 @@ func main() {
 		postFStorage = fsfilestorage.NewPgOsFileStorage(GetFsBucket(FSPostBucketPrefix), fClient, sqpgx)
 		plantFStorage = fsfilestorage.NewPgOsFileStorage(GetFsBucket(FSPlantBucketPrefix), fClient, sqpgx)
 	case MediaStorageMinio:
+		logg.Info("Choosed minio media storage")
 		postMinioCl, err := minioclient.NewMinioClient(GetPostMinioConfig())
 		if err != nil {
 			panic(err)

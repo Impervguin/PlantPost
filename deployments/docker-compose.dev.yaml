@@ -27,7 +27,7 @@ services:
           memory: 4G
     volumes:
       - ../:/build/
-      - fsdata:/mediafiles/
+      - fs-data:/mediafiles/
     depends_on:
       pg:
         condition: service_healthy 
@@ -105,45 +105,45 @@ services:
       context: ../
       dockerfile: ./fserver.dockerfile
     ports:
-      - "9000:9000"
+      - "9002:9000"
     volumes:
-      - fsdata:/mediafiles
+      - fs-data:/mediafiles
     networks:
       - fs-net
-  # minio:
-  #   container_name: minio
-  #   hostname: minio
-  #   image: minio/minio:RELEASE.2025-04-08T15-41-24Z-cpuv1
-  #   command: server --console-address ":9001" --address ":9000" /data
-  #   ports:
-  #     - "9000:9000"
-  #     - "9001:9001"
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #     start_period: 10s
-  #   volumes:
-  #     - miniodata:/data
-  #   env_file:
-  #     - minio.env
-  #   networks:
-  #     - minio-net
+#   minio:
+#     container_name: minio
+#     hostname: minio
+#     image: minio/minio:RELEASE.2025-04-08T15-41-24Z-cpuv1
+#     command: server --console-address ":9001" --address ":9000" /data
+#     ports:
+#       - "9000:9000"
+#       - "9001:9001"
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+#       start_period: 10s
+#     volumes:
+#       - miniodata:/data
+#     env_file:
+#       - minio.env
+#     networks:
+#       - minio-net
   
-  # minio-migrations:
-  #   container_name: minio-migrations
-  #   image: minio/mc:RELEASE.2025-04-08T15-39-49Z-cpuv1
-  #   depends_on:
-  #     minio:
-  #       condition: service_healthy
-  #   env_file:
-  #     - minio-migr.env
-  #   volumes:
-  #     - ../scripts/migrate.sh:/migrations/migrate.sh
-  #   networks:
-  #     - minio-net
-  #   entrypoint: /migrations/migrate.sh
+#   minio-migrations:
+#     container_name: minio-migrations
+#     image: minio/mc:RELEASE.2025-04-08T15-39-49Z-cpuv1
+#     depends_on:
+#       minio:
+#         condition: service_healthy
+#     env_file:
+#       - minio-migr.env
+#     volumes:
+#       - ../scripts/migrate.sh:/migrations/migrate.sh
+#     networks:
+#       - minio-net
+#     entrypoint: /migrations/migrate.sh
 
 volumes:
   pgdata:
