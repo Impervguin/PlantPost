@@ -33,3 +33,6 @@ internal/view/static/js/**/*.d.ts
 package-lock.json
 
 internal/tsconfig.tsbuildinfo
+
+# allure
+allure-results
