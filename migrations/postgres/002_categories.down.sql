@@ -1,1 +1,1 @@
-TRUNCATE TABLE plant_category;
+TRUNCATE TABLE plant_category CASCADE;

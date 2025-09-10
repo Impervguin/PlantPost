@@ -15,7 +15,6 @@ import (
 	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/plant"
 	"PlantSite/internal/models/post"
-	"PlantSite/internal/models/search"
 	filestorage "PlantSite/internal/repositories/pgminio/file-storage"
 	authstorage "PlantSite/internal/repositories/postgres/auth-storage"
 	plantstorage "PlantSite/internal/repositories/postgres/plant-storage"
@@ -42,6 +41,7 @@ type SearchRepositoryTestSuite struct {
 	searchRepo     *searchstorage.PostgresSearchRepository
 	userRepo       *authstorage.PostgresAuthRepository
 	prevDir        string
+	dbCreds        pgtest.PostgresCredentials
 }
 
 func TestSearchRepositorySuite(t *testing.T) {
@@ -62,10 +62,7 @@ func (s *SearchRepositoryTestSuite) SetupSuite() {
 	dbContainer, dbCreds, err := pgtest.NewTestPostgres(ctx)
 	require.NoError(s.T(), err)
 	s.dbContainer = dbContainer
-
-	// Run migrations
-	err = pgtest.Migrate(ctx, &dbCreds)
-	require.NoError(s.T(), err)
+	s.dbCreds = dbCreds
 
 	// Create database connection
 	dbConfig := &sqpgx.SqpgxConfig{
@@ -133,21 +130,14 @@ func (s *SearchRepositoryTestSuite) TearDownSuite() {
 	os.Chdir(s.prevDir)
 }
 
-func (s *SearchRepositoryTestSuite) TearDownTest() {
-	ctx := context.Background()
-	plnts, err := s.searchRepo.SearchPlants(ctx, search.NewPlantSearch())
+func (s *SearchRepositoryTestSuite) SetupTest() {
+	err := pgtest.Migrate(context.Background(), &s.dbCreds)
 	require.NoError(s.T(), err)
-	for _, plnt := range plnts {
-		err = s.plantRepo.Delete(ctx, plnt.ID())
-		require.NoError(s.T(), err)
-	}
+}
 
-	posts, err := s.searchRepo.SearchPosts(ctx, search.NewPostSearch())
+func (s *SearchRepositoryTestSuite) TearDownTest() {
+	err := pgtest.MigrateDown(context.Background(), &s.dbCreds)
 	require.NoError(s.T(), err)
-	for _, post := range posts {
-		err = s.postRepo.Delete(ctx, post.ID())
-		require.NoError(s.T(), err)
-	}
 }
 
 func (s *SearchRepositoryTestSuite) uploadTestPhoto(ctx context.Context) uuid.UUID {

@@ -33,6 +33,7 @@ type PlantRepositoryTestSuite struct {
 	fileRepo       *filestorage.PgMinioStorage
 	repo           *plantstorage.PostgresPlantRepository
 	prevDir        string
+	dbCreds        pgtest.PostgresCredentials
 }
 
 func TestPlantRepositorySuite(t *testing.T) {
@@ -55,10 +56,7 @@ func (s *PlantRepositoryTestSuite) SetupSuite() {
 	dbContainer, dbCreds, err := pgtest.NewTestPostgres(ctx)
 	require.NoError(s.T(), err)
 	s.dbContainer = dbContainer
-
-	// Run migrations
-	err = pgtest.Migrate(ctx, &dbCreds)
-	require.NoError(s.T(), err)
+	s.dbCreds = dbCreds
 
 	// Create database connection
 	dbConfig := &sqpgx.SqpgxConfig{
@@ -77,10 +75,7 @@ func (s *PlantRepositoryTestSuite) SetupSuite() {
 	minioContainer, minioCreds, err := miniotest.NewTestMinio(ctx)
 	require.NoError(s.T(), err)
 	s.minioContainer = minioContainer
-
-	// Run migrations
-	err = miniotest.Migrate(ctx, minioCreds)
-	require.NoError(s.T(), err)
+	miniotest.Migrate(ctx, minioCreds)
 
 	// Create MinIO client
 	minioConfig, err := minioclient.NewMinioConfig(
@@ -112,6 +107,16 @@ func (s *PlantRepositoryTestSuite) TearDownSuite() {
 		s.dbContainer.Terminate(ctx)
 	}
 	os.Chdir(s.prevDir)
+}
+
+func (s *PlantRepositoryTestSuite) SetupTest() {
+	err := pgtest.Migrate(context.Background(), &s.dbCreds)
+	require.NoError(s.T(), err)
+}
+
+func (s *PlantRepositoryTestSuite) TearDownTest() {
+	err := pgtest.MigrateDown(context.Background(), &s.dbCreds)
+	require.NoError(s.T(), err)
 }
 
 func (s *PlantRepositoryTestSuite) pushTestPhoto(ctx context.Context) uuid.UUID {

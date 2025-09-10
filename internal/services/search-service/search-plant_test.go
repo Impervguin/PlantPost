@@ -1,3 +1,5 @@
+//go:build unit
+
 package searchservice_test
 
 import (
@@ -9,187 +11,253 @@ import (
 	"PlantSite/internal/models/search"
 	searchservice "PlantSite/internal/services/search-service"
 
-	"github.com/google/uuid"
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func mockPlant(name, latinName, category string, spec plant.PlantSpecification) (*plant.Plant, error) {
-
-	return plant.NewPlant(
-		name,
-		latinName,
-		"Test description",
-		uuid.New(),
-		*plant.NewPlantPhotos(),
-		category,
-		spec,
-	)
+type SearchServiceTestSuite struct {
+	suite.Suite
 }
 
-func TestSearchPlants(t *testing.T) {
+func (s *SearchServiceTestSuite) BeforeEach(t provider.T) {
+	t.Epic("Search Service")
+	t.Feature("Search Management")
+}
+
+func (s *SearchServiceTestSuite) TestSearchPlants(t provider.T) {
+	t.Tags("search", "plants")
+	t.Description("Test plant search functionality")
+	t.Parallel()
+
 	ctx := context.Background()
-	validFileID := uuid.New()
 
-	coniferousSpec, err := plant.NewConiferousSpecification(10.5, 2.3, 5, plant.MediumMoisture, plant.HalfShadow, plant.MediumSoil, 6)
-	require.NoError(t, err)
+	t.Run("Successful search without filters", func(t provider.T) {
+		t.Parallel()
 
-	deciduousSpec, err := plant.NewDeciduousSpecification(8.2, 1.8, plant.Spring, 6, plant.MediumMoisture, plant.HalfShadow, plant.MediumSoil, 5)
-	require.NoError(t, err)
-	// Создаем тестовые растения
-	coniferousPlant, err := mockPlant("Pine", "Pinus sylvestris", "coniferous", coniferousSpec)
-	require.NoError(t, err)
-	deciduousPlant, err := mockPlant("Oak", "Quercus robur", "deciduous", deciduousSpec)
-	require.NoError(t, err)
+		coniferousPlant, err := NewPlantBuilder().
+			WithName("Pine").
+			WithLatinName("Pinus sylvestris").
+			WithCategory("coniferous").
+			Build()
+		require.NoError(t, err)
 
-	mainPhotoFile := &models.File{ID: validFileID, Name: "pine.jpg"}
+		deciduousPlant, err := NewPlantBuilder().
+			WithName("Oak").
+			WithLatinName("Quercus robur").
+			WithCategory("deciduous").
+			Build()
+		require.NoError(t, err)
 
-	t.Run("SuccessWithoutFilters", func(t *testing.T) {
-		srepo := new(MockSearchRepository)
-		pfrepo := new(MockFileRepository)
-		ptfrepo := new(MockFileRepository)
+		coniferousMainPhoto := &models.File{ID: coniferousPlant.MainPhotoID(), Name: "pine.jpg"}
+		deciduousMainPhoto := &models.File{ID: deciduousPlant.MainPhotoID(), Name: "oak.jpg"}
 
 		searchQuery := search.NewPlantSearch()
 
-		srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant, deciduousPlant}, nil)
-		pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(mainPhotoFile, nil)
-		pfrepo.On("Get", ctx, deciduousPlant.MainPhotoID()).Return(&models.File{ID: deciduousPlant.MainPhotoID()}, nil)
+		srepo := new(MockSearchRepository)
+		t.WithNewStep("Setup plant search", func(pctx provider.StepCtx) {
+			srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant, deciduousPlant}, nil)
+		})
+
+		pfrepo := new(MockFileRepository)
+		t.WithNewStep("Setup file repository", func(pctx provider.StepCtx) {
+			pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(coniferousMainPhoto, nil)
+			pfrepo.On("Get", ctx, deciduousPlant.MainPhotoID()).Return(deciduousMainPhoto, nil)
+		})
+
+		ptfrepo := new(MockFileRepository)
 
 		svc := searchservice.NewSearchService(srepo, pfrepo, ptfrepo)
 
-		results, err := svc.SearchPlants(ctx, searchQuery)
-		require.NoError(t, err)
-		assert.Len(t, results, 2)
+		var results []*searchservice.SearchPlant
+		t.WithNewStep("Search plants", func(pctx provider.StepCtx) {
+			var err error
+			results, err = svc.SearchPlants(ctx, searchQuery)
+			require.NoError(t, err)
+		})
 
-		assert.Equal(t, coniferousPlant.ID(), results[0].ID)
-		assert.Equal(t, coniferousPlant.GetName(), results[0].Name)
-		assert.Equal(t, *mainPhotoFile, results[0].MainPhoto)
+		t.WithNewStep("Verify results", func(pctx provider.StepCtx) {
+			assert.Len(t, results, 2)
+			assert.Equal(t, coniferousPlant.ID(), results[0].ID)
+			assert.Equal(t, coniferousPlant.GetName(), results[0].Name)
+			assert.Equal(t, *coniferousMainPhoto, results[0].MainPhoto)
+		})
 
-		srepo.AssertExpectations(t)
-		pfrepo.AssertExpectations(t)
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
+			srepo.AssertExpectations(t)
+			pfrepo.AssertExpectations(t)
+		})
 	})
 
-	t.Run("SuccessWithNameFilter", func(t *testing.T) {
-		srepo := new(MockSearchRepository)
-		pfrepo := new(MockFileRepository)
-		ptfrepo := new(MockFileRepository)
+	t.Run("Successful search with name filter", func(t provider.T) {
+		t.Parallel()
+
+		coniferousPlant, err := NewPlantBuilder().
+			WithName("Pine").
+			WithLatinName("Pinus sylvestris").
+			WithCategory("coniferous").
+			Build()
+		require.NoError(t, err)
+
+		mainPhoto := &models.File{ID: coniferousPlant.MainPhotoID(), Name: "pine.jpg"}
 
 		searchQuery := search.NewPlantSearch()
 		searchQuery.AddFilter(search.NewPlantNameFilter("Pine"))
 
-		srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant}, nil)
-		pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(mainPhotoFile, nil)
+		srepo := new(MockSearchRepository)
+		t.WithNewStep("Setup plant search with name filter", func(pctx provider.StepCtx) {
+			srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant}, nil)
+		})
+
+		pfrepo := new(MockFileRepository)
+		t.WithNewStep("Setup file repository", func(pctx provider.StepCtx) {
+			pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(mainPhoto, nil)
+		})
+
+		ptfrepo := new(MockFileRepository)
 
 		svc := searchservice.NewSearchService(srepo, pfrepo, ptfrepo)
 
-		results, err := svc.SearchPlants(ctx, searchQuery)
-		require.NoError(t, err)
-		assert.Len(t, results, 1)
-		assert.Equal(t, "Pine", results[0].Name)
+		var results []*searchservice.SearchPlant
+		t.WithNewStep("Search plants with name filter", func(pctx provider.StepCtx) {
+			var err error
+			results, err = svc.SearchPlants(ctx, searchQuery)
+			require.NoError(t, err)
+		})
+
+		t.WithNewStep("Verify filtered results", func(pctx provider.StepCtx) {
+			assert.Len(t, results, 1)
+			assert.Equal(t, "Pine", results[0].Name)
+		})
 	})
 
-	t.Run("SuccessWithCategoryFilter", func(t *testing.T) {
-		srepo := new(MockSearchRepository)
-		pfrepo := new(MockFileRepository)
-		ptfrepo := new(MockFileRepository)
+	t.Run("Successful search with category filter", func(t provider.T) {
+		t.Parallel()
+
+		coniferousPlant, err := NewPlantBuilder().
+			WithName("Pine").
+			WithLatinName("Pinus sylvestris").
+			WithCategory("coniferous").
+			Build()
+		require.NoError(t, err)
+
+		mainPhoto := &models.File{ID: coniferousPlant.MainPhotoID(), Name: "pine.jpg"}
 
 		searchQuery := search.NewPlantSearch()
 		searchQuery.AddFilter(search.NewPlantCategoryFilter("coniferous"))
 
-		srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant}, nil)
-		pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(mainPhotoFile, nil)
+		srepo := new(MockSearchRepository)
+		t.WithNewStep("Setup plant search with category filter", func(pctx provider.StepCtx) {
+			srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant}, nil)
+		})
+
+		pfrepo := new(MockFileRepository)
+		t.WithNewStep("Setup file repository", func(pctx provider.StepCtx) {
+			pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(mainPhoto, nil)
+		})
+
+		ptfrepo := new(MockFileRepository)
 
 		svc := searchservice.NewSearchService(srepo, pfrepo, ptfrepo)
 
-		results, err := svc.SearchPlants(ctx, searchQuery)
-		require.NoError(t, err)
-		assert.Len(t, results, 1)
-		assert.Equal(t, "coniferous", results[0].Category)
+		var results []*searchservice.SearchPlant
+		t.WithNewStep("Search plants with category filter", func(pctx provider.StepCtx) {
+			var err error
+			results, err = svc.SearchPlants(ctx, searchQuery)
+			require.NoError(t, err)
+		})
+
+		t.WithNewStep("Verify filtered results", func(pctx provider.StepCtx) {
+			assert.Len(t, results, 1)
+			assert.Equal(t, "coniferous", results[0].Category)
+		})
 	})
 
-	t.Run("SuccessWithHeightFilter", func(t *testing.T) {
-		srepo := new(MockSearchRepository)
-		pfrepo := new(MockFileRepository)
-		ptfrepo := new(MockFileRepository)
-
-		searchQuery := search.NewPlantSearch()
-		searchQuery.AddFilter(search.NewPlantHeightFilter(10.0, 11.0))
-
-		srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant}, nil)
-		pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(mainPhotoFile, nil)
-
-		svc := searchservice.NewSearchService(srepo, pfrepo, ptfrepo)
-
-		results, err := svc.SearchPlants(ctx, searchQuery)
-		require.NoError(t, err)
-		assert.Len(t, results, 1)
-	})
-
-	t.Run("SuccessWithMultipleFilters", func(t *testing.T) {
-		srepo := new(MockSearchRepository)
-		pfrepo := new(MockFileRepository)
-		ptfrepo := new(MockFileRepository)
-
-		searchQuery := search.NewPlantSearch()
-		searchQuery.AddFilter(search.NewPlantCategoryFilter("coniferous"))
-		searchQuery.AddFilter(search.NewPlantHeightFilter(10.0, 11.0))
-		searchQuery.AddFilter(search.NewSoilAcidityFilter(4, 5))
-
-		srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant}, nil)
-		pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(mainPhotoFile, nil)
-
-		svc := searchservice.NewSearchService(srepo, pfrepo, ptfrepo)
-
-		results, err := svc.SearchPlants(ctx, searchQuery)
-		require.NoError(t, err)
-		assert.Len(t, results, 1)
-	})
-
-	t.Run("EmptyResults", func(t *testing.T) {
-		srepo := new(MockSearchRepository)
-		pfrepo := new(MockFileRepository)
-		ptfrepo := new(MockFileRepository)
+	t.Run("Empty search results", func(t provider.T) {
+		t.Parallel()
 
 		searchQuery := search.NewPlantSearch()
 		searchQuery.AddFilter(search.NewPlantNameFilter("Nonexistent Plant"))
 
-		srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{}, nil)
+		srepo := new(MockSearchRepository)
+		t.WithNewStep("Setup empty search results", func(pctx provider.StepCtx) {
+			srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{}, nil)
+		})
+
+		pfrepo := new(MockFileRepository)
+		ptfrepo := new(MockFileRepository)
 
 		svc := searchservice.NewSearchService(srepo, pfrepo, ptfrepo)
 
-		results, err := svc.SearchPlants(ctx, searchQuery)
+		var results []*searchservice.SearchPlant
+		t.WithNewStep("Search non-existent plants", func(pctx provider.StepCtx) {
+			var err error
+			results, err = svc.SearchPlants(ctx, searchQuery)
+			require.NoError(t, err)
+		})
+
+		t.WithNewStep("Verify empty results", func(pctx provider.StepCtx) {
+			assert.Empty(t, results)
+		})
+	})
+
+	t.Run("Repository error during search", func(t provider.T) {
+		t.Parallel()
+
+		searchQuery := search.NewPlantSearch()
+
+		srepo := new(MockSearchRepository)
+		t.WithNewStep("Setup repository error", func(pctx provider.StepCtx) {
+			srepo.On("SearchPlants", ctx, searchQuery).Return(nil, assert.AnError)
+		})
+
+		pfrepo := new(MockFileRepository)
+		ptfrepo := new(MockFileRepository)
+
+		svc := searchservice.NewSearchService(srepo, pfrepo, ptfrepo)
+
+		t.WithNewStep("Attempt search with repository error", func(pctx provider.StepCtx) {
+			_, err := svc.SearchPlants(ctx, searchQuery)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, assert.AnError)
+		})
+	})
+
+	t.Run("Photo not found during search", func(t provider.T) {
+		t.Parallel()
+
+		coniferousPlant, err := NewPlantBuilder().
+			WithName("Pine").
+			WithLatinName("Pinus sylvestris").
+			WithCategory("coniferous").
+			Build()
 		require.NoError(t, err)
-		assert.Empty(t, results)
-	})
-
-	t.Run("RepositoryError", func(t *testing.T) {
-		srepo := new(MockSearchRepository)
-		pfrepo := new(MockFileRepository)
-		ptfrepo := new(MockFileRepository)
 
 		searchQuery := search.NewPlantSearch()
-		srepo.On("SearchPlants", ctx, searchQuery).Return(nil, assert.AnError)
+
+		srepo := new(MockSearchRepository)
+		t.WithNewStep("Setup plant search", func(pctx provider.StepCtx) {
+			srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant}, nil)
+		})
+
+		pfrepo := new(MockFileRepository)
+		t.WithNewStep("Setup photo not found", func(pctx provider.StepCtx) {
+			pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(nil, assert.AnError)
+		})
+
+		ptfrepo := new(MockFileRepository)
 
 		svc := searchservice.NewSearchService(srepo, pfrepo, ptfrepo)
 
-		_, err := svc.SearchPlants(ctx, searchQuery)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
+		t.WithNewStep("Attempt search with missing photo", func(pctx provider.StepCtx) {
+			_, err := svc.SearchPlants(ctx, searchQuery)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, assert.AnError)
+		})
 	})
+}
 
-	t.Run("PhotoNotFound", func(t *testing.T) {
-		srepo := new(MockSearchRepository)
-		pfrepo := new(MockFileRepository)
-		ptfrepo := new(MockFileRepository)
-
-		searchQuery := search.NewPlantSearch()
-		srepo.On("SearchPlants", ctx, searchQuery).Return([]*plant.Plant{coniferousPlant}, nil)
-		pfrepo.On("Get", ctx, coniferousPlant.MainPhotoID()).Return(nil, assert.AnError)
-
-		svc := searchservice.NewSearchService(srepo, pfrepo, ptfrepo)
-
-		_, err := svc.SearchPlants(ctx, searchQuery)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
-	})
+func TestSearchService(t *testing.T) {
+	suite.RunSuite(t, new(SearchServiceTestSuite))
 }

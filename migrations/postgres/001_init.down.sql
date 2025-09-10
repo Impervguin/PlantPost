@@ -1,3 +1,5 @@
+DROP TRIGGER IF EXISTS author_created_before_grant ON author;
+DROP FUNCTION IF EXISTS check_user_created_before_grant;
 DROP TABLE IF EXISTS plant_album;
 DROP TABLE IF EXISTS album;
 DROP TABLE IF EXISTS post_tag;
@@ -9,4 +11,4 @@ DROP TABLE IF EXISTS plant;
 DROP TABLE IF EXISTS plant_category;
 DROP TABLE IF EXISTS "file";
 DROP TABLE IF EXISTS author;
-DROP TABLE IF EXISTS "user";
+DROP TABLE IF EXISTS app_user;

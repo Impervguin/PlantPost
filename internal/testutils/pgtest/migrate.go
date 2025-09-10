@@ -24,3 +24,19 @@ func Migrate(ctx context.Context, db *PostgresCredentials) error {
 	}
 	return nil
 }
+
+func MigrateDown(ctx context.Context, db *PostgresCredentials) error {
+	config := GetConfig()
+	sourceUrl := fmt.Sprintf("file://%s", config.MigrationDir)
+	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, db.Database)
+	m, err := migrate.New(sourceUrl, dbUrl)
+	if err != nil {
+		return err
+	}
+	defer m.Close()
+	err = m.Down()
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -5,6 +5,10 @@ import "strings"
 // ReplaceFunc заменяет все вхождения, соответствующие pattern (где %s - любая подстрока),
 // используя функцию replacer для генерации замены для каждого совпадения
 func ReplaceFunc(s, pattern string, replacer func(match string) string) string {
+	if strings.Contains(s, "%s") {
+		return ""
+	}
+
 	parts := strings.Split(pattern, "%s")
 	if len(parts) != 2 {
 		return s

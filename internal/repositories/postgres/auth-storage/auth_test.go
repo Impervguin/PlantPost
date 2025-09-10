@@ -28,6 +28,7 @@ type AuthRepositoryTestSuite struct {
 	db        *sqpgx.SquirrelPgx
 	repo      *authstorage.PostgresAuthRepository
 	prevDir   string
+	cntCreds  pgtest.PostgresCredentials
 }
 
 func TestAuthRepositorySuite(t *testing.T) {
@@ -50,10 +51,11 @@ func (s *AuthRepositoryTestSuite) SetupSuite() {
 	container, creds, err := pgtest.NewTestPostgres(ctx)
 	require.NoError(s.T(), err)
 	s.container = container
+	s.cntCreds = creds
 
-	// Run migrations
-	err = pgtest.Migrate(ctx, &creds)
-	require.NoError(s.T(), err)
+	// // Run migrations
+	// err = pgtest.Migrate(ctx, &creds)
+	// require.NoError(s.T(), err)
 
 	// Create database connection
 	config := &sqpgx.SqpgxConfig{
@@ -81,6 +83,16 @@ func (s *AuthRepositoryTestSuite) TearDownSuite() {
 		s.container.Terminate(context.Background())
 	}
 	err := os.Chdir(s.prevDir)
+	require.NoError(s.T(), err)
+}
+
+func (s *AuthRepositoryTestSuite) SetupTest() {
+	err := pgtest.Migrate(context.Background(), &s.cntCreds)
+	require.NoError(s.T(), err)
+}
+
+func (s *AuthRepositoryTestSuite) TearDownTest() {
+	err := pgtest.MigrateDown(context.Background(), &s.cntCreds)
 	require.NoError(s.T(), err)
 }
 

@@ -1,86 +1,160 @@
+//go:build unit
+
 package bcrypthasher
 
 import (
 	"testing"
 
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func TestNewBcryptHasher(t *testing.T) {
-	t.Run("valid cost", func(t *testing.T) {
+type BcryptHasherTestSuite struct {
+	suite.Suite
+}
+
+func (s *BcryptHasherTestSuite) BeforeEach(t provider.T) {
+	t.Epic("Authentication")
+	t.Feature("Bcrypt Hasher")
+}
+
+func (s *BcryptHasherTestSuite) TestNewBcryptHasher(t provider.T) {
+	t.Tags("creation", "validation")
+	t.Description("Test creation of BcryptHasher with different cost parameters")
+
+	t.Run("Valid cost parameter", func(t provider.T) {
 		hasher := NewBcryptHasher(bcrypt.DefaultCost)
 		assert.NotNil(t, hasher)
 	})
 
-	t.Run("panic when cost too low", func(t *testing.T) {
+	t.Run("Panic when cost too low", func(t provider.T) {
 		assert.Panics(t, func() {
 			NewBcryptHasher(bcrypt.MinCost - 1)
-		}, "should panic when cost is below MinCost")
+		}, "Should panic when cost is below minimum allowed")
 	})
 
-	t.Run("panic when cost too high", func(t *testing.T) {
+	t.Run("Panic when cost too high", func(t provider.T) {
 		assert.Panics(t, func() {
 			NewBcryptHasher(bcrypt.MaxCost + 1)
-		}, "should panic when cost is above MaxCost")
+		}, "Should panic when cost is above maximum allowed")
 	})
 }
 
-func TestBcryptHasher_Hash(t *testing.T) {
+func (s *BcryptHasherTestSuite) TestBcryptHasherHash(t provider.T) {
+	t.Tags("functionality", "hashing")
+	t.Description("Test password hashing functionality")
+
 	hasher := NewBcryptHasher(bcrypt.DefaultCost).(*bcrypthasher)
 
-	t.Run("successful hash", func(t *testing.T) {
+	t.Run("Successful password hashing", func(t provider.T) {
 		password := []byte("test_password")
-		hashed, err := hasher.Hash(password)
 
-		require.NoError(t, err)
-		assert.NotEmpty(t, hashed)
-		assert.NotEqual(t, password, hashed)
+		var hashed []byte
+		var err error
+		t.WithNewStep("Hash password", func(ctx provider.StepCtx) {
+			hashed, err = hasher.Hash(password)
+		})
+
+		t.WithNewStep("Verify hash result", func(ctx provider.StepCtx) {
+			require.NoError(t, err)
+			assert.NotEmpty(t, hashed)
+			assert.NotEqual(t, password, hashed)
+		})
 	})
 
-	t.Run("empty password", func(t *testing.T) {
-		hashed, err := hasher.Hash([]byte{})
+	t.Run("Hash empty password", func(t provider.T) {
+		var hashed []byte
+		var err error
+		t.WithNewStep("Hash empty password", func(ctx provider.StepCtx) {
+			hashed, err = hasher.Hash([]byte{})
+		})
 
-		require.NoError(t, err)
-		assert.NotEmpty(t, hashed)
+		t.WithNewStep("Verify empty password hash", func(ctx provider.StepCtx) {
+			require.NoError(t, err)
+			assert.NotEmpty(t, hashed)
+		})
 	})
 }
 
-func TestBcryptHasher_Compare(t *testing.T) {
+func (s *BcryptHasherTestSuite) TestBcryptHasherCompare(t provider.T) {
+	t.Tags("functionality", "verification")
+	t.Description("Test password comparison functionality")
+
 	hasher := NewBcryptHasher(bcrypt.DefaultCost).(*bcrypthasher)
 	password := []byte("test_password")
 	wrongPassword := []byte("wrong_password")
-	hashed, _ := hasher.Hash(password)
 
-	t.Run("successful compare", func(t *testing.T) {
-		match, err := hasher.Compare(hashed, password)
-
+	var hashed []byte
+	t.WithNewStep("Prepare hashed password", func(ctx provider.StepCtx) {
+		var err error
+		hashed, err = hasher.Hash(password)
 		require.NoError(t, err)
-		assert.True(t, match)
 	})
 
-	t.Run("wrong password", func(t *testing.T) {
-		match, err := hasher.Compare(hashed, wrongPassword)
+	t.Run("Successful password comparison", func(t provider.T) {
+		var match bool
+		var err error
+		t.WithNewStep("Compare correct password", func(ctx provider.StepCtx) {
+			match, err = hasher.Compare(hashed, password)
+		})
 
-		require.Error(t, err)
-		assert.False(t, match)
-		assert.Equal(t, bcrypt.ErrMismatchedHashAndPassword, err)
+		t.WithNewStep("Verify successful comparison", func(ctx provider.StepCtx) {
+			require.NoError(t, err)
+			assert.True(t, match)
+		})
 	})
 
-	t.Run("empty password", func(t *testing.T) {
-		emptyHashed, _ := hasher.Hash([]byte{})
-		match, err := hasher.Compare(emptyHashed, []byte{})
+	t.Run("Wrong password comparison", func(t provider.T) {
+		var match bool
+		var err error
+		t.WithNewStep("Compare wrong password", func(ctx provider.StepCtx) {
+			match, err = hasher.Compare(hashed, wrongPassword)
+		})
 
-		require.NoError(t, err)
-		assert.True(t, match)
+		t.WithNewStep("Verify failed comparison", func(ctx provider.StepCtx) {
+			require.Error(t, err)
+			assert.False(t, match)
+			assert.Equal(t, bcrypt.ErrMismatchedHashAndPassword, err)
+		})
 	})
 
-	t.Run("invalid hash", func(t *testing.T) {
+	t.Run("Empty password comparison", func(t provider.T) {
+		var emptyHashed []byte
+		t.WithNewStep("Hash empty password", func(ctx provider.StepCtx) {
+			var err error
+			emptyHashed, err = hasher.Hash([]byte{})
+			require.NoError(t, err)
+		})
+
+		var match bool
+		var err error
+		t.WithNewStep("Compare empty password", func(ctx provider.StepCtx) {
+			match, err = hasher.Compare(emptyHashed, []byte{})
+		})
+
+		t.WithNewStep("Verify empty password comparison", func(ctx provider.StepCtx) {
+			require.NoError(t, err)
+			assert.True(t, match)
+		})
+	})
+
+	t.Run("Invalid hash comparison", func(t provider.T) {
 		invalidHash := []byte("invalid_hash")
-		match, err := hasher.Compare(invalidHash, password)
 
-		require.Error(t, err)
-		assert.False(t, match)
+		var match bool
+		var err error
+		t.WithNewStep("Compare with invalid hash", func(ctx provider.StepCtx) {
+			match, err = hasher.Compare(invalidHash, password)
+		})
+
+		t.WithNewStep("Verify invalid hash error", func(ctx provider.StepCtx) {
+			require.Error(t, err)
+			assert.False(t, match)
+		})
 	})
 }
+
+func TestBcryptHasher(t *testing.T) { suite.RunSuite(t, new(BcryptHasherTestSuite)) }

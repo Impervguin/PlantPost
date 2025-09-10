@@ -1,6 +1,3 @@
-COVERDIR:=out
-COVERAGE_FILE:=$(COVERDIR)/coverage.out
-
 SCRIPTS:=./scripts
 INTEGRATION_TESTS:=$(SCRIPTS)/integration_tests.sh
 
@@ -14,17 +11,27 @@ API_DIR:=./cmd/api
 API_BUILD := ./api.bin
 TEMPL_DIR:=./internal/view
 
+ALLURE_OUTPUT_DIR:=./allure-results
+
 
 .PHONY: test
 test: test-unit test-integration
 
-.PHONY: test-unit
-test-unit:
-	go test $$(go list ./... | grep -v ./internal/view | grep -v ./cmd) -cover -coverprofile=$(COVERAGE_FILE) 
-
-.PHONY: test-integration
-test-integration:
+.PHONY: test-unit 
+test-unit: allure-clear
+	$(SCRIPTS)/unit_tests.sh
+	 
+.PHONY: test-integration 
+test-integration: allure-clear
 	$(INTEGRATION_TESTS)
+
+.PHONY: allure-clear
+allure-clear:
+	rm -rf $(ALLURE_OUTPUT_DIR)
+
+.PHONY: allure-serve
+allure-serve:
+	allure serve $(ALLURE_OUTPUT_DIR)
 
 .PHONY: show-coverage
 show-coverage:

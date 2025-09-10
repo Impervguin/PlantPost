@@ -39,6 +39,7 @@ type AlbumRepositoryTestSuite struct {
 	userRepo  *authstorage.PostgresAuthRepository
 	fileRepo  *filestorage.PgMinioStorage
 	prevDir   string
+	dbCreds   pgtest.PostgresCredentials
 }
 
 func TestAlbumRepositorySuite(t *testing.T) {
@@ -61,10 +62,7 @@ func (s *AlbumRepositoryTestSuite) SetupSuite() {
 	container, creds, err := pgtest.NewTestPostgres(ctx)
 	require.NoError(s.T(), err)
 	s.container = container
-
-	// Run migrations
-	err = pgtest.Migrate(ctx, &creds)
-	require.NoError(s.T(), err)
+	s.dbCreds = creds
 
 	// Create database connection config
 	config := &sqpgx.SqpgxConfig{
@@ -127,8 +125,15 @@ func (s *AlbumRepositoryTestSuite) TearDownSuite() {
 	require.NoError(s.T(), err)
 }
 
-func (s *AlbumRepositoryTestSuite) SetupTest()    {}
-func (s *AlbumRepositoryTestSuite) TearDownTest() {}
+func (s *AlbumRepositoryTestSuite) SetupTest() {
+	err := pgtest.Migrate(context.Background(), &s.dbCreds)
+	require.NoError(s.T(), err)
+}
+
+func (s *AlbumRepositoryTestSuite) TearDownTest() {
+	err := pgtest.MigrateDown(context.Background(), &s.dbCreds)
+	require.NoError(s.T(), err)
+}
 
 func (s *AlbumRepositoryTestSuite) pushTestPlant() *plant.Plant {
 	ctx := context.Background()

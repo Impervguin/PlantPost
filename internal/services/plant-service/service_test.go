@@ -1,3 +1,5 @@
+//go:build unit
+
 package plantservice_test
 
 import (
@@ -12,10 +14,49 @@ import (
 	plantservice "PlantSite/internal/services/plant-service"
 
 	"github.com/google/uuid"
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+// PlantMother реализует паттерн Object Mother для создания тестовых растений
+type PlantMother struct{}
+
+func (pm *PlantMother) CreateValidPlant() (*plant.Plant, *MockPlantSpecification, error) {
+	spec := new(MockPlantSpecification)
+	spec.On("Validate").Return(nil)
+	spec.On("Category").Return("mock")
+
+	plant, err := plant.NewPlant(
+		"Rose",
+		"Rosa",
+		"Beautiful flower",
+		uuid.New(),
+		*plant.NewPlantPhotos(),
+		"mock",
+		spec,
+	)
+	return plant, spec, err
+}
+
+func (pm *PlantMother) CreatePlantWithCategory(category string) (*plant.Plant, *MockPlantSpecification, error) {
+	spec := new(MockPlantSpecification)
+	spec.On("Validate").Return(nil)
+	spec.On("Category").Return(category)
+
+	plant, err := plant.NewPlant(
+		"Test Plant",
+		"Testus Plantus",
+		"Test description",
+		uuid.New(),
+		*plant.NewPlantPhotos(),
+		category,
+		spec,
+	)
+	return plant, spec, err
+}
 
 // MockPlantRepository implements plant.PlantRepository interface
 type MockPlantRepository struct {
@@ -129,203 +170,252 @@ func (m *MockPlantSpecification) Category() string {
 	return m.Called().String(0)
 }
 
-func TestPlantService(t *testing.T) {
-	ctx := context.Background()
-	validSessionID := uuid.New()
-	validOwnerID := uuid.New()
+type PlantServiceTestSuite struct {
+	suite.Suite
+	plantMother *PlantMother
+}
+
+func (s *PlantServiceTestSuite) BeforeEach(t provider.T) {
+	t.Epic("Plant Service")
+	t.Feature("Plant Management")
+	s.plantMother = &PlantMother{}
+}
+
+func setupAuthService(t provider.T, userID uuid.UUID, hasAuthorRights bool) (*authservice.AuthService, context.Context) {
+	arepo := new(authmock.MockAuthRepository)
+	sessions := new(authmock.MockSessionStorage)
+	hasher := new(authmock.MockPasswdHasher)
+	asvc := authservice.NewAuthService(sessions, arepo, hasher)
+
+	sessionID := uuid.New()
+	validSession := &authservice.Session{
+		ID:        sessionID,
+		MemberID:  userID,
+		ExpiresAt: time.Now().Add(time.Hour),
+	}
+	user := new(authmock.MockUser)
+	user.On("ID").Return(userID)
+	user.On("HasAuthorRights").Return(hasAuthorRights)
+
+	sessions.On("Get", mock.Anything, sessionID).Return(validSession, nil)
+	authCtx := asvc.Authenticate(context.Background(), sessionID)
+	arepo.On("Get", authCtx, userID).Return(user, nil)
+
+	return asvc, authCtx
+}
+
+func (s *PlantServiceTestSuite) TestUpdatePlantSpec(t provider.T) {
+	t.Tags("update", "specification")
+	t.Description("Test plant specification update functionality")
+	t.Parallel()
+
 	validPlantID := uuid.New()
-	validFileID := uuid.New()
+	validOwnerID := uuid.New()
 	validCategoryName := "mock"
 
-	// Create a valid plant for testing
-	validSpec := new(MockPlantSpecification)
-	validSpec.On("Validate").Return(nil)
-	validPlant, err := plant.NewPlant(
-		"Rose",
-		"Rosa",
-		"Beautiful flower",
-		validFileID,
-		plant.PlantPhotos{},
-		validCategoryName,
-		validSpec,
-	)
-	require.NoError(t, err)
+	t.Run("Successful plant specification update", func(t provider.T) {
+		t.Parallel()
 
-	t.Run("UpdatePlantSpec", func(t *testing.T) {
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
+
+		validPlant, _, err := s.plantMother.CreateValidPlant()
+		require.NoError(t, err)
+
 		newSpec := new(MockPlantSpecification)
-		newSpec.On("Validate").Return(nil)
-		newSpec.On("Category").Return(validCategoryName)
-
-		t.Run("Success", func(t *testing.T) {
-			arepo := new(authmock.MockAuthRepository)
-			sessions := new(authmock.MockSessionStorage)
-			hasher := new(authmock.MockPasswdHasher)
-			asvc := authservice.NewAuthService(sessions, arepo, hasher)
-			validSession := &authservice.Session{
-				ID:        validSessionID,
-				MemberID:  validOwnerID,
-				ExpiresAt: time.Now().Add(time.Hour),
-			}
-			user := new(authmock.MockUser)
-			// user.On("ID").Return(validOwnerID)
-			user.On("HasAuthorRights").Return(true)
-			sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-			ctx := asvc.Authenticate(ctx, validSessionID)
-			arepo.On("Get", ctx, validOwnerID).Return(user, nil)
-
-			prepo := new(MockPlantRepository)
-			crepo := new(MockPlantCategoryRepository)
-			frepo := new(MockFileRepository)
-
-			user.On("HasAuthorRights").Return(true)
-			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(validPlant, nil)
-
-			svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
-
-			err := svc.UpdatePlantSpec(ctx, validPlantID, newSpec)
-			require.NoError(t, err)
-
-			prepo.AssertExpectations(t)
-			user.AssertExpectations(t)
-			newSpec.AssertExpectations(t)
+		t.WithNewStep("Setup new specification", func(pctx provider.StepCtx) {
+			newSpec.On("Validate").Return(nil)
+			newSpec.On("Category").Return(validCategoryName)
 		})
 
-		t.Run("InvalidSpecification", func(t *testing.T) {
-			arepo := new(authmock.MockAuthRepository)
-			sessions := new(authmock.MockSessionStorage)
-			hasher := new(authmock.MockPasswdHasher)
-			asvc := authservice.NewAuthService(sessions, arepo, hasher)
-			validSession := &authservice.Session{
-				ID:        validSessionID,
-				MemberID:  validOwnerID,
-				ExpiresAt: time.Now().Add(time.Hour),
-			}
-			user := new(authmock.MockUser)
-			user.On("ID").Return(validOwnerID)
-			user.On("HasAuthorRights").Return(true)
-			sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-			ctx := asvc.Authenticate(ctx, validSessionID)
-			arepo.On("Get", ctx, validOwnerID).Return(user, nil)
+		prepo := new(MockPlantRepository)
+		t.WithNewStep("Setup plant repository", func(pctx provider.StepCtx) {
+			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(validPlant, nil).Run(func(args mock.Arguments) {
+				fn, ok := args.Get(2).(func(*plant.Plant) (*plant.Plant, error))
+				require.True(t, ok)
+				_, err := fn(validPlant)
+				require.NoError(t, err)
+			})
+		})
 
-			invalidSpec := new(MockPlantSpecification)
+		crepo := new(MockPlantCategoryRepository)
+		frepo := new(MockFileRepository)
+
+		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
+
+		t.WithNewStep("Update plant specification", func(pctx provider.StepCtx) {
+			err := svc.UpdatePlantSpec(ctx, validPlantID, newSpec)
+			require.NoError(t, err)
+		})
+
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
+			prepo.AssertExpectations(t)
+			newSpec.AssertExpectations(t)
+
+		})
+	})
+
+	t.Run("Invalid specification during update", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
+
+		validPlant, _, err := s.plantMother.CreateValidPlant()
+		require.NoError(t, err)
+
+		invalidSpec := new(MockPlantSpecification)
+		t.WithNewStep("Setup invalid specification", func(pctx provider.StepCtx) {
 			invalidSpec.On("Validate").Return(assert.AnError)
+		})
 
-			prepo := new(MockPlantRepository)
-			crepo := new(MockPlantCategoryRepository)
-			frepo := new(MockFileRepository)
+		prepo := new(MockPlantRepository)
+		crepo := new(MockPlantCategoryRepository)
+		frepo := new(MockFileRepository)
 
-			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(validPlant, nil)
+		t.WithNewStep("Setup plant repository", func(pctx provider.StepCtx) {
+			prepo.On("Get", mock.Anything, validPlantID).Return(validPlant, nil)
+			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(validPlant, assert.AnError).Run(func(args mock.Arguments) {
+				fn, ok := args.Get(2).(func(*plant.Plant) (*plant.Plant, error))
+				require.True(t, ok)
+				_, err := fn(validPlant)
+				require.Error(t, err)
+			})
+		})
 
-			svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
+		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
 
+		t.WithNewStep("Attempt update with invalid specification", func(pctx provider.StepCtx) {
 			err := svc.UpdatePlantSpec(ctx, validPlantID, invalidSpec)
 			require.Error(t, err)
 			assert.ErrorIs(t, err, assert.AnError)
+		})
 
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
 			invalidSpec.AssertExpectations(t)
+
 		})
 	})
+}
 
-	t.Run("DeletePlant", func(t *testing.T) {
-		t.Run("Success", func(t *testing.T) {
-			arepo := new(authmock.MockAuthRepository)
-			sessions := new(authmock.MockSessionStorage)
-			hasher := new(authmock.MockPasswdHasher)
-			asvc := authservice.NewAuthService(sessions, arepo, hasher)
-			validSession := &authservice.Session{
-				ID:        validSessionID,
-				MemberID:  validOwnerID,
-				ExpiresAt: time.Now().Add(time.Hour),
-			}
-			user := new(authmock.MockUser)
-			// user.On("ID").Return(validOwnerID)
-			user.On("HasAuthorRights").Return(true)
-			sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-			ctx := asvc.Authenticate(ctx, validSessionID)
-			arepo.On("Get", ctx, validOwnerID).Return(user, nil)
+func (s *PlantServiceTestSuite) TestDeletePlant(t provider.T) {
+	t.Tags("delete", "positive")
+	t.Description("Test plant deletion functionality")
+	t.Parallel()
 
-			prepo := new(MockPlantRepository)
-			crepo := new(MockPlantCategoryRepository)
-			frepo := new(MockFileRepository)
+	validPlantID := uuid.New()
+	validOwnerID := uuid.New()
 
+	t.Run("Successful plant deletion", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
+
+		prepo := new(MockPlantRepository)
+		t.WithNewStep("Setup plant deletion", func(pctx provider.StepCtx) {
 			prepo.On("Delete", mock.Anything, validPlantID).Return(nil)
+		})
 
-			svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
+		crepo := new(MockPlantCategoryRepository)
+		frepo := new(MockFileRepository)
 
+		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
+
+		t.WithNewStep("Delete plant", func(pctx provider.StepCtx) {
 			err := svc.DeletePlant(ctx, validPlantID)
 			require.NoError(t, err)
+		})
 
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
 			prepo.AssertExpectations(t)
-			user.AssertExpectations(t)
+		})
+	})
+}
+
+func (s *PlantServiceTestSuite) TestUploadPlantPhoto(t provider.T) {
+	t.Tags("upload", "photos")
+	t.Description("Test plant photo upload functionality")
+	t.Parallel()
+
+	validPlantID := uuid.New()
+	validOwnerID := uuid.New()
+	validFileID := uuid.New()
+
+	t.Run("Successful plant photo upload", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
+
+		validPlant, _, err := s.plantMother.CreateValidPlant()
+		require.NoError(t, err)
+
+		fdata := models.FileData{}
+		description := "test photo"
+		newFile := models.File{ID: uuid.New(), Name: "new_file.jpg", URL: "http://new_file.jpg", CreatedAt: time.Now()}
+
+		frepo := new(MockFileRepository)
+		t.WithNewStep("Setup file upload", func(pctx provider.StepCtx) {
+			frepo.On("Upload", mock.Anything, &fdata).Return(&newFile, nil)
+		})
+
+		prepo := new(MockPlantRepository)
+		t.WithNewStep("Setup plant update", func(pctx provider.StepCtx) {
+			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(validPlant, nil).Run(func(args mock.Arguments) {
+				_, ok := args.Get(2).(func(*plant.Plant) (*plant.Plant, error))
+				require.True(t, ok)
+			})
+		})
+
+		crepo := new(MockPlantCategoryRepository)
+
+		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
+
+		t.WithNewStep("Upload plant photo", func(pctx provider.StepCtx) {
+			err = svc.UploadPlantPhoto(ctx, validPlantID, fdata, description)
+		})
+
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
+			require.NoError(t, err)
+			require.Equal(t, validPlant.GetPhotos().Len(), 1)
+			frepo.AssertExpectations(t)
+			prepo.AssertExpectations(t)
 		})
 	})
 
-	t.Run("UploadPlantPhoto", func(t *testing.T) {
+	t.Run("Photo addition error during upload", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
+
 		fdata := models.FileData{}
 		description := "test photo"
 
-		t.Run("Success", func(t *testing.T) {
-			arepo := new(authmock.MockAuthRepository)
-			sessions := new(authmock.MockSessionStorage)
-			hasher := new(authmock.MockPasswdHasher)
-			asvc := authservice.NewAuthService(sessions, arepo, hasher)
-			validSession := &authservice.Session{
-				ID:        validSessionID,
-				MemberID:  validOwnerID,
-				ExpiresAt: time.Now().Add(time.Hour),
-			}
-			user := new(authmock.MockUser)
-			// user.On("ID").Return(validOwnerID)
-			user.On("HasAuthorRights").Return(true)
-			sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-			ctx := asvc.Authenticate(ctx, validSessionID)
-			arepo.On("Get", ctx, validOwnerID).Return(user, nil)
-
-			prepo := new(MockPlantRepository)
-			crepo := new(MockPlantCategoryRepository)
-			frepo := new(MockFileRepository)
-
+		frepo := new(MockFileRepository)
+		t.WithNewStep("Setup file upload", func(pctx provider.StepCtx) {
 			frepo.On("Upload", mock.Anything, &fdata).Return(&models.File{ID: validFileID}, nil)
-			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(validPlant, nil)
-
-			svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
-
-			err := svc.UploadPlantPhoto(ctx, validPlantID, fdata, description)
-			require.NoError(t, err)
-
-			frepo.AssertExpectations(t)
-			prepo.AssertExpectations(t)
-			user.AssertExpectations(t)
 		})
 
-		t.Run("PhotoAddError", func(t *testing.T) {
-			arepo := new(authmock.MockAuthRepository)
-			sessions := new(authmock.MockSessionStorage)
-			hasher := new(authmock.MockPasswdHasher)
-			asvc := authservice.NewAuthService(sessions, arepo, hasher)
-			validSession := &authservice.Session{
-				ID:        validSessionID,
-				MemberID:  validOwnerID,
-				ExpiresAt: time.Now().Add(time.Hour),
-			}
-			user := new(authmock.MockUser)
-			user.On("ID").Return(validOwnerID)
-			user.On("HasAuthorRights").Return(true)
-			sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-			ctx := asvc.Authenticate(ctx, validSessionID)
-			arepo.On("Get", ctx, validOwnerID).Return(user, nil)
-			prepo := new(MockPlantRepository)
-			crepo := new(MockPlantCategoryRepository)
-			frepo := new(MockFileRepository)
-
-			frepo.On("Upload", mock.Anything, &fdata).Return(&models.File{ID: validFileID}, nil)
+		prepo := new(MockPlantRepository)
+		t.WithNewStep("Setup plant update error", func(pctx provider.StepCtx) {
 			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(nil, assert.AnError)
+		})
 
-			svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
+		crepo := new(MockPlantCategoryRepository)
 
+		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
+
+		t.WithNewStep("Attempt upload with update error", func(pctx provider.StepCtx) {
 			err := svc.UploadPlantPhoto(ctx, validPlantID, fdata, description)
 			require.Error(t, err)
 			assert.ErrorIs(t, err, assert.AnError)
 		})
+
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
+			frepo.AssertExpectations(t)
+			prepo.AssertExpectations(t)
+
+		})
 	})
+}
+
+func TestPlantService(t *testing.T) {
+	suite.RunSuite(t, new(PlantServiceTestSuite))
 }

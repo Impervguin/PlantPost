@@ -39,6 +39,7 @@ type PostRepositoryTestSuite struct {
 	userRepo       *authstorage.PostgresAuthRepository
 	plantRepo      *plantstorage.PostgresPlantRepository
 	prevDir        string
+	dbCreds        pgtest.PostgresCredentials
 }
 
 func TestPostRepositorySuite(t *testing.T) {
@@ -60,10 +61,7 @@ func (s *PostRepositoryTestSuite) SetupSuite() {
 	dbContainer, dbCreds, err := pgtest.NewTestPostgres(ctx)
 	require.NoError(s.T(), err)
 	s.dbContainer = dbContainer
-
-	// Run migrations
-	err = pgtest.Migrate(ctx, &dbCreds)
-	require.NoError(s.T(), err)
+	s.dbCreds = dbCreds
 
 	// Create database connection
 	dbConfig := &sqpgx.SqpgxConfig{
@@ -133,6 +131,16 @@ func (s *PostRepositoryTestSuite) TearDownSuite() {
 	}
 	// Restore original directory
 	os.Chdir(s.prevDir)
+}
+
+func (s *PostRepositoryTestSuite) SetupTest() {
+	err := pgtest.Migrate(context.Background(), &s.dbCreds)
+	require.NoError(s.T(), err)
+}
+
+func (s *PostRepositoryTestSuite) TearDownTest() {
+	err := pgtest.MigrateDown(context.Background(), &s.dbCreds)
+	require.NoError(s.T(), err)
 }
 
 func (s *PostRepositoryTestSuite) uploadTestPhoto(ctx context.Context) uuid.UUID {
