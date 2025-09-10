@@ -51,7 +51,28 @@ jobs:
           TEST_MINIO_USER=test
       
       - name: Run unit tests
+        id: unit-tests
         run: ./scripts/unit_tests.sh
         env:
           ALLURE_OUTPUT_PATH: ${{ github.workspace }}
           ALLURE_OUTPUT_DIR: allure-results
+
+      - name: Run integration tests
+        run: ./scripts/integration_tests.sh
+        if: steps.unit-tests.outcome == 'success'
+        env:
+          ALLURE_OUTPUT_PATH: ${{ github.workspace }}
+          ALLURE_OUTPUT_DIR: allure-results
+      
+      - name: Upload allure report
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results
+          path: allure-results/
+      
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./out/coverage.out
+          flags: unittests,integrationtests
+        

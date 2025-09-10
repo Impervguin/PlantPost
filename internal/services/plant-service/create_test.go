@@ -115,7 +115,7 @@ func (s *PlantServiceCreateTestSuite) TestCreatePlant(t provider.T) {
 
 		t.WithNewStep("Attempt unauthorized creation", func(pctx provider.StepCtx) {
 			err := svc.CreatePlant(context.Background(), validData, validMainPhoto)
-			require.NoError(t, err)
+			require.Error(t, err)
 		})
 	})
 
