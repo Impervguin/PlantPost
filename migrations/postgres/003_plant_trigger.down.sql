@@ -1,1 +1,0 @@
-DROP TRIGGER IF EXISTS plant_specification_validation ON plant;

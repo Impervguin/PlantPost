@@ -1,1 +1,0 @@
-TRUNCATE TABLE plant_category;
