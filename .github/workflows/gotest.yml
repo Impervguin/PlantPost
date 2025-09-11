@@ -58,6 +58,7 @@ jobs:
           ALLURE_OUTPUT_DIR: allure-results
 
       - name: Run integration tests
+        id: integration-tests
         run: ./scripts/integration_tests.sh
         if: steps.unit-tests.outcome == 'success'
         env:
