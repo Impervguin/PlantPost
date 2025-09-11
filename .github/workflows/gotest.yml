@@ -70,16 +70,28 @@ jobs:
         env:
           ALLURE_OUTPUT_PATH: ${{ github.workspace }}
           ALLURE_OUTPUT_DIR: allure-results
-      
-      - name: Upload allure report
-        uses: actions/upload-artifact@v4
+        
+      - name: Load test report history
+        uses: actions/checkout@v3
+        if: always()
+        continue-on-error: true
         with:
-          name: allure-results
-          path: allure-results/
+          ref: gh-pages
+          path: gh_pages
       
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+      - name: Build test report
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
         with:
-          name: coverage-report
-          path: ./out/coverage.out
+          gh_pages: gh-pages
+          allure_history: allure-history
+          allure_results: build/allure-results
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
         
