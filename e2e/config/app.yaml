@@ -1,0 +1,8 @@
+app:
+  dockerfile: api.test.dockerfile
+  build_context: ../
+  app_config: /build/config/api.yaml
+  admin_user: admin
+  admin_password: admin
+  host: api
+  port: 23450

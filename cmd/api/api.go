@@ -44,17 +44,3 @@ func GetMediaPath() string {
 	return viper.GetString(Key(ApiPrefix, ApiMediaKey))
 }
 
-func GetMediaStorage() string {
-	if err := ReadInConfig(); err != nil {
-		panic(err)
-	}
-	mediaStorage := viper.GetString(Key(ApiPrefix, ApiMediaStorageKey))
-	switch mediaStorage {
-	case MediaStorageFs:
-		return MediaStorageFs
-	case MediaStorageMinio:
-		return MediaStorageMinio
-	default:
-		panic("unknown media storage")
-	}
-}

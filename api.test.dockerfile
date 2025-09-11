@@ -12,14 +12,12 @@ RUN go mod download
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 RUN go get -tool github.com/a-h/templ/cmd/templ@latest
 
-RUN curl -LO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64-musl
-RUN mv tailwindcss-linux-x64-musl /usr/local/bin/tailwindcss
-RUN chmod +x /usr/local/bin/tailwindcss
-
 COPY ./cmd/api/ ./cmd/api/
 COPY ./internal/ ./internal/
-COPY tailwind.config.js .
-COPY ./makefile .
 
-CMD ["make", "api"]
+RUN swag init --parseInternal --parseDependency --parseDepth 10 -g ./cmd/api/main.go -o ./cmd/docs
+RUN go tool templ generate -path ./internal/view
+RUN go build -o ./api.bin ./cmd/api
+
+CMD ["./api.bin"]
 

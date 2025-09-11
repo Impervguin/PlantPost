@@ -1,0 +1,8 @@
+database:
+  user: test
+  password: test
+  database: plantpost
+  image: postgres:latest
+  migration_dir: ../migrations/postgres
+  host: pg
+  port: 5432

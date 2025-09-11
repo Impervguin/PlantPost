@@ -63,6 +63,13 @@ jobs:
         env:
           ALLURE_OUTPUT_PATH: ${{ github.workspace }}
           ALLURE_OUTPUT_DIR: allure-results
+        
+      - name: Run e2e tests
+        run: ./scripts/e2e_tests.sh
+        if: steps.unit-tests.outcome == 'success' && steps.integration-tests.outcome == 'success'
+        env:
+          ALLURE_OUTPUT_PATH: ${{ github.workspace }}
+          ALLURE_OUTPUT_DIR: allure-results
       
       - name: Upload allure report
         uses: actions/upload-artifact@v4
@@ -71,8 +78,8 @@ jobs:
           path: allure-results/
       
       - name: Upload coverage report
-        uses: codecov/codecov-action@v3
+        uses: actions/upload-artifact@v4
         with:
-          file: ./out/coverage.out
-          flags: unittests,integrationtests
+          name: coverage-report
+          path: ./out/coverage.out
         

@@ -16,11 +16,14 @@ services:
     build:
       context: ../
       dockerfile: ./api.dockerfile
+    volumes:
+      - ../config/api.yaml:/build/config/api.yaml
     deploy:
       resources:
         limits:
           cpus: '8'
           memory: 4G
+    
     depends_on:
       pg:
         condition: service_healthy 

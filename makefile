@@ -1,5 +1,6 @@
 SCRIPTS:=./scripts
 INTEGRATION_TESTS:=$(SCRIPTS)/integration_tests.sh
+E2E_TESTS:=$(SCRIPTS)/e2e_tests.sh
 
 COMPOSEFILE:=./deployments/docker-compose.yaml
 COMPOSEFILE_DEV:=./deployments/docker-compose.dev.yaml
@@ -11,11 +12,13 @@ API_DIR:=./cmd/api
 API_BUILD := ./api.bin
 TEMPL_DIR:=./internal/view
 
-ALLURE_OUTPUT_DIR:=./allure-results
-
+ALLURE_OUTPUT_DIR:=allure-results
+export ALLURE_OUTPUT_DIR
+ALLURE_OUTPUT_PATH:=$(PWD)
+export ALLURE_OUTPUT_PATH
 
 .PHONY: test
-test: test-unit test-integration
+test: test-unit test-integration test-e2e
 
 .PHONY: test-unit 
 test-unit: allure-clear
@@ -24,6 +27,10 @@ test-unit: allure-clear
 .PHONY: test-integration 
 test-integration: allure-clear
 	$(INTEGRATION_TESTS)
+
+.PHONY: test-e2e
+test-e2e: allure-clear
+	$(E2E_TESTS)
 
 .PHONY: allure-clear
 allure-clear:
@@ -75,6 +82,9 @@ up:
 .PHONY: upd
 upd:
 	docker compose -f $(COMPOSEFILE) up -d 
+
+update:
+	docker compose -f $(COMPOSEFILE) up --build
 
 .PHONY: down
 down:
