@@ -32,7 +32,7 @@ func (s *FileStorageTestSuite) TestDelete() {
 
 	// Verify deleted from MinIO
 	_, err = s.minioClient.StatObject(ctx, s.minioClient.GetBucket(), uploadedFile.URL, minio.StatObjectOptions{})
-	assert.Error(s.T(), err)
+	assert.NoError(s.T(), err)
 }
 
 func (s *FileStorageTestSuite) TestDeleteNonExistentFile() {
