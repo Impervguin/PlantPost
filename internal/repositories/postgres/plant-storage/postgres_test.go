@@ -186,7 +186,7 @@ func (s *PlantRepositoryTestSuite) TestCreatePlant(t provider.T) {
 
 		t.WithNewStep("Create plant", func(pctx provider.StepCtx) {
 			createdPlant, err := s.repo.Create(ctx, testPlant)
-			require.Error(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, testPlant.ID(), createdPlant.ID())
 			assert.Equal(t, testPlant.GetName(), createdPlant.GetName())
