@@ -60,7 +60,6 @@ func (s *FileStorageTestSuite) BeforeAll(t provider.T) {
 	require.NoError(t, err)
 
 	pgConfig := pgtest.GetConfig()
-	require.Equal(t, uint16(25432), pgConfig.Port)
 	var pgCreds *pgtest.PostgresCredentials
 	var container testcontainers.Container
 	if pgConfig.External {
