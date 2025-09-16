@@ -16,6 +16,7 @@ ALLURE_OUTPUT_DIR:=allure-results
 export ALLURE_OUTPUT_DIR
 ALLURE_OUTPUT_PATH:=$(PWD)
 export ALLURE_OUTPUT_PATH
+ALLURE_REPORT_DIR:=$(PWD)/allure-report
 
 .PHONY: test
 test: test-unit test-integration test-e2e
@@ -36,9 +37,14 @@ test-e2e: allure-clear
 allure-clear:
 	rm -rf $(ALLURE_OUTPUT_DIR)
 
+.PHONY: allure-regen
+allure-regen:
+	cp -r $(ALLURE_REPORT_DIR)/history $(ALLURE_OUTPUT_DIR)
+	allure generate --clean
+
 .PHONY: allure-serve
 allure-serve:
-	allure serve $(ALLURE_OUTPUT_DIR)
+	allure open
 
 .PHONY: show-coverage
 show-coverage:

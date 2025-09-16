@@ -18,14 +18,14 @@ func NewTestMinio(ctx context.Context, configPath string, network string) (testc
 	if err != nil {
 		return nil, nil, err
 	}
-	var ParsedPort uint16
-	fmt.Sscanf(MinioPort, "%d", &ParsedPort)
+	// var ParsedPort uint16
+	// fmt.Sscanf(MinioPort, "%d", &ParsedPort)
 	req := testcontainers.ContainerRequest{
 		Image:        config.Image,
 		ExposedPorts: []string{MinioPort},
-		Cmd:          []string{"server", "/data", "--address", fmt.Sprintf(":%d", ParsedPort)},
+		Cmd:          []string{"server", "/data", "--address", fmt.Sprintf(":%d", config.Port)},
 		Env: map[string]string{
-			"API_PORT":            fmt.Sprintf("%d", ParsedPort),
+			"API_PORT":            fmt.Sprintf("%d", config.Port),
 			"MINIO_ROOT_USER":     config.User,
 			"MINIO_ROOT_PASSWORD": config.Password,
 		},
