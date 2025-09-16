@@ -7,7 +7,6 @@ RUN mkdir /build
 WORKDIR /build
 
 COPY pkg/pg-migrations/ .
-COPY ./config/migr.yaml ./config/pgmigr.yaml
 
 RUN go mod download
 

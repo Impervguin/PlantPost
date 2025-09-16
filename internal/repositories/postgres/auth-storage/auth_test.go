@@ -1,5 +1,3 @@
-//go:build integration
-
 package authstorage_test
 
 import (
@@ -27,6 +25,7 @@ type AuthRepositoryTestSuite struct {
 	suite.Suite
 	container testcontainers.Container
 	db        *sqpgx.SquirrelPgx
+	dbCreds   *pgtest.PostgresCredentials
 	repo      *authstorage.PostgresAuthRepository
 	prevDir   string
 	cntCreds  pgtest.PostgresCredentials
@@ -39,9 +38,6 @@ func TestAuthRepositorySuite(t *testing.T) {
 func (s *AuthRepositoryTestSuite) BeforeEach(t provider.T) {
 	t.Epic("Auth Repository")
 	t.Feature("Authentication Storage")
-
-	err := pgtest.Migrate(context.Background(), &s.cntCreds)
-	require.NoError(t, err)
 }
 
 func (s *AuthRepositoryTestSuite) BeforeAll(t provider.T) {
@@ -57,18 +53,35 @@ func (s *AuthRepositoryTestSuite) BeforeAll(t provider.T) {
 	require.NoError(t, err)
 
 	// Create new container
-	container, creds, err := pgtest.NewTestPostgres(ctx)
-	require.NoError(t, err)
+
+	pgConfig := pgtest.GetConfig()
+	var pgCreds *pgtest.PostgresCredentials
+	var container testcontainers.Container
+	if pgConfig.External {
+		pgCreds, err = pgtest.NewTestExternalPostgres(ctx, pgConfig)
+		require.NoError(t, err)
+	} else {
+		container, pgCreds, err = pgtest.NewTestPostgres(ctx)
+		require.NoError(t, err)
+	}
+	s.dbCreds = pgCreds
 	s.container = container
-	s.cntCreds = creds
+
+	if pgConfig.External {
+		err = pgtest.CheckMigrationVersion(ctx, pgCreds, pgCreds.Database)
+		require.NoError(t, err)
+	} else {
+		err = pgtest.Migrate(ctx, pgCreds, pgCreds.Database)
+		require.NoError(t, err)
+	}
 
 	// Create database connection
 	config := &sqpgx.SqpgxConfig{
-		User:                   creds.User,
-		Password:               creds.Password,
-		DbName:                 creds.Database,
-		Host:                   creds.Host,
-		Port:                   creds.Port,
+		User:                   pgCreds.User,
+		Password:               pgCreds.Password,
+		DbName:                 pgCreds.Database,
+		Host:                   pgCreds.Host,
+		Port:                   pgCreds.Port,
 		MaxConnections:         10,
 		MaxConnectionsLifetime: time.Minute,
 	}
@@ -92,7 +105,7 @@ func (s *AuthRepositoryTestSuite) AfterAll(t provider.T) {
 }
 
 func (s *AuthRepositoryTestSuite) AfterEach(t provider.T) {
-	err := pgtest.MigrateDown(context.Background(), &s.cntCreds)
+	err := pgtest.TruncateTables(context.Background(), s.dbCreds)
 	require.NoError(t, err)
 }
 

@@ -87,6 +87,7 @@ services:
       - pg-net
     volumes:
       - ../migrations/postgres:/migrations
+      - ../config/migr.yaml:/build/config/pgmigr.yaml
     
     depends_on:
       pg:

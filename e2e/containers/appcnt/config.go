@@ -9,13 +9,14 @@ import (
 )
 
 type AppConfig struct {
-	DockerFilePath string `mapstructure:"dockerfile"`
-	BuildContext   string `mapstructure:"build_context"`
-	AppConfigPath  string `mapstructure:"app_config"`
-	AdminUser      string `mapstructure:"admin_user"`
-	AdminPassword  string `mapstructure:"admin_password"`
-	Host           string `mapstructure:"host"`
-	Port           uint16 `mapstructure:"port"`
+	DockerFilePath     string `mapstructure:"dockerfile"`
+	BuildContext       string `mapstructure:"build_context"`
+	AppConfigPath      string `mapstructure:"app_config"`
+	AdminUser          string `mapstructure:"admin_user"`
+	AdminPassword      string `mapstructure:"admin_password"`
+	Host               string `mapstructure:"host"`
+	Port               uint16 `mapstructure:"port"`
+	ExternalDataSource bool   `mapstructure:"external_data_source"` // If Databases is external
 
 	// From docker setup
 	OuterPort *uint16

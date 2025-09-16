@@ -2,6 +2,7 @@ FROM golang:1.24-alpine
 LABEL AUTHOR="Impervguin"
 
 RUN apk add --no-cache make curl libstdc++ libgcc
+RUN apk add --no-cache nodejs npm
 
 RUN mkdir /logs
 RUN mkdir /build
@@ -19,7 +20,10 @@ RUN chmod +x /usr/local/bin/tailwindcss
 COPY ./cmd/api/ ./cmd/api/
 COPY ./internal/ ./internal/
 COPY tailwind.config.js .
+COPY tsconfig.json .
 COPY ./makefile .
+COPY package.json .
+COPY package-lock.json .
 
 CMD ["make", "api"]
 

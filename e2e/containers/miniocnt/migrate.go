@@ -40,3 +40,17 @@ func MigrateDown(ctx context.Context, db *MinioConfig) error {
 	}
 	return nil
 }
+
+func CleanUpBucket(ctx context.Context, creds *MinioConfig) error {
+	clnt, err := minio.New(fmt.Sprintf("%s:%d", *creds.OuterHost, *creds.OuterPort), &minio.Options{
+		Creds:  credentials.NewStaticV4(creds.User, creds.Password, ""),
+		Secure: false,
+	})
+	if err != nil {
+		return err
+	}
+	for _, bucket := range creds.Buckets {
+		clnt.RemoveObjects(ctx, bucket, clnt.ListObjects(ctx, bucket, minio.ListObjectsOptions{}), minio.RemoveObjectsOptions{})
+	}
+	return nil
+}

@@ -16,6 +16,10 @@ http:
     api-router:
       rule: "PathPrefix(`/api`)"
       service: api
+    
+    swagger-router:
+      rule: "PathPrefix(`/swagger`)"
+      service: swagger
 
   services:
     api-static:
@@ -34,6 +38,11 @@ http:
           - url: "http://api:23450"
     
     api:
+      loadBalancer:
+        servers:
+          - url: "http://api:23450"
+    
+    swagger:
       loadBalancer:
         servers:
           - url: "http://api:23450"

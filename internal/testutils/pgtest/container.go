@@ -2,16 +2,15 @@ package pgtest
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func NewTestPostgres(ctx context.Context) (testcontainers.Container, PostgresCredentials, error) {
+func NewTestPostgres(ctx context.Context) (testcontainers.Container, *PostgresCredentials, error) {
 	config := GetConfig()
-	strPort := fmt.Sprintf("%d/tcp", config.Port)
+	strPort := "5432/tcp"
 	req := testcontainers.ContainerRequest{
 		Image:        config.Image,
 		ExposedPorts: []string{strPort},
@@ -30,16 +29,16 @@ func NewTestPostgres(ctx context.Context) (testcontainers.Container, PostgresCre
 		Started:          true,
 	})
 	if err != nil {
-		return nil, PostgresCredentials{}, err
+		return nil, nil, err
 	}
 	host, err := cnt.Host(ctx)
 	if err != nil {
-		return nil, PostgresCredentials{}, err
+		return nil, nil, err
 	}
-	port, err := cnt.MappedPort(ctx, "5432/tcp")
+	port, err := cnt.MappedPort(ctx, nat.Port(strPort))
 	if err != nil {
-		return nil, PostgresCredentials{}, err
+		return nil, nil, err
 	}
 	creds := NewPostgresCredentials(config.User, config.Password, config.Database, host, uint16(port.Int()))
-	return cnt, creds, nil
+	return cnt, &creds, nil
 }

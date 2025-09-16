@@ -14,7 +14,6 @@ import (
 	"net/http/cookiejar"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/ozontech/allure-go/pkg/framework/provider"
 	"github.com/ozontech/allure-go/pkg/framework/suite"
@@ -55,70 +54,70 @@ func (s *PlantTestSuite) BeforeAll(t provider.T) {
 	ctx := context.Background()
 	var err error
 
-	// Create docker network
-	s.network, err = network.New(ctx)
-	if err != nil {
-		panic(err)
-	}
+	s.appConfig, err = appcnt.GetConfig(configPath)
+	require.NoError(t, err)
 
-	// Create test containers
-	s.pgcnt, s.pgConfig, err = pgcnt.NewTestPostgres(ctx, configPath, s.network.Name)
-	if err != nil {
-		panic(err)
-	}
+	if s.appConfig.ExternalDataSource {
+		s.network = &testcontainers.DockerNetwork{
+			Name: "host",
+		}
 
-	s.miniocnt, s.minioConfig, err = miniocnt.NewTestMinio(ctx, configPath, s.network.Name)
-	if err != nil {
-		panic(err)
+		s.pgConfig, err = pgcnt.GetConfig(configPath)
+		require.NoError(t, err)
+
+		s.minioConfig, err = miniocnt.GetConfig(configPath)
+		require.NoError(t, err)
+
+		s.pgConfig.OuterHost = &s.pgConfig.Host
+		s.pgConfig.OuterPort = &s.pgConfig.Port
+
+		s.minioConfig.OuterHost = &s.minioConfig.Host
+		s.minioConfig.OuterPort = &s.minioConfig.Port
+	} else {
+		s.network, err = network.New(ctx)
+		require.NoError(t, err)
+
+		// Create test containers
+		s.pgcnt, s.pgConfig, err = pgcnt.NewTestPostgres(ctx, configPath, s.network.Name)
+		require.NoError(t, err)
+
+		s.miniocnt, s.minioConfig, err = miniocnt.NewTestMinio(ctx, configPath, s.network.Name)
+		require.NoError(t, err)
+
+		err := pgcnt.Migrate(context.Background(), s.pgConfig)
+		if err != nil {
+			panic(err)
+		}
+		err = miniocnt.Migrate(context.Background(), s.minioConfig)
+		if err != nil {
+			panic(err)
+		}
 	}
+	s.setupAppConfig()
 }
 
 func (s *PlantTestSuite) BeforeEach(t provider.T) {
 	t.Epic("Plant E2E")
 	t.Feature("Plant")
-
-	err := pgcnt.Migrate(context.Background(), s.pgConfig)
-	if err != nil {
-		panic(err)
-	}
-	err = miniocnt.Migrate(context.Background(), s.minioConfig)
-	if err != nil {
-		panic(err)
-	}
-	if s.appConfig == nil {
-		s.appConfig, err = appcnt.GetConfig(configPath)
-		if err != nil {
-			panic(err)
-		}
-
-		s.setupAppConfig()
-		fmt.Println(s.appConfig)
+	var err error
+	if s.appCnt == nil {
 		s.appCnt, s.appConfig, err = appcnt.NewTestApp(s.appConfig, s.network.Name)
-		if err != nil {
-			panic(err)
-		}
+		require.NoError(t, err)
 	} else {
 		s.appCnt.Start(context.Background())
 	}
 }
 
 func (s *PlantTestSuite) AfterEach(t provider.T) {
-	err := pgcnt.MigrateDown(context.Background(), s.pgConfig)
-	if err != nil {
-		panic(err)
-	}
-	err = miniocnt.MigrateDown(context.Background(), s.minioConfig)
-	if err != nil {
-		panic(err)
-	}
-
-	stopTime, _ := time.ParseDuration("10s")
-	s.appCnt.Stop(context.Background(), &stopTime)
+	err := pgcnt.TruncateTables(context.Background(), s.pgConfig)
+	require.NoError(t, err)
+	err = miniocnt.CleanUpBucket(context.Background(), s.minioConfig)
+	require.NoError(t, err)
 }
 
 func (s *PlantTestSuite) AfterAll(t provider.T) {
 	ctx := context.Background()
-	if s.network != nil {
+	if !s.appConfig.ExternalDataSource {
 		s.network.Remove(ctx)
 	}
 	if s.pgcnt != nil {
@@ -208,7 +207,7 @@ func (b *ConiferousSpecificationDataBuilder) WithSoilType(soilType plant.Soil) *
 	return b
 }
 
-func (b *ConiferousSpecificationDataBuilder) WithWinterHardiness(winterHardiness plant.WinterHardiness) *ConiferousSpecificationDataBuilder {
+func (b *ConiferousSpecificationDataBuilder) WithWinterHardiness(winterHardiness plant.WinterHardiness) *ConiferousSpecificationDataBuilder { //nolint:golint
 	b.WinterHardiness = winterHardiness
 	return b
 }

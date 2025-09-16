@@ -2,7 +2,6 @@ package pgcnt
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
@@ -10,7 +9,8 @@ import (
 )
 
 const (
-	PostgresPort = "5432/tcp"
+	PostgresPort                = "5432/tcp"
+	PostgresPortInternal uint16 = 5432
 )
 
 func NewTestPostgres(ctx context.Context, configPath string, network string) (testcontainers.Container, *PostgresConfig, error) {
@@ -26,7 +26,6 @@ func NewTestPostgres(ctx context.Context, configPath string, network string) (te
 			"POSTGRES_USER":     config.User,
 			"POSTGRES_PASSWORD": config.Password,
 			"POSTGRES_DB":       config.Database,
-			"POSTGRES_PORT":     fmt.Sprintf("%d", config.Port),
 		},
 		WaitingFor: wait.ForAll(
 			wait.ForLog("database system is ready to accept connections"),
@@ -53,6 +52,7 @@ func NewTestPostgres(ctx context.Context, configPath string, network string) (te
 	config.OuterHost = &host
 	p := uint16(port.Int())
 	config.OuterPort = &p
+	config.Port = PostgresPortInternal
 
 	return cnt, config, nil
 }

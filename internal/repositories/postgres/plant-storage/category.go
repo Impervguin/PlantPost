@@ -22,11 +22,11 @@ func NewPostgresPlantCategoryRepository(db sqdb.SquirrelDatabase) (*PostgresPlan
 
 func (r *PostgresPlantCategoryRepository) GetCategory(ctx context.Context, name string) (*plant.PlantCategory, error) {
 	var category plant.PlantCategory
-	row, err := r.db.QueryRow(ctx, squirrel.Select("name", "photo_id").From("plant_category").Where(squirrel.Eq{"name": name}))
+	row, err := r.db.QueryRow(ctx, squirrel.Select("name").From("plant_category").Where(squirrel.Eq{"name": name}))
 	if err != nil {
 		return nil, err
 	}
-	err = row.Scan(&category.Name, &category.MainPhotoID)
+	err = row.Scan(&category.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -35,14 +35,14 @@ func (r *PostgresPlantCategoryRepository) GetCategory(ctx context.Context, name 
 
 func (r *PostgresPlantCategoryRepository) GetCategories(ctx context.Context) ([]plant.PlantCategory, error) {
 	var categories []plant.PlantCategory
-	rows, err := r.db.Query(ctx, squirrel.Select("name", "photo_id").From("plant_category"))
+	rows, err := r.db.Query(ctx, squirrel.Select("name").From("plant_category"))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var category plant.PlantCategory
-		err = rows.Scan(&category.Name, &category.MainPhotoID)
+		err = rows.Scan(&category.Name)
 		if err != nil {
 			return nil, err
 		}

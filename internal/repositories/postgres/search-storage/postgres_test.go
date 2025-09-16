@@ -1,5 +1,3 @@
-//go:build integration
-
 package searchstorage_test
 
 import (
@@ -35,16 +33,17 @@ import (
 
 type SearchRepositoryTestSuite struct {
 	suite.Suite
-	dbContainer    testcontainers.Container
-	minioContainer testcontainers.Container
-	db             *sqpgx.SquirrelPgx
-	fileRepo       *filestorage.PgMinioStorage
-	plantRepo      *plantstorage.PostgresPlantRepository
-	postRepo       *poststorage.PostgresPostRepository
-	searchRepo     *searchstorage.PostgresSearchRepository
-	userRepo       *authstorage.PostgresAuthRepository
-	prevDir        string
-	dbCreds        pgtest.PostgresCredentials
+	dbContainer testcontainers.Container
+	dbCreds     *pgtest.PostgresCredentials
+	fileCnt     testcontainers.Container
+	fileCreds   *miniotest.MinioCredentials
+	db          *sqpgx.SquirrelPgx
+	fileRepo    *filestorage.PgMinioStorage
+	plantRepo   *plantstorage.PostgresPlantRepository
+	postRepo    *poststorage.PostgresPostRepository
+	searchRepo  *searchstorage.PostgresSearchRepository
+	userRepo    *authstorage.PostgresAuthRepository
+	prevDir     string
 }
 
 func TestSearchRepositorySuite(t *testing.T) {
@@ -54,9 +53,6 @@ func TestSearchRepositorySuite(t *testing.T) {
 func (s *SearchRepositoryTestSuite) BeforeEach(t provider.T) {
 	t.Epic("Search Repository")
 	t.Feature("Search Storage")
-
-	err := pgtest.Migrate(context.Background(), &s.dbCreds)
-	require.NoError(t, err)
 }
 
 func (s *SearchRepositoryTestSuite) BeforeAll(t provider.T) {
@@ -69,19 +65,34 @@ func (s *SearchRepositoryTestSuite) BeforeAll(t provider.T) {
 
 	os.Chdir(tests.GetTestWorkingDir())
 
-	// Setup PostgreSQL container
-	dbContainer, dbCreds, err := pgtest.NewTestPostgres(ctx)
-	require.NoError(t, err)
-	s.dbContainer = dbContainer
-	s.dbCreds = dbCreds
+	pgConfig := pgtest.GetConfig()
+	var pgCreds *pgtest.PostgresCredentials
+	var container testcontainers.Container
+	if pgConfig.External {
+		pgCreds, err = pgtest.NewTestExternalPostgres(ctx, pgConfig)
+		require.NoError(t, err)
+	} else {
+		container, pgCreds, err = pgtest.NewTestPostgres(ctx)
+		require.NoError(t, err)
+	}
+	s.dbCreds = pgCreds
+	s.dbContainer = container
+
+	if pgConfig.External {
+		err = pgtest.CheckMigrationVersion(ctx, pgCreds, pgCreds.Database)
+		require.NoError(t, err)
+	} else {
+		err = pgtest.Migrate(ctx, pgCreds, pgCreds.Database)
+		require.NoError(t, err)
+	}
 
 	// Create database connection
 	dbConfig := &sqpgx.SqpgxConfig{
-		User:                   dbCreds.User,
-		Password:               dbCreds.Password,
-		DbName:                 dbCreds.Database,
-		Host:                   dbCreds.Host,
-		Port:                   dbCreds.Port,
+		User:                   pgCreds.User,
+		Password:               pgCreds.Password,
+		DbName:                 pgCreds.Database,
+		Host:                   pgCreds.Host,
+		Port:                   pgCreds.Port,
 		MaxConnections:         10,
 		MaxConnectionsLifetime: time.Minute,
 	}
@@ -89,30 +100,42 @@ func (s *SearchRepositoryTestSuite) BeforeAll(t provider.T) {
 	require.NoError(t, err)
 
 	// Setup MinIO container
-	minioContainer, minioCreds, err := miniotest.NewTestMinio(ctx)
-	require.NoError(t, err)
-	s.minioContainer = minioContainer
+	var fileCnt testcontainers.Container
+	var fileCreds *miniotest.MinioCredentials
+	minConfig := miniotest.GetConfig()
+	if minConfig.External {
+		fileCreds, err = miniotest.NewTestExternalMinio(ctx, minConfig)
+		require.NoError(t, err)
+	} else {
+		fileCnt, fileCreds, err = miniotest.NewTestMinio(ctx)
+		require.NoError(t, err)
+	}
+	s.fileCnt = fileCnt
+	s.fileCreds = fileCreds
 
-	// Migrate MinIO bucket
-	err = miniotest.Migrate(ctx, minioCreds)
-	require.NoError(t, err)
+	err = miniotest.CheckBucketExists(context.Background(), fileCreds)
+	if err != nil {
+		require.ErrorIs(t, err, miniotest.BucketDoesNotExistError)
+		err = miniotest.Migrate(context.Background(), fileCreds)
+		require.NoError(t, err)
+	} else {
+		require.NoError(t, err)
+	}
 
-	// Create MinIO client
 	minioConfig, err := minioclient.NewMinioConfig(
-		minioCreds.GetEndpoint(),
-		minioCreds.User,
-		minioCreds.Password,
-		minioCreds.Bucket,
+		fileCreds.GetEndpoint(),
+		fileCreds.User,
+		fileCreds.Password,
+		fileCreds.Bucket,
 	)
 	require.NoError(t, err)
 
-	minioClient, err := minioclient.NewMinioClient(minioConfig)
+	minioCl, err := minioclient.NewMinioClient(
+		minioConfig,
+	)
 	require.NoError(t, err)
-
-	// Create file repository
-	s.fileRepo, err = filestorage.NewPgMinioStorage(ctx, s.db, minioClient)
+	s.fileRepo, err = filestorage.NewPgMinioStorage(ctx, s.db, minioCl)
 	require.NoError(t, err)
-
 	// Create repositories
 	s.searchRepo, err = searchstorage.NewPostgresSearchRepository(ctx, s.db)
 	require.NoError(t, err)
@@ -131,8 +154,8 @@ func (s *SearchRepositoryTestSuite) BeforeAll(t provider.T) {
 
 func (s *SearchRepositoryTestSuite) AfterAll(t provider.T) {
 	ctx := context.Background()
-	if s.minioContainer != nil {
-		s.minioContainer.Terminate(ctx)
+	if s.fileCnt != nil {
+		s.fileCnt.Terminate(ctx)
 	}
 	if s.dbContainer != nil {
 		s.dbContainer.Terminate(ctx)
@@ -142,7 +165,9 @@ func (s *SearchRepositoryTestSuite) AfterAll(t provider.T) {
 }
 
 func (s *SearchRepositoryTestSuite) AfterEach(t provider.T) {
-	err := pgtest.MigrateDown(context.Background(), &s.dbCreds)
+	err := pgtest.TruncateTables(context.Background(), s.dbCreds)
+	require.NoError(t, err)
+	err = miniotest.CleanUpBucket(context.Background(), s.fileCreds)
 	require.NoError(t, err)
 }
 

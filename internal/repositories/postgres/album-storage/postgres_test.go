@@ -1,5 +1,3 @@
-//go:build integration
-
 package albumstorage_test
 
 import (
@@ -36,13 +34,14 @@ type AlbumRepositoryTestSuite struct {
 	suite.Suite
 	container testcontainers.Container
 	fileCnt   testcontainers.Container
+	fileCreds *miniotest.MinioCredentials
 	db        *sqpgx.SquirrelPgx
 	albumRepo *albumstorage.PostgresAlbumRepository
 	plantRepo *plantstorage.PostgresPlantRepository
 	userRepo  *authstorage.PostgresAuthRepository
 	fileRepo  *filestorage.PgMinioStorage
 	prevDir   string
-	dbCreds   pgtest.PostgresCredentials
+	dbCreds   *pgtest.PostgresCredentials
 }
 
 func TestAlbumRepositorySuite(t *testing.T) {
@@ -52,9 +51,6 @@ func TestAlbumRepositorySuite(t *testing.T) {
 func (s *AlbumRepositoryTestSuite) BeforeEach(t provider.T) {
 	t.Epic("Album Repository")
 	t.Feature("Album Storage")
-
-	err := pgtest.Migrate(context.Background(), &s.dbCreds)
-	require.NoError(t, err)
 }
 
 func (s *AlbumRepositoryTestSuite) BeforeAll(t provider.T) {
@@ -69,19 +65,34 @@ func (s *AlbumRepositoryTestSuite) BeforeAll(t provider.T) {
 	err = os.Chdir(tests.GetTestWorkingDir())
 	require.NoError(t, err)
 
-	// Create new container for each test
-	container, creds, err := pgtest.NewTestPostgres(ctx)
-	require.NoError(t, err)
+	pgConfig := pgtest.GetConfig()
+	var pgCreds *pgtest.PostgresCredentials
+	var container testcontainers.Container
+	if pgConfig.External {
+		pgCreds, err = pgtest.NewTestExternalPostgres(ctx, pgConfig)
+		require.NoError(t, err)
+	} else {
+		container, pgCreds, err = pgtest.NewTestPostgres(ctx)
+		require.NoError(t, err)
+	}
+	s.dbCreds = pgCreds
 	s.container = container
-	s.dbCreds = creds
+
+	if pgConfig.External {
+		err = pgtest.CheckMigrationVersion(ctx, pgCreds, pgCreds.Database)
+		require.NoError(t, err)
+	} else {
+		err = pgtest.Migrate(ctx, pgCreds, pgCreds.Database)
+		require.NoError(t, err)
+	}
 
 	// Create database connection config
 	config := &sqpgx.SqpgxConfig{
-		User:                   creds.User,
-		Password:               creds.Password,
-		DbName:                 creds.Database,
-		Host:                   creds.Host,
-		Port:                   creds.Port,
+		User:                   pgCreds.User,
+		Password:               pgCreds.Password,
+		DbName:                 pgCreds.Database,
+		Host:                   pgCreds.Host,
+		Port:                   pgCreds.Port,
 		MaxConnections:         10,
 		MaxConnectionsLifetime: time.Minute,
 	}
@@ -102,11 +113,27 @@ func (s *AlbumRepositoryTestSuite) BeforeAll(t provider.T) {
 	require.NoError(t, err)
 
 	// Create file repository
-	fileCnt, fileCreds, err := miniotest.NewTestMinio(ctx)
-	require.NoError(t, err)
+	var fileCnt testcontainers.Container
+	var fileCreds *miniotest.MinioCredentials
+	minConfig := miniotest.GetConfig()
+	if minConfig.External {
+		fileCreds, err = miniotest.NewTestExternalMinio(ctx, minConfig)
+		require.NoError(t, err)
+	} else {
+		fileCnt, fileCreds, err = miniotest.NewTestMinio(ctx)
+		require.NoError(t, err)
+	}
 	s.fileCnt = fileCnt
-	err = miniotest.Migrate(context.Background(), fileCreds)
-	require.NoError(t, err)
+	s.fileCreds = fileCreds
+
+	err = miniotest.CheckBucketExists(context.Background(), fileCreds)
+	if err != nil {
+		require.ErrorIs(t, err, miniotest.BucketDoesNotExistError)
+		err = miniotest.Migrate(context.Background(), fileCreds)
+		require.NoError(t, err)
+	} else {
+		require.NoError(t, err)
+	}
 
 	minioConfig, err := minioclient.NewMinioConfig(
 		fileCreds.GetEndpoint(),
@@ -137,7 +164,9 @@ func (s *AlbumRepositoryTestSuite) AfterAll(t provider.T) {
 }
 
 func (s *AlbumRepositoryTestSuite) AfterEach(t provider.T) {
-	err := pgtest.MigrateDown(context.Background(), &s.dbCreds)
+	err := miniotest.CleanUpBucket(context.Background(), s.fileCreds)
+	require.NoError(t, err)
+	err = pgtest.TruncateTables(context.Background(), s.dbCreds)
 	require.NoError(t, err)
 }
 
