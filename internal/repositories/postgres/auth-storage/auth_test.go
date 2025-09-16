@@ -1,3 +1,5 @@
+//go:build integration
+
 package authstorage_test
 
 import (
