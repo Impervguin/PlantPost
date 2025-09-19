@@ -1,3 +1,5 @@
+//go:build integration
+
 package searchstorage_test
 
 import (
