@@ -145,10 +145,10 @@ func (s *FileStorageTestSuite) AfterAll(t provider.T) {
 }
 
 func (s *FileStorageTestSuite) AfterEach(t provider.T) {
-	err := pgtest.TruncateTables(context.Background(), s.dbCreds)
-	require.NoError(t, err)
-	err = miniotest.CleanUpBucket(context.Background(), s.fileCreds)
-	require.NoError(t, err)
+	// err := pgtest.TruncateTables(context.Background(), s.dbCreds)
+	// require.NoError(t, err)
+	// err = miniotest.CleanUpBucket(context.Background(), s.fileCreds)
+	// require.NoError(t, err)
 }
 
 func createTestFileData() models.FileData {

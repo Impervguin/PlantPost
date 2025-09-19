@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -19,11 +18,7 @@ func NewTestApp(config *AppConfig, network string) (testcontainers.Container, *A
 	fmt.Println("Parsing port")
 	fmt.Sscanf(AppPort, "%d", &ParsedPort)
 	var exposedPorts []string
-	if config.ExternalDataSource {
-		exposedPorts = []string{}
-	} else {
-		exposedPorts = []string{AppPort}
-	}
+	exposedPorts = []string{AppPort}
 	req := testcontainers.ContainerRequest{
 		FromDockerfile: testcontainers.FromDockerfile{
 			Context:    config.BuildContext,
@@ -41,11 +36,6 @@ func NewTestApp(config *AppConfig, network string) (testcontainers.Container, *A
 			wait.ForListeningPort(nat.Port(AppPort)),
 		),
 		Networks: []string{network},
-		HostConfigModifier: func(hc *container.HostConfig) {
-			if config.ExternalDataSource {
-				hc.NetworkMode = "host"
-			}
-		},
 		Hostname: config.Host,
 	}
 	cnt, err := testcontainers.GenericContainer(context.Background(), testcontainers.GenericContainerRequest{

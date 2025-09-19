@@ -166,10 +166,10 @@ func (s *AlbumRepositoryTestSuite) AfterAll(t provider.T) {
 }
 
 func (s *AlbumRepositoryTestSuite) AfterEach(t provider.T) {
-	err := miniotest.CleanUpBucket(context.Background(), s.fileCreds)
-	require.NoError(t, err)
-	err = pgtest.TruncateTables(context.Background(), s.dbCreds)
-	require.NoError(t, err)
+	// err := miniotest.CleanUpBucket(context.Background(), s.fileCreds)
+	// require.NoError(t, err)
+	// err = pgtest.TruncateTables(context.Background(), s.dbCreds)
+	// require.NoError(t, err)
 }
 
 func (s *AlbumRepositoryTestSuite) pushTestPlant(t provider.T) *plant.Plant {

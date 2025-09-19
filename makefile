@@ -29,6 +29,15 @@ test-unit: allure-clear
 test-integration: allure-clear
 	$(INTEGRATION_TESTS)
 
+.PHONY: test-integration-external
+test-integration-external: allure-clear
+	$(SCRIPTS)/integration_external.sh
+
+.PHONY: test-integration-parallel
+test-integration-parallel: allure-clear
+	$(SCRIPTS)/integration_external.sh & $(SCRIPTS)/integration_external.sh & $(SCRIPTS)/integration_external.sh & $(SCRIPTS)/integration_external.sh
+
+
 .PHONY: test-e2e
 test-e2e: allure-clear
 	$(E2E_TESTS)

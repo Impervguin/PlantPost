@@ -170,10 +170,10 @@ func (s *PostRepositoryTestSuite) AfterAll(t provider.T) {
 }
 
 func (s *PostRepositoryTestSuite) AfterEach(t provider.T) {
-	err := pgtest.TruncateTables(context.Background(), s.dbCreds)
-	require.NoError(t, err)
-	err = miniotest.CleanUpBucket(context.Background(), s.fileCreds)
-	require.NoError(t, err)
+	// err := pgtest.TruncateTables(context.Background(), s.dbCreds)
+	// require.NoError(t, err)
+	// err = miniotest.CleanUpBucket(context.Background(), s.fileCreds)
+	// require.NoError(t, err)
 }
 
 func (s *PostRepositoryTestSuite) uploadTestPhoto(ctx context.Context, t provider.T) uuid.UUID {

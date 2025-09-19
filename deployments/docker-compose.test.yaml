@@ -1,4 +1,29 @@
 services:
+  api:
+    container_name: api
+    build:
+      context: ../
+      dockerfile: ./api.test.dockerfile
+    ports:
+      - "23450:23450"
+    volumes:
+      - ../config/api.test.yaml:/build/config/api.yaml
+    deploy:
+      resources:
+        limits:
+          cpus: '8'
+          memory: 4G
+    
+    depends_on:
+      pg:
+        condition: service_healthy 
+      pg-migrations:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+    networks:
+      - pg-net
+      - minio-net
   pg:
     container_name: pg_test
     hostname: pg_test

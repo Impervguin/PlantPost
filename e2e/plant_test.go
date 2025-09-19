@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/ozontech/allure-go/pkg/framework/provider"
 	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"github.com/stretchr/testify/require"
@@ -57,11 +58,7 @@ func (s *PlantTestSuite) BeforeAll(t provider.T) {
 	s.appConfig, err = appcnt.GetConfig(configPath)
 	require.NoError(t, err)
 
-	if s.appConfig.ExternalDataSource {
-		s.network = &testcontainers.DockerNetwork{
-			Name: "host",
-		}
-
+	if s.appConfig.External {
 		s.pgConfig, err = pgcnt.GetConfig(configPath)
 		require.NoError(t, err)
 
@@ -73,6 +70,11 @@ func (s *PlantTestSuite) BeforeAll(t provider.T) {
 
 		s.minioConfig.OuterHost = &s.minioConfig.Host
 		s.minioConfig.OuterPort = &s.minioConfig.Port
+
+		s.appConfig.OuterHost = &s.appConfig.Host
+		s.appConfig.OuterPort = &s.appConfig.Port
+
+		miniocnt.Migrate(context.Background(), s.minioConfig)
 	} else {
 		s.network, err = network.New(ctx)
 		require.NoError(t, err)
@@ -100,24 +102,26 @@ func (s *PlantTestSuite) BeforeEach(t provider.T) {
 	t.Epic("Plant E2E")
 	t.Feature("Plant")
 	var err error
-	if s.appCnt == nil {
-		s.appCnt, s.appConfig, err = appcnt.NewTestApp(s.appConfig, s.network.Name)
-		require.NoError(t, err)
-	} else {
-		s.appCnt.Start(context.Background())
+	if !s.appConfig.External {
+		if s.appCnt == nil {
+			s.appCnt, s.appConfig, err = appcnt.NewTestApp(s.appConfig, s.network.Name)
+			require.NoError(t, err)
+		} else {
+			s.appCnt.Start(context.Background())
+		}
 	}
 }
 
 func (s *PlantTestSuite) AfterEach(t provider.T) {
-	err := pgcnt.TruncateTables(context.Background(), s.pgConfig)
-	require.NoError(t, err)
-	err = miniocnt.CleanUpBucket(context.Background(), s.minioConfig)
-	require.NoError(t, err)
+	// err := pgcnt.TruncateTables(context.Background(), s.pgConfig)
+	// require.NoError(t, err)
+	// err = miniocnt.CleanUpBucket(context.Background(), s.minioConfig)
+	// require.NoError(t, err)
 }
 
 func (s *PlantTestSuite) AfterAll(t provider.T) {
 	ctx := context.Background()
-	if !s.appConfig.ExternalDataSource {
+	if !s.appConfig.External {
 		s.network.Remove(ctx)
 	}
 	if s.pgcnt != nil {
@@ -361,11 +365,12 @@ func (b *PlantRequestDataBuilder) Build() *PlantRequest {
 }
 
 func NewPlantRequestDataBuilder() *PlantRequestDataBuilder {
+	uuu := uuid.New()
 	return &PlantRequestDataBuilder{
-		Name:          "Test Plant",
-		LatinName:     "Testus Plantus",
-		Description:   "Testus plantus description",
-		MainPhotoName: "test_photo.jpg",
+		Name:          uuu.String()[:24],
+		LatinName:     uuu.String() + " Plantus",
+		Description:   uuu.String() + " Plantus desc",
+		MainPhotoName: uuu.String() + "_photo.jpg",
 		MainPhoto:     []byte("test photo content"),
 		Category:      "coniferous",
 		Specification: NewConiferousSpecificationDataBuilder(),
@@ -420,11 +425,13 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 			require.NoError(t, err)
 		})
+		plantUUID := uuid.New()
+		kustUUID := uuid.New()
 
 		t.WithNewStep("Fill storage with plants", func(pctx provider.StepCtx) {
 			plantsData := []*PlantRequest{
 				NewPlantRequestDataBuilder().
-					WithName("Test Plant 1").
+					WithName("Test " + plantUUID.String() + "1").
 					WithLatinName("Testus Plantus 1").
 					WithDescription("Testus plantus description 1").
 					WithMainPhoto([]byte("test photo content 1")).
@@ -440,7 +447,7 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 						WithWinterHardiness(plant.WinterHardiness(10))).
 					Build(),
 				NewPlantRequestDataBuilder().
-					WithName("Test Plant 2").
+					WithName("Test " + plantUUID.String() + "2").
 					WithLatinName("Testus Plantus 2").
 					WithDescription("Testus plantus description 2").
 					WithMainPhoto([]byte("test photo content 2")).
@@ -456,7 +463,7 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 						WithWinterHardiness(plant.WinterHardiness(10))).
 					Build(),
 				NewPlantRequestDataBuilder().
-					WithName("Test Plant 3").
+					WithName("Test " + plantUUID.String() + "3").
 					WithLatinName("Testus Plantus 3").
 					WithDescription("Testus plantus description 3").
 					WithMainPhoto([]byte("test photo content 3")).
@@ -473,7 +480,7 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 						WithFloweringPeriod(plant.Spring)).
 					Build(),
 				NewPlantRequestDataBuilder().
-					WithName("Test Kust 1").
+					WithName("Test " + kustUUID.String() + "1").
 					WithLatinName("Testus Kustus 1").
 					WithDescription("Testus kustus description 1").
 					WithMainPhoto([]byte("test kust photo content 1")).
@@ -489,7 +496,7 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 						WithWinterHardiness(plant.WinterHardiness(10))).
 					Build(),
 				NewPlantRequestDataBuilder().
-					WithName("Test Kust 2").
+					WithName("Test " + kustUUID.String() + "2").
 					WithLatinName("Testus Kustus 2").
 					WithDescription("Testus kustus description 2").
 					WithMainPhoto([]byte("test kust photo content 2")).
@@ -505,7 +512,7 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 						WithWinterHardiness(plant.WinterHardiness(10))).
 					Build(),
 				NewPlantRequestDataBuilder().
-					WithName("Test Kust 3").
+					WithName("Test " + kustUUID.String() + "3").
 					WithLatinName("Testus Kustus 3").
 					WithDescription("Testus kustus description 3").
 					WithMainPhoto([]byte("test kust photo content 3")).
@@ -536,8 +543,8 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 		})
 
 		t.WithNewStep("Search for decidious kusts", func(pctx provider.StepCtx) {
-			expectedNames := []string{"Test Kust 1", "Test Kust 2", "Test Kust 3"}
-			resp, err := client.Get(addr + "/search/plants?name=Kust")
+			expectedNames := []string{"Test " + kustUUID.String() + "1", "Test " + kustUUID.String() + "2", "Test " + kustUUID.String() + "3"}
+			resp, err := client.Get(addr + "/search/plants?name=" + kustUUID.String())
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 			require.NoError(t, err)
 			var searchResp map[string]interface{}
@@ -551,8 +558,8 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 		})
 
 		t.WithNewStep("Search for plants with summer flowering period", func(pctx provider.StepCtx) {
-			expectedNames := []string{"Test Kust 3"}
-			resp, err := client.Get(addr + "/search/plants?flowering_period=summer")
+			expectedNames := []string{"Test " + kustUUID.String() + "3"}
+			resp, err := client.Get(addr + "/search/plants?flowering_period=summer&name=" + kustUUID.String())
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 			require.NoError(t, err)
 			var searchResp map[string]interface{}
@@ -566,8 +573,8 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 		})
 
 		t.WithNewStep("Search for plants with height between 1.5 and 5 and diameter between 0.5 and 1.5", func(pctx provider.StepCtx) {
-			expectedNames := []string{"Test Plant 1", "Test Plant 2"}
-			resp, err := client.Get(addr + "/search/plants?height=1.5-5&diameter=0.5-1.5")
+			expectedNames := []string{"Test " + plantUUID.String() + "1", "Test " + plantUUID.String() + "2"}
+			resp, err := client.Get(addr + "/search/plants?height=1.5-5&diameter=0.5-1.5&name=" + plantUUID.String())
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 			require.NoError(t, err)
 			var searchResp map[string]interface{}
@@ -579,22 +586,23 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 				require.Contains(t, expectedNames, plantMap["name"].(string))
 			}
 		})
+		testUserUUID := uuid.New()
 
 		t.WithNewStep("Register user", func(pctx provider.StepCtx) {
-			resp, err := client.Post(addr+"/auth/register", "application/json", strings.NewReader(fmt.Sprintf(`{"username":"%s","password":"%s", "email":"%s"},`, "testuser", "testuser", "test@test.com")))
+			resp, err := client.Post(addr+"/auth/register", "application/json", strings.NewReader(fmt.Sprintf(`{"username":"%s","password":"%s", "email":"%s"},`, testUserUUID.String()[:24], testUserUUID.String(), testUserUUID.String()+"@test.com")))
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 			require.NoError(t, err)
 		})
 
 		t.WithNewStep("Login as test user", func(pctx provider.StepCtx) {
-			resp, err := client.Post(addr+"/auth/login", "application/json", strings.NewReader(fmt.Sprintf(`{"username":"%s","password":"%s"},`, "testuser", "testuser")))
+			resp, err := client.Post(addr+"/auth/login", "application/json", strings.NewReader(fmt.Sprintf(`{"username":"%s","password":"%s"},`, testUserUUID.String()[:24], testUserUUID.String())))
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 			require.NoError(t, err)
 		})
 
 		var KustIds []string
 		t.WithNewStep("Get Kust IDs", func(pctx provider.StepCtx) {
-			resp, err := client.Get(addr + "/search/plants?name=Kust")
+			resp, err := client.Get(addr + "/search/plants?name=" + kustUUID.String())
 			require.Equal(t, http.StatusOK, resp.StatusCode)
 			require.NoError(t, err)
 			var searchResp map[string]interface{}
@@ -607,9 +615,11 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 			}
 		})
 
+		testAlbumUUID := uuid.New()
+
 		t.WithNewStep("Create album", func(pctx provider.StepCtx) {
 			var body map[string]interface{} = map[string]interface{}{
-				"name":        "Test Album",
+				"name":        "Test " + testAlbumUUID.String(),
 				"description": "Test album description",
 				"plant_ids":   KustIds,
 			}
@@ -627,7 +637,6 @@ func (s *PlantTestSuite) TestE2EPlant(t provider.T) {
 			var albumsResp map[string]interface{}
 			err = json.NewDecoder(resp.Body).Decode(&albumsResp)
 			require.NoError(t, err)
-			require.Equal(t, 1, len(albumsResp["albums"].([]interface{})))
 		})
 
 		t.WithNewStep("Logout", func(pctx provider.StepCtx) {

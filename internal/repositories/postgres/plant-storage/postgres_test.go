@@ -5,6 +5,7 @@ package plantstorage_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -147,15 +148,15 @@ func (s *PlantRepositoryTestSuite) AfterAll(t provider.T) {
 }
 
 func (s *PlantRepositoryTestSuite) AfterEach(t provider.T) {
-	err := pgtest.TruncateTables(context.Background(), s.dbCreds)
-	require.NoError(t, err)
-	err = miniotest.CleanUpBucket(context.Background(), s.fileCreds)
-	require.NoError(t, err)
+	// err := pgtest.TruncateTables(context.Background(), s.dbCreds)
+	// require.NoError(t, err)
+	// err = miniotest.CleanUpBucket(context.Background(), s.fileCreds)
+	// require.NoError(t, err)
 }
 
 func (s *PlantRepositoryTestSuite) pushTestPhoto(ctx context.Context, t provider.T) uuid.UUID {
 	fileData := models.FileData{
-		Name:        "test_photo.jpg",
+		Name:        fmt.Sprintf("test-photo-%s.jpg", uuid.NewString()),
 		Reader:      bytes.NewReader([]byte("test photo content")),
 		ContentType: "image/jpeg",
 	}
@@ -190,9 +191,9 @@ func (s *PlantRepositoryTestSuite) createTestPlant(ctx context.Context, t provid
 	// Create plant
 	plnt, err := plant.CreatePlant(
 		uuid.New(),
-		"Test Plant",
-		"Testus Plantus",
-		"Test description",
+		"Test Plant"+uuid.NewString(),
+		"Testus Plantus"+uuid.NewString(),
+		"Test description"+uuid.NewString(),
 		mainPhotoID,
 		*photos,
 		plant.ConiferousCategory,

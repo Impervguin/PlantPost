@@ -107,16 +107,16 @@ func (s *AuthRepositoryTestSuite) AfterAll(t provider.T) {
 }
 
 func (s *AuthRepositoryTestSuite) AfterEach(t provider.T) {
-	err := pgtest.TruncateTables(context.Background(), s.dbCreds)
-	require.NoError(t, err)
+	// err := pgtest.TruncateTables(context.Background(), s.dbCreds)
+	// require.NoError(t, err)
 }
 
 func (s *AuthRepositoryTestSuite) createTestMember(t provider.T) *auth.Member {
 	memID := uuid.New()
 	user, err := auth.CreateMember(
 		memID,
-		memID.String()[:8],
-		memID.String()[:8]+"@example.com",
+		memID.String()[:24],
+		memID.String()+"@example.com",
 		[]byte("hashedpassword"),
 		time.Now(),
 	)
@@ -273,17 +273,17 @@ func (s *AuthRepositoryTestSuite) TestUpdateMember(t provider.T) {
 
 	ctx := context.Background()
 	testMember := s.createTestMember(t)
+	u := uuid.NewString()
 
 	t.WithNewStep("Create initial member", func(pctx provider.StepCtx) {
 		_, err := s.repo.Create(ctx, testMember)
 		require.NoError(t, err)
 	})
+	newName := u[:24]
+	newEmail := u + "updated@example.com"
+	newPassword := []byte("updatedhash")
 
 	t.WithNewStep("Update member", func(pctx provider.StepCtx) {
-		newName := "updateduser"
-		newEmail := "updated@example.com"
-		newPassword := []byte("updatedhash")
-
 		updatedUser, err := s.repo.Update(ctx, testMember.ID(), func(u auth.User) (auth.User, error) {
 			switch fact := u.(type) {
 			case *auth.Member:
@@ -314,9 +314,9 @@ func (s *AuthRepositoryTestSuite) TestUpdateMember(t provider.T) {
 		require.NoError(t, err)
 		fetchedMember, ok := fetchedUser.(*auth.Member)
 		require.True(t, ok)
-		assert.Equal(t, "updateduser", fetchedMember.Name())
-		assert.Equal(t, "updated@example.com", fetchedMember.Email())
-		assert.Equal(t, []byte("updatedhash"), fetchedMember.HashedPassword())
+		assert.Equal(t, newName, fetchedMember.Name())
+		assert.Equal(t, newEmail, fetchedMember.Email())
+		assert.Equal(t, newPassword, fetchedMember.HashedPassword())
 	})
 }
 
