@@ -2,12 +2,13 @@ FROM golang:1.24-alpine
 LABEL AUTHOR="Impervguin"
 
 RUN apk add --no-cache make curl libstdc++ libgcc
+RUN apk add --no-cache nodejs npm
 
 RUN mkdir /logs
 RUN mkdir /build
 WORKDIR /build
 
-COPY go.* .
+COPY go.* ./
 RUN go mod download
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 RUN go get -tool github.com/a-h/templ/cmd/templ@latest
@@ -18,9 +19,11 @@ RUN chmod +x /usr/local/bin/tailwindcss
 
 COPY ./cmd/api/ ./cmd/api/
 COPY ./internal/ ./internal/
-COPY ./config/*.yaml ./config/
 COPY tailwind.config.js .
+COPY tsconfig.json .
 COPY ./makefile .
+COPY package.json .
+COPY package-lock.json .
 
 CMD ["make", "api"]
 

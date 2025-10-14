@@ -1,9 +1,5 @@
 package plant
 
-import (
-	"github.com/google/uuid"
-)
-
 type ParamType string
 
 const (
@@ -19,7 +15,6 @@ type PlantParam struct {
 }
 
 type PlantCategory struct {
-	Name        string
-	MainPhotoID uuid.UUID
-	Params      []PlantParam
+	Name   string
+	Params []PlantParam
 }

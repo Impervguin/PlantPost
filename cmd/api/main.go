@@ -9,12 +9,10 @@ import (
 	postapi "PlantSite/internal/api/post-api"
 	searchapi "PlantSite/internal/api/search-api"
 	minioclient "PlantSite/internal/infra/minio-client"
-	filedir "PlantSite/internal/infra/os/file-dir"
 	sessionstorage "PlantSite/internal/infra/session-storage"
 	"PlantSite/internal/models"
 	authrepo "PlantSite/internal/repositories/authrepo"
 	miniofilestorage "PlantSite/internal/repositories/pgminio/file-storage"
-	fsfilestorage "PlantSite/internal/repositories/pgos/file-storage"
 	albumstorage "PlantSite/internal/repositories/postgres/album-storage"
 	authstorage "PlantSite/internal/repositories/postgres/auth-storage"
 	plantstorage "PlantSite/internal/repositories/postgres/plant-storage"
@@ -89,41 +87,25 @@ func main() {
 
 	// ------------- MEDIA STORAGES -------------
 
-	mediaType := GetMediaStorage()
 	var postFStorage models.FileRepository
 	var plantFStorage models.FileRepository
 
-	switch mediaType {
-	case MediaStorageFs:
-		logg.Info("Choosed filesystem media storage")
-		root := GetFsRoot()
-		fClient, err := filedir.NewFileClient(root)
-		if err != nil {
-			panic(err)
-		}
-		postFStorage = fsfilestorage.NewPgOsFileStorage(GetFsBucket(FSPostBucketPrefix), fClient, sqpgx)
-		plantFStorage = fsfilestorage.NewPgOsFileStorage(GetFsBucket(FSPlantBucketPrefix), fClient, sqpgx)
-	case MediaStorageMinio:
-		logg.Info("Choosed minio media storage")
-		postMinioCl, err := minioclient.NewMinioClient(GetPostMinioConfig())
-		if err != nil {
-			panic(err)
-		}
-		postFStorage, err = miniofilestorage.NewPgMinioStorage(ctx, sqpgx, postMinioCl)
-		if err != nil {
-			panic(err)
-		}
+	postMinioCl, err := minioclient.NewMinioClient(GetPostMinioConfig())
+	if err != nil {
+		panic(err)
+	}
+	postFStorage, err = miniofilestorage.NewPgMinioStorage(ctx, sqpgx, postMinioCl)
+	if err != nil {
+		panic(err)
+	}
 
-		plantMinioCl, err := minioclient.NewMinioClient(GetPlantMinioConfig())
-		if err != nil {
-			panic(err)
-		}
-		plantFStorage, err = miniofilestorage.NewPgMinioStorage(ctx, sqpgx, plantMinioCl)
-		if err != nil {
-			panic(err)
-		}
-	default:
-		panic("unknown media storage")
+	plantMinioCl, err := minioclient.NewMinioClient(GetPlantMinioConfig())
+	if err != nil {
+		panic(err)
+	}
+	plantFStorage, err = miniofilestorage.NewPgMinioStorage(ctx, sqpgx, plantMinioCl)
+	if err != nil {
+		panic(err)
 	}
 
 	// ------------- AUTH STORAGE -------------
@@ -211,6 +193,6 @@ func main() {
 	mediaStrategy := &urllib.StaticUrlStrategy{BaseUrl: GetMediaPath()}
 
 	viewRouter.Init(viewGroup, GetStaticPath(), authService, searchService, albumService, plantGetter, mediaStrategy, mediaStrategy)
-
+	fmt.Println("Starting API on port", GetApiPort())
 	engine.Run(fmt.Sprintf(":%d", GetApiPort()))
 }

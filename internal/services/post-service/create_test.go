@@ -1,10 +1,11 @@
+//go:build unit
+
 package postservice_test
 
 import (
 	"bytes"
 	"context"
 	"testing"
-	"time"
 
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/auth"
@@ -14,17 +15,29 @@ import (
 	postservice "PlantSite/internal/services/post-service"
 
 	"github.com/google/uuid"
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreatePost(t *testing.T) {
-	validSessionID := uuid.New()
-	validUserID := uuid.New()
-	ctx := context.Background()
+type PostServiceCreateTestSuite struct {
+	suite.Suite
+}
 
-	// Create test data
+func (s *PostServiceCreateTestSuite) BeforeEach(t provider.T) {
+	t.Epic("Post Service")
+	t.Feature("Post Management")
+}
+
+func (s *PostServiceCreateTestSuite) TestCreatePost(t provider.T) {
+	t.Tags("create", "write")
+	t.Description("Test post creation functionality")
+	t.Parallel()
+
+	validUserID := uuid.New()
+
 	validContent, err := post.NewContent("Test content", post.ContentTypePlainText)
 	require.NoError(t, err)
 
@@ -44,125 +57,90 @@ func TestCreatePost(t *testing.T) {
 		{ID: uuid.New(), Name: "photo2.png"},
 	}
 
-	validPost, err := post.NewPost(
-		validData.Title,
-		validData.Content,
-		validData.Tags,
-		validUserID,
-		post.NewPostPhotos(), // Will be filled in tests
-	)
-	require.NoError(t, err)
+	t.Run("Successful post creation", func(t provider.T) {
+		t.Parallel()
 
-	t.Run("Success", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+		asvc, ctx := setupAuthService(t, validUserID, true)
 
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
 
-		// Expect file uploads
-		for i, file := range validFiles {
-			frepo.On("Upload", mock.Anything, &file).Return(validPhotoFiles[i], nil)
-		}
+		t.WithNewStep("Setup file uploads", func(pctx provider.StepCtx) {
+			for i, file := range validFiles {
+				frepo.On("Upload", mock.Anything, &file).Return(validPhotoFiles[i], nil)
+			}
+		})
 
-		// Expect post creation with any post that has our photos
-		prepo.On("Create", mock.Anything, mock.AnythingOfType("*post.Post")).Run(func(args mock.Arguments) {
-			p := args.Get(1).(*post.Post)
-			assert.Equal(t, validData.Title, p.Title())
-			assert.Equal(t, validData.Content, p.Content())
-			assert.Equal(t, validData.Tags, p.Tags())
-			assert.Equal(t, validUserID, p.AuthorID())
-			assert.Equal(t, 2, p.Photos().Len())
-		}).Return(validPost, nil)
+		t.WithNewStep("Setup post creation", func(pctx provider.StepCtx) {
+			prepo.On("Create", mock.Anything, mock.AnythingOfType("*post.Post")).Run(func(args mock.Arguments) {
+				p := args.Get(1).(*post.Post)
+				assert.Equal(t, validData.Title, p.Title())
+				assert.Equal(t, validData.Content, p.Content())
+				assert.Equal(t, validData.Tags, p.Tags())
+				assert.Equal(t, validUserID, p.AuthorID())
+				assert.Equal(t, 2, p.Photos().Len())
+			}).Return(&post.Post{}, nil)
+		})
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		result, err := svc.CreatePost(ctx, validData, validFiles)
-		require.NoError(t, err)
-		assert.Equal(t, validPost, result)
+		t.WithNewStep("Create post", func(pctx provider.StepCtx) {
+			var err error
+			_, err = svc.CreatePost(ctx, validData, validFiles)
+			require.NoError(t, err)
+		})
 
-		// Verify all expectations were met
-		frepo.AssertExpectations(t)
-		prepo.AssertExpectations(t)
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
+			frepo.AssertExpectations(t)
+			prepo.AssertExpectations(t)
+		})
 	})
 
-	t.Run("NotAuthorized", func(t *testing.T) {
+	t.Run("Not authorized user", func(t provider.T) {
+		t.Parallel()
+
 		arepo := new(authmock.MockAuthRepository)
 		sessions := new(authmock.MockSessionStorage)
 		hasher := new(authmock.MockPasswdHasher)
 		asvc := authservice.NewAuthService(sessions, arepo, hasher)
+
 		user := new(authmock.MockUser)
 		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(nil, assert.AnError)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+		sessions.On("Get", mock.Anything, mock.Anything).Return(nil, assert.AnError)
+		ctx := asvc.Authenticate(context.Background(), uuid.New())
 
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.CreatePost(ctx, validData, validFiles)
-		require.Error(t, err)
+		t.WithNewStep("Attempt create post without authorization", func(pctx provider.StepCtx) {
+			_, err := svc.CreatePost(ctx, validData, validFiles)
+			require.Error(t, err)
+		})
 	})
 
-	t.Run("NotAuthor", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(false)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("User without author rights", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validUserID, false)
 
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.CreatePost(ctx, validData, validFiles)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
+		t.WithNewStep("Attempt create post without author rights", func(pctx provider.StepCtx) {
+			_, err := svc.CreatePost(ctx, validData, validFiles)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
+		})
 	})
 
-	t.Run("InvalidFileContentType", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("Invalid file content type", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validUserID, true)
 
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
@@ -173,99 +151,83 @@ func TestCreatePost(t *testing.T) {
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.CreatePost(ctx, validData, invalidFiles)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, postservice.ErrInvalidFileContentType)
+		t.WithNewStep("Attempt create post with invalid file type", func(pctx provider.StepCtx) {
+			_, err := svc.CreatePost(ctx, validData, invalidFiles)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, postservice.ErrInvalidFileContentType)
+		})
 	})
 
-	t.Run("FileUploadError", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("File upload error", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validUserID, true)
 
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
 
-		frepo.On("Upload", mock.Anything, &validFiles[0]).Return(nil, assert.AnError)
+		t.WithNewStep("Setup file upload error", func(pctx provider.StepCtx) {
+			frepo.On("Upload", mock.Anything, &validFiles[0]).Return(nil, assert.AnError)
+		})
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.CreatePost(ctx, validData, validFiles)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
+		t.WithNewStep("Attempt create post with file upload error", func(pctx provider.StepCtx) {
+			_, err := svc.CreatePost(ctx, validData, validFiles)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, assert.AnError)
+		})
 	})
 
-	t.Run("PostCreationError", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("Post creation error", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validUserID, true)
 
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
 
-		for i, file := range validFiles {
-			frepo.On("Upload", mock.Anything, &file).Return(validPhotoFiles[i], nil)
-		}
-		prepo.On("Create", mock.Anything, mock.AnythingOfType("*post.Post")).Return(nil, assert.AnError)
+		t.WithNewStep("Setup successful file uploads", func(pctx provider.StepCtx) {
+			for i, file := range validFiles {
+				frepo.On("Upload", mock.Anything, &file).Return(validPhotoFiles[i], nil)
+			}
+		})
+
+		t.WithNewStep("Setup post creation error", func(pctx provider.StepCtx) {
+			prepo.On("Create", mock.Anything, mock.AnythingOfType("*post.Post")).Return(nil, assert.AnError)
+		})
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.CreatePost(ctx, validData, validFiles)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
+		t.WithNewStep("Attempt create post with repository error", func(pctx provider.StepCtx) {
+			_, err := svc.CreatePost(ctx, validData, validFiles)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, assert.AnError)
+		})
 	})
 
-	t.Run("EmptyFiles", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("Post creation with empty files", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validUserID, true)
 
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
 
-		prepo.On("Create", mock.Anything, mock.AnythingOfType("*post.Post")).Return(validPost, nil)
+		t.WithNewStep("Setup post creation without files", func(pctx provider.StepCtx) {
+			prepo.On("Create", mock.Anything, mock.AnythingOfType("*post.Post")).Return(&post.Post{}, nil)
+		})
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		result, err := svc.CreatePost(ctx, validData, []models.FileData{})
-		require.NoError(t, err)
-		assert.Equal(t, validPost, result)
-		assert.Equal(t, 0, result.Photos().Len())
+		t.WithNewStep("Create post without files", func(pctx provider.StepCtx) {
+			result, err := svc.CreatePost(ctx, validData, []models.FileData{})
+			require.NoError(t, err)
+			assert.Equal(t, 0, result.Photos().Len())
+		})
 	})
+}
+
+func TestPostServiceCreate(t *testing.T) {
+	suite.RunSuite(t, new(PostServiceCreateTestSuite))
 }

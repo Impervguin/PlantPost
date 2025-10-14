@@ -1,0 +1,98 @@
+name: Test Go
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+
+      - name: Install make
+        run: sudo apt-get update && sudo apt-get install -y make
+
+      - name: Install Docker
+        uses: docker/setup-docker-action@v2
+      
+      - name: Install Go dependencies
+        run: |
+          go mod download
+          go mod verify
+      
+      - name: Make scripts executable
+        run: chmod +x scripts/unit_tests.sh scripts/integration_tests.sh
+
+      - name: Create output directory
+        run: mkdir -p out
+      
+      - name: Create test env files
+        run: |
+          mkdir -p config
+          echo "TEST_POSTGRES_USER=testgo" > config/pgtest.env
+          echo "TEST_POSTGRES_PASSWORD=testgo" >> config/pgtest.env
+          echo "TEST_POSTGRES_DATABASE=testgo" >> config/pgtest.env
+          echo "TEST_POSTGRES_PORT=5432" >> config/pgtest.env
+          echo "TEST_POSTGRES_IMAGE=postgres:17.4-alpine3.20" >> config/pgtest.env
+          echo "TEST_POSTGRES_MIGRATION_DIR=migrations/postgres" >> config/pgtest.env
+
+          echo "TEST_MINIO_USER=test" >> config/miniotest.env
+          echo "TEST_MINIO_PASSWORD=testtesttest" >> config/miniotest.env
+          echo "TEST_MINIO_BUCKET=test" >> config/miniotest.env
+          echo "TEST_MINIO_IMAGE=minio/minio:RELEASE.2025-04-08T15-41-24Z-cpuv1" >> config/miniotest.env
+          TEST_MINIO_USER=test
+      
+      - name: Run unit tests
+        id: unit-tests
+        run: ./scripts/unit_tests.sh
+        env:
+          ALLURE_OUTPUT_PATH: ${{ github.workspace }}
+          ALLURE_OUTPUT_DIR: allure-results
+
+      - name: Run integration tests
+        id: integration-tests
+        run: ./scripts/integration_tests.sh
+        if: steps.unit-tests.outcome == 'success'
+        env:
+          ALLURE_OUTPUT_PATH: ${{ github.workspace }}
+          ALLURE_OUTPUT_DIR: allure-results
+        
+      - name: Run e2e tests
+        run: ./scripts/e2e_tests.sh
+        if: steps.unit-tests.outcome == 'success' && steps.integration-tests.outcome == 'success'
+        env:
+          ALLURE_OUTPUT_PATH: ${{ github.workspace }}
+          ALLURE_OUTPUT_DIR: allure-results
+        
+      - name: Load test report history
+        uses: actions/checkout@v3
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh_pages
+      
+      - name: Build test report
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
+        with:
+          gh_pages: gh_pages
+          allure_history: allure-history
+          allure_results: allure-results
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+        

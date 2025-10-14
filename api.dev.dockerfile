@@ -12,7 +12,8 @@ RUN mkdir /logs
 WORKDIR /build
 
 # HOT RELOAD
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@v1.62.0
+
 
 # GO PACKAGES
 COPY go.* .

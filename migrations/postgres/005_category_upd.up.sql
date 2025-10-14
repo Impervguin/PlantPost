@@ -1,0 +1,1 @@
+ALTER TABLE plant_category DROP COLUMN photo_id;

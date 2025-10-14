@@ -8,6 +8,7 @@ type MinioCredentials struct {
 	Bucket   string
 	Host     string
 	Port     uint16
+	External bool
 }
 
 func NewMinioCredentials(user, password, bucket, host string, port uint16) *MinioCredentials {

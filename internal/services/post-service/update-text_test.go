@@ -1,9 +1,10 @@
+//go:build unit
+
 package postservice_test
 
 import (
 	"context"
 	"testing"
-	"time"
 
 	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
@@ -12,269 +13,248 @@ import (
 	postservice "PlantSite/internal/services/post-service"
 
 	"github.com/google/uuid"
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdatePost(t *testing.T) {
-	validSessionID := uuid.New()
-	ctx := context.Background()
+type PostServiceUpdateTextTestSuite struct {
+	suite.Suite
+}
+
+func (s *PostServiceUpdateTextTestSuite) BeforeEach(t provider.T) {
+	t.Epic("Post Service")
+	t.Feature("Post Management")
+}
+
+func (s *PostServiceUpdateTextTestSuite) TestUpdatePost(t provider.T) {
+	t.Tags("update", "write")
+	t.Description("Test post update functionality")
+	t.Parallel()
+
 	validUserID := uuid.New()
-
-	// Create test data
-	validContent, err := post.NewContent("Test content", post.ContentTypePlainText)
-	require.NoError(t, err)
-
-	photo1, err := post.NewPostPhoto(uuid.New(), 1)
-	require.NoError(t, err)
-	photo2, err := post.NewPostPhoto(uuid.New(), 2)
-	require.NoError(t, err)
-
-	photos := post.NewPostPhotos()
-	err = photos.Add(photo1)
-	require.NoError(t, err)
-	err = photos.Add(photo2)
-	require.NoError(t, err)
-
-	validPost, err := post.CreatePost(
-		uuid.New(),
-		"Test Post",
-		*validContent,
-		[]string{"tag1", "tag2"},
-		validUserID,
-		*photos,
-		time.Now().Add(-time.Hour),
-		time.Now().Add(-time.Hour).Add(time.Minute),
-	)
-	require.NoError(t, err)
-
-	validPostID := validPost.ID()
-	createdAt := validPost.CreatedAt()
-	updatedAt := validPost.UpdatedAt()
 
 	newContent, err := post.NewContent("updated content", post.ContentTypePlainText)
 	require.NoError(t, err)
 
-	updatedPost, err := post.CreatePost(
-		validPost.ID(),
-		"Updated Title",
-		*newContent,
-		[]string{"newtag1", "newtag2"},
-		validUserID,
-		*photos,
-		createdAt,
-		updatedAt.Add(time.Minute),
-	)
-	require.NoError(t, err)
 	updateData := postservice.UpdatePostTextData{
 		Title:   "Updated Title",
 		Content: *newContent,
 		Tags:    []string{"newtag1", "newtag2"},
 	}
 
-	t.Run("Success", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("Successful post update", func(t provider.T) {
+		t.Parallel()
 
-		prepo := new(MockPostRepository)
-		frepo := new(MockFileRepository)
-
-		prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
-			Return(validPost, nil)
-
-		svc := postservice.NewPostService(prepo, frepo, asvc)
-
-		result, err := svc.UpdatePost(ctx, validPostID, updateData)
+		validPost, err := NewPostBuilder().
+			WithAuthorID(validUserID).
+			Build()
+		beforeUpdateTime := validPost.UpdatedAt()
 		require.NoError(t, err)
-		assert.Equal(t, result.Tags(), updatedPost.Tags())
-		assert.Equal(t, result.Title(), updatedPost.Title())
-		assert.Equal(t, result.Content(), updatedPost.Content())
-		assert.NotEqual(t, result.UpdatedAt(), updatedAt)
+		validPostID := validPost.ID()
 
-		prepo.AssertExpectations(t)
+		asvc, ctx := setupAuthService(t, validUserID, true)
+
+		prepo := new(MockPostRepository)
+		t.WithNewStep("Setup post update", func(pctx provider.StepCtx) {
+			prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).Return(validPost, nil).Run(func(args mock.Arguments) {
+				fn := args.Get(2).(func(*post.Post) (*post.Post, error))
+				fn(validPost)
+			})
+		})
+
+		frepo := new(MockFileRepository)
+
+		svc := postservice.NewPostService(prepo, frepo, asvc)
+
+		var result *post.Post
+		t.WithNewStep("Update post", func(pctx provider.StepCtx) {
+			var err error
+			result, err = svc.UpdatePost(ctx, validPostID, updateData)
+			require.NoError(t, err)
+		})
+
+		t.WithNewStep("Verify updated fields", func(pctx provider.StepCtx) {
+			assert.Equal(t, result.Tags(), updateData.Tags)
+			assert.Equal(t, result.Title(), updateData.Title)
+			assert.Equal(t, result.Content(), updateData.Content)
+			assert.NotEqual(t, result.UpdatedAt(), beforeUpdateTime)
+		})
+
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
+			prepo.AssertExpectations(t)
+		})
 	})
 
-	t.Run("NotAuthorized", func(t *testing.T) {
+	t.Run("Not authorized user", func(t provider.T) {
+		t.Parallel()
+
+		validPost, err := NewPostBuilder().
+			WithAuthorID(validUserID).
+			Build()
+		require.NoError(t, err)
+		validPostID := validPost.ID()
+
 		arepo := new(authmock.MockAuthRepository)
 		sessions := new(authmock.MockSessionStorage)
 		hasher := new(authmock.MockPasswdHasher)
 		asvc := authservice.NewAuthService(sessions, arepo, hasher)
+
 		user := new(authmock.MockUser)
 		user.On("HasAuthorRights").Return(true)
-		sessions.On("Get", ctx, validSessionID).Return(nil, assert.AnError)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+		sessions.On("Get", mock.Anything, mock.Anything).Return(nil, assert.AnError)
+		ctx := asvc.Authenticate(context.Background(), uuid.New())
 
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.UpdatePost(ctx, validPostID, updateData)
-		require.Error(t, err)
+		t.WithNewStep("Attempt update post without authorization", func(pctx provider.StepCtx) {
+			_, err := svc.UpdatePost(ctx, validPostID, updateData)
+			require.Error(t, err)
+		})
 	})
 
-	t.Run("NotAuthor", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(false)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("User without author rights", func(t provider.T) {
+		t.Parallel()
+
+		validPost, err := NewPostBuilder().
+			WithAuthorID(validUserID).
+			Build()
+		require.NoError(t, err)
+		validPostID := validPost.ID()
+
+		asvc, ctx := setupAuthService(t, validUserID, false)
 
 		prepo := new(MockPostRepository)
 		frepo := new(MockFileRepository)
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.UpdatePost(ctx, validPostID, updateData)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
+		t.WithNewStep("Attempt update post without author rights", func(pctx provider.StepCtx) {
+			_, err := svc.UpdatePost(ctx, validPostID, updateData)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
+		})
 	})
 
-	t.Run("PostNotFound", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("Post not found", func(t provider.T) {
+		t.Parallel()
+
+		validPostID := uuid.New()
+
+		asvc, ctx := setupAuthService(t, validUserID, true)
 
 		prepo := new(MockPostRepository)
-		frepo := new(MockFileRepository)
+		t.WithNewStep("Setup post not found", func(pctx provider.StepCtx) {
+			prepo.On("Update", mock.Anything, validPostID, mock.Anything).Return(nil, assert.AnError)
+		})
 
-		prepo.On("Update", mock.Anything, validPostID, mock.Anything).Return(nil, assert.AnError)
+		frepo := new(MockFileRepository)
 
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.UpdatePost(ctx, validPostID, updateData)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
+		t.WithNewStep("Attempt update non-existent post", func(pctx provider.StepCtx) {
+			_, err := svc.UpdatePost(ctx, validPostID, updateData)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, assert.AnError)
+		})
 	})
 
-	t.Run("InvalidContent", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("Invalid content", func(t provider.T) {
+		t.Parallel()
+
+		validPost, err := NewPostBuilder().
+			WithAuthorID(validUserID).
+			Build()
+		require.NoError(t, err)
+		validPostID := validPost.ID()
+
+		asvc, ctx := setupAuthService(t, validUserID, true)
 
 		prepo := new(MockPostRepository)
+		t.WithNewStep("Setup post update", func(pctx provider.StepCtx) {
+			prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
+				Return(validPost, nil)
+		})
+
 		frepo := new(MockFileRepository)
 
 		invalidData := updateData
 		invalidData.Content = post.Content{Text: "", ContentType: "invalid_type"}
 
-		prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
-			Return(validPost, nil)
-
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.UpdatePost(ctx, validPostID, invalidData)
-		require.Error(t, err)
+		t.WithNewStep("Attempt update with invalid content", func(pctx provider.StepCtx) {
+			_, err := svc.UpdatePost(ctx, validPostID, invalidData)
+			require.Error(t, err)
+		})
 	})
 
-	t.Run("EmptyTitle", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("Empty title", func(t provider.T) {
+		t.Parallel()
+
+		validPost, err := NewPostBuilder().
+			WithAuthorID(validUserID).
+			Build()
+		require.NoError(t, err)
+		validPostID := validPost.ID()
+
+		asvc, ctx := setupAuthService(t, validUserID, true)
 
 		prepo := new(MockPostRepository)
+		t.WithNewStep("Setup post update", func(pctx provider.StepCtx) {
+			prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
+				Return(validPost, nil)
+		})
+
 		frepo := new(MockFileRepository)
 
 		invalidData := updateData
 		invalidData.Title = ""
 
-		prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
-			Return(validPost, nil)
-
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.UpdatePost(ctx, validPostID, invalidData)
-		require.Error(t, err)
+		t.WithNewStep("Attempt update with empty title", func(pctx provider.StepCtx) {
+			_, err := svc.UpdatePost(ctx, validPostID, invalidData)
+			require.Error(t, err)
+		})
 	})
 
-	t.Run("NilTags", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validUserID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("HasAuthorRights").Return(true)
-		user.On("ID").Return(validUserID)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validUserID).Return(user, nil)
+	t.Run("Nil tags", func(t provider.T) {
+		t.Parallel()
+
+		validPost, err := NewPostBuilder().
+			WithAuthorID(validUserID).
+			Build()
+		require.NoError(t, err)
+		validPostID := validPost.ID()
+
+		asvc, ctx := setupAuthService(t, validUserID, true)
 
 		prepo := new(MockPostRepository)
+		t.WithNewStep("Setup post update", func(pctx provider.StepCtx) {
+			prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
+				Return(validPost, nil)
+		})
+
 		frepo := new(MockFileRepository)
 
 		invalidData := updateData
 		invalidData.Tags = nil
 
-		prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
-			Return(validPost, nil)
-
 		svc := postservice.NewPostService(prepo, frepo, asvc)
 
-		_, err := svc.UpdatePost(ctx, validPostID, invalidData)
-		require.Error(t, err)
+		t.WithNewStep("Attempt update with nil tags", func(pctx provider.StepCtx) {
+			_, err := svc.UpdatePost(ctx, validPostID, invalidData)
+			require.Error(t, err)
+		})
 	})
+}
+
+func TestPostUpdateTextService(t *testing.T) {
+	suite.RunSuite(t, new(PostServiceUpdateTextTestSuite))
 }

@@ -4,16 +4,11 @@ http:
       rule: "PathPrefix(`/static`)"
       service: api-static
     
-    # media-router:
-    #   rule: "PathPrefix(`/media`)"
-    #   service: minio-media
-    #   middlewares: ["strip-media"]
-
-    media-fs-router:
+    media-router:
       rule: "PathPrefix(`/media`)"
-      service: fileserver
+      service: minio-media
       middlewares: ["strip-media"]
-    
+
     view-router:
       rule: "PathPrefix(`/view`)"
       service: view
@@ -21,6 +16,10 @@ http:
     api-router:
       rule: "PathPrefix(`/api`)"
       service: api
+    
+    swagger-router:
+      rule: "PathPrefix(`/swagger`)"
+      service: swagger
 
   services:
     api-static:
@@ -33,17 +32,17 @@ http:
         servers:
           - url: "http://minio:9000"
     
-    fileserver:
-      loadBalancer:
-        servers:
-          - url: "http://fileserver:9000"
-    
     view:
       loadBalancer:
         servers:
           - url: "http://api:23450"
     
     api:
+      loadBalancer:
+        servers:
+          - url: "http://api:23450"
+    
+    swagger:
       loadBalancer:
         servers:
           - url: "http://api:23450"

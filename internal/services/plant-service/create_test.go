@@ -1,10 +1,11 @@
+//go:build unit
+
 package plantservice_test
 
 import (
 	"bytes"
 	"context"
 	"testing"
-	"time"
 
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/auth"
@@ -14,85 +15,97 @@ import (
 	plantservice "PlantSite/internal/services/plant-service"
 
 	"github.com/google/uuid"
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreatePlant(t *testing.T) {
-	validSessionID := uuid.New()
+type PlantServiceCreateTestSuite struct {
+	suite.Suite
+	plantMother *PlantMother
+}
+
+func (s *PlantServiceCreateTestSuite) BeforeEach(t provider.T) {
+	t.Epic("Plant Service")
+	t.Feature("Plant Creation")
+	s.plantMother = &PlantMother{}
+}
+
+func (s *PlantServiceCreateTestSuite) TestCreatePlant(t provider.T) {
+	t.Tags("creation", "positive")
+	t.Description("Test plant creation functionality")
+	t.Parallel()
+
 	validOwnerID := uuid.New()
-	ctx := context.Background()
 	validFileID := uuid.New()
 	validCategoryName := "flowers"
 	validMainPhoto := models.FileData{Name: "plant.jpg", Reader: bytes.NewReader([]byte("image data"))}
 
-	validSpec := new(MockPlantSpecification)
-	validSpec.On("Validate").Return(nil)
+	t.Run("Successful plant creation", func(t provider.T) {
+		t.Parallel()
 
-	validData := plantservice.CreatePlantData{
-		Name:        "Rose",
-		LatinName:   "Rosa",
-		Description: "Beautiful flower",
-		Category:    validCategoryName,
-		Spec:        validSpec,
-	}
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
 
-	t.Run("Success", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validOwnerID,
-			ExpiresAt: time.Now().Add(time.Hour),
+		validSpec := new(MockPlantSpecification)
+		t.WithNewStep("Setup valid specification", func(pctx provider.StepCtx) {
+			validSpec.On("Validate").Return(nil)
+		})
+
+		validData := plantservice.CreatePlantData{
+			Name:        "Rose",
+			LatinName:   "Rosa",
+			Description: "Beautiful flower",
+			Category:    validCategoryName,
+			Spec:        validSpec,
 		}
-		user := new(authmock.MockUser)
-		// user.On("ID").Return(validOwnerID)
-		user.On("HasAuthorRights").Return(true)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validOwnerID).Return(user, nil)
 
 		prepo := new(MockPlantRepository)
 		crepo := new(MockPlantCategoryRepository)
 		frepo := new(MockFileRepository)
 
-		// Setup expectations
-		crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
-		frepo.On("Upload", mock.Anything, &validMainPhoto).Return(&models.File{ID: validFileID}, nil)
-		prepo.On("Create", mock.Anything, mock.AnythingOfType("*plant.Plant")).Return(&plant.Plant{}, nil)
+		t.WithNewStep("Setup repositories", func(pctx provider.StepCtx) {
+			crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
+			frepo.On("Upload", mock.Anything, &validMainPhoto).Return(&models.File{ID: validFileID}, nil)
+			prepo.On("Create", mock.Anything, mock.AnythingOfType("*plant.Plant")).Return(&plant.Plant{}, nil)
+		})
 
 		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
 
-		err := svc.CreatePlant(ctx, validData, validMainPhoto)
-		require.NoError(t, err)
+		t.WithNewStep("Create plant", func(pctx provider.StepCtx) {
+			err := svc.CreatePlant(ctx, validData, validMainPhoto)
+			require.NoError(t, err)
+		})
 
-		// Verify all expectations were met
-		user.AssertExpectations(t)
-		crepo.AssertExpectations(t)
-		frepo.AssertExpectations(t)
-		prepo.AssertExpectations(t)
-		validSpec.AssertExpectations(t)
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
+			crepo.AssertExpectations(t)
+			frepo.AssertExpectations(t)
+			prepo.AssertExpectations(t)
+
+		})
 	})
 
-	t.Run("NotAuthorized", func(t *testing.T) {
+	t.Run("Not authorized for plant creation", func(t provider.T) {
+		t.Parallel()
+
 		arepo := new(authmock.MockAuthRepository)
 		sessions := new(authmock.MockSessionStorage)
 		hasher := new(authmock.MockPasswdHasher)
 		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		// validSession := &authservice.Session{
-		// 	ID:        validSessionID,
-		// 	MemberID:  validOwnerID,
-		// 	ExpiresAt: time.Now().Add(time.Hour),
-		// }
-		user := new(authmock.MockUser)
-		user.On("ID").Return(validOwnerID)
-		user.On("HasAuthorRights").Return(true)
-		sessions.On("Get", ctx, validSessionID).Return(nil, assert.AnError)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validOwnerID).Return(user, nil)
+
+		t.WithNewStep("Setup authentication failure", func(pctx provider.StepCtx) {
+			sessions.On("Get", mock.Anything, mock.Anything).Return(nil, assert.AnError)
+		})
+
+		validSpec := new(MockPlantSpecification)
+		validData := plantservice.CreatePlantData{
+			Name:        "Rose",
+			LatinName:   "Rosa",
+			Description: "Beautiful flower",
+			Category:    validCategoryName,
+			Spec:        validSpec,
+		}
 
 		prepo := new(MockPlantRepository)
 		crepo := new(MockPlantCategoryRepository)
@@ -100,26 +113,25 @@ func TestCreatePlant(t *testing.T) {
 
 		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
 
-		err := svc.CreatePlant(ctx, validData, validMainPhoto)
-		require.Error(t, err)
+		t.WithNewStep("Attempt unauthorized creation", func(pctx provider.StepCtx) {
+			err := svc.CreatePlant(context.Background(), validData, validMainPhoto)
+			require.Error(t, err)
+		})
 	})
 
-	t.Run("NotAuthor", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validOwnerID,
-			ExpiresAt: time.Now().Add(time.Hour),
+	t.Run("No author rights for plant creation", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validOwnerID, false)
+
+		validSpec := new(MockPlantSpecification)
+		validData := plantservice.CreatePlantData{
+			Name:        "Rose",
+			LatinName:   "Rosa",
+			Description: "Beautiful flower",
+			Category:    validCategoryName,
+			Spec:        validSpec,
 		}
-		user := new(authmock.MockUser)
-		user.On("ID").Return(validOwnerID)
-		user.On("HasAuthorRights").Return(false)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validOwnerID).Return(user, nil)
 
 		prepo := new(MockPlantRepository)
 		crepo := new(MockPlantCategoryRepository)
@@ -127,93 +139,82 @@ func TestCreatePlant(t *testing.T) {
 
 		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
 
-		err := svc.CreatePlant(ctx, validData, validMainPhoto)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
+		t.WithNewStep("Attempt creation without author rights", func(pctx provider.StepCtx) {
+			err := svc.CreatePlant(ctx, validData, validMainPhoto)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, auth.ErrNoAuthorRights)
+		})
 	})
 
-	t.Run("InvalidCategory", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validOwnerID,
-			ExpiresAt: time.Now().Add(time.Hour),
+	t.Run("Invalid category during creation", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
+
+		validSpec := new(MockPlantSpecification)
+		validData := plantservice.CreatePlantData{
+			Name:        "Rose",
+			LatinName:   "Rosa",
+			Description: "Beautiful flower",
+			Category:    validCategoryName,
+			Spec:        validSpec,
 		}
-		user := new(authmock.MockUser)
-		user.On("ID").Return(validOwnerID)
-		user.On("HasAuthorRights").Return(true)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validOwnerID).Return(user, nil)
 
 		prepo := new(MockPlantRepository)
 		crepo := new(MockPlantCategoryRepository)
 		frepo := new(MockFileRepository)
 
-		crepo.On("GetCategory", mock.Anything, validCategoryName).Return(nil, assert.AnError)
+		t.WithNewStep("Setup category error", func(pctx provider.StepCtx) {
+			crepo.On("GetCategory", mock.Anything, validCategoryName).Return(nil, assert.AnError)
+		})
 
 		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
 
-		err := svc.CreatePlant(ctx, validData, validMainPhoto)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
+		t.WithNewStep("Attempt creation with invalid category", func(pctx provider.StepCtx) {
+			err := svc.CreatePlant(ctx, validData, validMainPhoto)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, assert.AnError)
+		})
 	})
 
-	t.Run("FileUploadError", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validOwnerID,
-			ExpiresAt: time.Now().Add(time.Hour),
+	t.Run("File upload error during creation", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
+
+		validSpec := new(MockPlantSpecification)
+		validData := plantservice.CreatePlantData{
+			Name:        "Rose",
+			LatinName:   "Rosa",
+			Description: "Beautiful flower",
+			Category:    validCategoryName,
+			Spec:        validSpec,
 		}
-		user := new(authmock.MockUser)
-		user.On("ID").Return(validOwnerID)
-		user.On("HasAuthorRights").Return(true)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validOwnerID).Return(user, nil)
 
 		prepo := new(MockPlantRepository)
 		crepo := new(MockPlantCategoryRepository)
 		frepo := new(MockFileRepository)
 
-		crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
-		frepo.On("Upload", mock.Anything, &validMainPhoto).Return(nil, assert.AnError)
+		t.WithNewStep("Setup file upload error", func(pctx provider.StepCtx) {
+			crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
+			frepo.On("Upload", mock.Anything, &validMainPhoto).Return(nil, assert.AnError)
+		})
 
 		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
 
-		err := svc.CreatePlant(ctx, validData, validMainPhoto)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
+		t.WithNewStep("Attempt creation with upload error", func(pctx provider.StepCtx) {
+			err := svc.CreatePlant(ctx, validData, validMainPhoto)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, assert.AnError)
+		})
 	})
 
-	t.Run("InvalidPlantData", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validOwnerID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("ID").Return(validOwnerID)
-		user.On("HasAuthorRights").Return(true)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validOwnerID).Return(user, nil)
+	t.Run("Invalid plant data during creation", func(t provider.T) {
+		t.Parallel()
 
-		prepo := new(MockPlantRepository)
-		crepo := new(MockPlantCategoryRepository)
-		frepo := new(MockFileRepository)
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
 
+		validSpec := new(MockPlantSpecification)
 		invalidData := plantservice.CreatePlantData{
 			Name:        "", // Invalid empty name
 			LatinName:   "Rosa",
@@ -222,71 +223,74 @@ func TestCreatePlant(t *testing.T) {
 			Spec:        validSpec,
 		}
 
-		crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
-		frepo.On("Upload", mock.Anything, &validMainPhoto).Return(&models.File{ID: validFileID}, nil)
+		prepo := new(MockPlantRepository)
+		crepo := new(MockPlantCategoryRepository)
+		frepo := new(MockFileRepository)
+
+		t.WithNewStep("Setup valid category and file upload", func(pctx provider.StepCtx) {
+			crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
+			frepo.On("Upload", mock.Anything, &validMainPhoto).Return(&models.File{ID: validFileID}, nil)
+		})
 
 		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
 
-		err := svc.CreatePlant(ctx, invalidData, validMainPhoto)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "plant name cannot be empty")
+		t.WithNewStep("Attempt creation with invalid data", func(pctx provider.StepCtx) {
+			err := svc.CreatePlant(ctx, invalidData, validMainPhoto)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "plant name cannot be empty")
+		})
 	})
 
-	t.Run("RepositoryCreateError", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validOwnerID,
-			ExpiresAt: time.Now().Add(time.Hour),
+	t.Run("Repository create error during creation", func(t provider.T) {
+		t.Parallel()
+
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
+
+		validSpec := new(MockPlantSpecification)
+		t.WithNewStep("Setup valid specification", func(pctx provider.StepCtx) {
+			validSpec.On("Validate").Return(nil)
+		})
+
+		validData := plantservice.CreatePlantData{
+			Name:        "Rose",
+			LatinName:   "Rosa",
+			Description: "Beautiful flower",
+			Category:    validCategoryName,
+			Spec:        validSpec,
 		}
-		user := new(authmock.MockUser)
-		user.On("ID").Return(validOwnerID)
-		user.On("HasAuthorRights").Return(true)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validOwnerID).Return(user, nil)
 
 		prepo := new(MockPlantRepository)
 		crepo := new(MockPlantCategoryRepository)
 		frepo := new(MockFileRepository)
 
-		crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
-		frepo.On("Upload", mock.Anything, &validMainPhoto).Return(&models.File{ID: validFileID}, nil)
-		prepo.On("Create", mock.Anything, mock.AnythingOfType("*plant.Plant")).Return(nil, assert.AnError)
+		t.WithNewStep("Setup repository create error", func(pctx provider.StepCtx) {
+			crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
+			frepo.On("Upload", mock.Anything, &validMainPhoto).Return(&models.File{ID: validFileID}, nil)
+			prepo.On("Create", mock.Anything, mock.AnythingOfType("*plant.Plant")).Return(nil, assert.AnError)
+		})
 
 		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
 
-		err := svc.CreatePlant(ctx, validData, validMainPhoto)
-		require.Error(t, err)
-		assert.ErrorIs(t, err, assert.AnError)
+		t.WithNewStep("Attempt creation with repository error", func(pctx provider.StepCtx) {
+			err := svc.CreatePlant(ctx, validData, validMainPhoto)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, assert.AnError)
+		})
+
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
+
+		})
 	})
 
-	t.Run("InvalidSpecification", func(t *testing.T) {
-		arepo := new(authmock.MockAuthRepository)
-		sessions := new(authmock.MockSessionStorage)
-		hasher := new(authmock.MockPasswdHasher)
-		asvc := authservice.NewAuthService(sessions, arepo, hasher)
-		validSession := &authservice.Session{
-			ID:        validSessionID,
-			MemberID:  validOwnerID,
-			ExpiresAt: time.Now().Add(time.Hour),
-		}
-		user := new(authmock.MockUser)
-		user.On("ID").Return(validOwnerID)
-		user.On("HasAuthorRights").Return(true)
-		sessions.On("Get", ctx, validSessionID).Return(validSession, nil)
-		ctx := asvc.Authenticate(ctx, validSessionID)
-		arepo.On("Get", ctx, validOwnerID).Return(user, nil)
+	t.Run("Invalid specification during creation", func(t provider.T) {
+		t.Parallel()
 
-		prepo := new(MockPlantRepository)
-		crepo := new(MockPlantCategoryRepository)
-		frepo := new(MockFileRepository)
+		asvc, ctx := setupAuthService(t, validOwnerID, true)
 
 		invalidSpec := new(MockPlantSpecification)
-		invalidSpec.On("Validate").Return(assert.AnError)
+		t.WithNewStep("Setup invalid specification", func(pctx provider.StepCtx) {
+			invalidSpec.On("Validate").Return(assert.AnError)
+		})
 
 		invalidData := plantservice.CreatePlantData{
 			Name:        "Rose",
@@ -296,14 +300,28 @@ func TestCreatePlant(t *testing.T) {
 			Spec:        invalidSpec,
 		}
 
-		crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
-		frepo.On("Upload", mock.Anything, &validMainPhoto).Return(&models.File{ID: validFileID}, nil)
+		prepo := new(MockPlantRepository)
+		crepo := new(MockPlantCategoryRepository)
+		frepo := new(MockFileRepository)
+
+		t.WithNewStep("Setup valid category and file upload", func(pctx provider.StepCtx) {
+			crepo.On("GetCategory", mock.Anything, validCategoryName).Return(&plant.PlantCategory{}, nil)
+			frepo.On("Upload", mock.Anything, &validMainPhoto).Return(&models.File{ID: validFileID}, nil)
+		})
 
 		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
 
-		err := svc.CreatePlant(ctx, invalidData, validMainPhoto)
-		require.Error(t, err)
+		t.WithNewStep("Attempt creation with invalid specification", func(pctx provider.StepCtx) {
+			err := svc.CreatePlant(ctx, invalidData, validMainPhoto)
+			require.Error(t, err)
+		})
 
-		invalidSpec.AssertExpectations(t)
+		t.WithNewStep("Verify expectations", func(pctx provider.StepCtx) {
+			invalidSpec.AssertExpectations(t)
+		})
 	})
+}
+
+func TestPlantServiceCreate(t *testing.T) {
+	suite.RunSuite(t, new(PlantServiceCreateTestSuite))
 }

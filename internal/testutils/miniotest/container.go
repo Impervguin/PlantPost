@@ -63,7 +63,6 @@ func NewTestMinio(ctx context.Context) (testcontainers.Container, *MinioCredenti
 	if err != nil {
 		return nil, nil, fmt.Errorf("error creating minio container: %w %s", err, logMsg)
 	}
-	time.Sleep(10 * time.Second)
 
 	return cnt, NewMinioCredentials(conf.User, conf.Password, conf.Bucket, host, uint16(port.Int())), nil
 }

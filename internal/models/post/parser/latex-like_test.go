@@ -1,3 +1,5 @@
+//go:build unit
+
 package parser_test
 
 import (
@@ -8,6 +10,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -32,11 +36,24 @@ func (m *MockPlantGetter) GetPlantByName(name string) (*plant.Plant, error) {
 	return args.Get(0).(*plant.Plant), args.Error(1)
 }
 
-func TestLatexLikeParser(t *testing.T) {
-	testID1 := uuid.New()
-	testID2 := uuid.New()
+type LatexLikeParserTestSuite struct {
+	suite.Suite
+	testID1    uuid.UUID
+	testID2    uuid.UUID
+	testPlant  *plant.Plant
+	testSpec   *plant.ConiferousSpecification
+	mockGetter *MockPlantGetter
+}
 
-	testSpec, err := plant.NewConiferousSpecification(
+func (s *LatexLikeParserTestSuite) BeforeEach(t provider.T) {
+	t.Epic("Post Parsing")
+	t.Feature("LaTeX-like Plant Parser")
+
+	s.testID1 = uuid.New()
+	s.testID2 = uuid.New()
+
+	var err error
+	s.testSpec, err = plant.NewConiferousSpecification(
 		1,
 		1,
 		10,
@@ -47,112 +64,174 @@ func TestLatexLikeParser(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	testPlant, err := plant.CreatePlant(
-		testID2,
+	s.testPlant, err = plant.CreatePlant(
+		s.testID2,
 		"rose",
 		"rose plant",
 		"rose plant",
 		uuid.New(),
 		plant.PlantPhotos{},
 		plant.ConiferousCategory,
-		testSpec,
+		s.testSpec,
 		time.Now(),
 		time.Now(),
 	)
 	require.NoError(t, err)
 
-	tests := []struct {
-		name             string
-		text             string
-		expectedText     string
-		expectedPlantIDs []uuid.UUID
-		mockSetup        func(*MockPlantGetter)
-		expectError      bool
-	}{
-		{
-			name:             "no plants",
-			text:             "just some text without plants",
-			expectedText:     "just some text without plants",
-			expectedPlantIDs: []uuid.UUID{},
-			mockSetup:        func(m *MockPlantGetter) {},
-		},
-		{
-			name:             "single plant by UUID",
-			text:             "text with \\plant{" + testID1.String() + "} plant",
-			expectedText:     "text with \\plant{" + testID1.String() + "} plant",
-			expectedPlantIDs: []uuid.UUID{testID1},
-			mockSetup: func(m *MockPlantGetter) {
-				m.On("GetPlants", []uuid.UUID{testID1}).Return([]*plant.Plant{testPlant}, nil)
-			},
-		},
-		{
-			name:             "multiple plants by UUID",
-			text:             "\\plant{" + testID1.String() + "} and \\plant{" + testID2.String() + "}",
-			expectedText:     "\\plant{" + testID1.String() + "} and \\plant{" + testID2.String() + "}",
-			expectedPlantIDs: []uuid.UUID{testID1, testID2},
-			mockSetup: func(m *MockPlantGetter) {
-				m.On("GetPlants", []uuid.UUID{testID1, testID2}).Return([]*plant.Plant{testPlant, testPlant}, nil)
-			},
-		},
-		{
-			name:             "plant by name",
-			text:             "\\plant{rose}",
-			expectedText:     "\\plant{" + testID2.String() + "}",
-			expectedPlantIDs: []uuid.UUID{testID2},
-			mockSetup: func(m *MockPlantGetter) {
-				m.On("GetPlantByName", "rose").Return(testPlant, nil)
-				m.On("GetPlants", []uuid.UUID{testID2}).Return([]*plant.Plant{testPlant}, nil)
-			},
-		},
-		{
-			name:             "mixed plants by UUID and name",
-			text:             "\\plant{" + testID1.String() + "} and \\plant{rose}",
-			expectedText:     "\\plant{" + testID1.String() + "} and \\plant{" + testID2.String() + "}",
-			expectedPlantIDs: []uuid.UUID{testID1, testID2},
-			mockSetup: func(m *MockPlantGetter) {
-				m.On("GetPlantByName", "rose").Return(testPlant, nil)
-				m.On("GetPlants", []uuid.UUID{testID1, testID2}).Return([]*plant.Plant{testPlant, testPlant}, nil)
-			},
-		},
-		{
-			name:             "invalid plant UUID",
-			text:             "\\plant{invalid-uuid}",
-			expectedPlantIDs: []uuid.UUID{},
-			mockSetup: func(m *MockPlantGetter) {
-				m.On("GetPlantByName", "invalid-uuid").Return(nil, fmt.Errorf("not found"))
-			},
-			expectError: true,
-		},
-		{
-			name:        "unclosed plant tag",
-			text:        "\\plant{rose",
-			expectError: true,
-			mockSetup:   func(m *MockPlantGetter) {},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockGetter := new(MockPlantGetter)
-			tt.mockSetup(mockGetter)
-
-			parser := parser.NewLatexLikePlantParser(mockGetter)
-			plantIDs, resultText, err := parser.Parse(tt.text)
-
-			if tt.expectError {
-				require.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-			require.Equal(t, tt.expectedText, resultText)
-			require.Equal(t, tt.expectedPlantIDs, plantIDs)
-			mockGetter.AssertExpectations(t)
-		})
-	}
+	s.mockGetter = new(MockPlantGetter)
 }
 
-func TestLatexLikeParser_Suffix(t *testing.T) {
+func (s *LatexLikeParserTestSuite) TestNoPlants(t provider.T) {
+	t.Tags("positive", "parsing")
+	t.Description("Test parsing text without plant references")
+
+	text := "just some text without plants"
+	expectedText := "just some text without plants"
+	expectedPlantIDs := []uuid.UUID{}
+
+	parser := parser.NewLatexLikePlantParser(s.mockGetter)
+	plantIDs, resultText, err := parser.Parse(text)
+
+	t.WithNewStep("Verify parsing results", func(ctx provider.StepCtx) {
+		require.NoError(t, err)
+		require.Equal(t, expectedText, resultText)
+		require.Equal(t, expectedPlantIDs, plantIDs)
+	})
+}
+
+func (s *LatexLikeParserTestSuite) TestSinglePlantByUUID(t provider.T) {
+	t.Tags("positive", "parsing")
+	t.Description("Test parsing single plant reference by UUID")
+
+	text := "text with \\plant{" + s.testID1.String() + "} plant"
+	expectedText := "text with \\plant{" + s.testID1.String() + "} plant"
+	expectedPlantIDs := []uuid.UUID{s.testID1}
+
+	s.mockGetter.On("GetPlants", []uuid.UUID{s.testID1}).Return([]*plant.Plant{s.testPlant}, nil)
+
+	parser := parser.NewLatexLikePlantParser(s.mockGetter)
+	plantIDs, resultText, err := parser.Parse(text)
+
+	t.WithNewStep("Verify parsing results", func(ctx provider.StepCtx) {
+		require.NoError(t, err)
+		require.Equal(t, expectedText, resultText)
+		require.Equal(t, expectedPlantIDs, plantIDs)
+		s.mockGetter.AssertExpectations(t)
+	})
+}
+
+func (s *LatexLikeParserTestSuite) TestMultiplePlantsByUUID(t provider.T) {
+	t.Tags("positive", "parsing")
+	t.Description("Test parsing multiple plant references by UUID")
+
+	text := "\\plant{" + s.testID1.String() + "} and \\plant{" + s.testID2.String() + "}"
+	expectedText := "\\plant{" + s.testID1.String() + "} and \\plant{" + s.testID2.String() + "}"
+	expectedPlantIDs := []uuid.UUID{s.testID1, s.testID2}
+
+	s.mockGetter.On("GetPlants", []uuid.UUID{s.testID1, s.testID2}).Return([]*plant.Plant{s.testPlant, s.testPlant}, nil)
+
+	parser := parser.NewLatexLikePlantParser(s.mockGetter)
+	plantIDs, resultText, err := parser.Parse(text)
+
+	t.WithNewStep("Verify parsing results", func(ctx provider.StepCtx) {
+		require.NoError(t, err)
+		require.Equal(t, expectedText, resultText)
+		require.Equal(t, expectedPlantIDs, plantIDs)
+		s.mockGetter.AssertExpectations(t)
+	})
+}
+
+func (s *LatexLikeParserTestSuite) TestPlantByName(t provider.T) {
+	t.Tags("positive", "parsing")
+	t.Description("Test parsing plant reference by name")
+
+	text := "\\plant{rose}"
+	expectedText := "\\plant{" + s.testID2.String() + "}"
+	expectedPlantIDs := []uuid.UUID{s.testID2}
+
+	s.mockGetter.On("GetPlantByName", "rose").Return(s.testPlant, nil)
+	s.mockGetter.On("GetPlants", []uuid.UUID{s.testID2}).Return([]*plant.Plant{s.testPlant}, nil)
+
+	parser := parser.NewLatexLikePlantParser(s.mockGetter)
+	plantIDs, resultText, err := parser.Parse(text)
+
+	t.WithNewStep("Verify parsing results", func(ctx provider.StepCtx) {
+		require.NoError(t, err)
+		require.Equal(t, expectedText, resultText)
+		require.Equal(t, expectedPlantIDs, plantIDs)
+		s.mockGetter.AssertExpectations(t)
+	})
+}
+
+func (s *LatexLikeParserTestSuite) TestMixedPlantsByUUIDAndName(t provider.T) {
+	t.Tags("positive", "parsing")
+	t.Description("Test parsing mixed plant references by UUID and name")
+
+	text := "\\plant{" + s.testID1.String() + "} and \\plant{rose}"
+	expectedText := "\\plant{" + s.testID1.String() + "} and \\plant{" + s.testID2.String() + "}"
+	expectedPlantIDs := []uuid.UUID{s.testID1, s.testID2}
+
+	s.mockGetter.On("GetPlantByName", "rose").Return(s.testPlant, nil)
+	s.mockGetter.On("GetPlants", []uuid.UUID{s.testID1, s.testID2}).Return([]*plant.Plant{s.testPlant, s.testPlant}, nil)
+
+	parser := parser.NewLatexLikePlantParser(s.mockGetter)
+	plantIDs, resultText, err := parser.Parse(text)
+
+	t.WithNewStep("Verify parsing results", func(ctx provider.StepCtx) {
+		require.NoError(t, err)
+		require.Equal(t, expectedText, resultText)
+		require.Equal(t, expectedPlantIDs, plantIDs)
+		s.mockGetter.AssertExpectations(t)
+	})
+}
+
+func (s *LatexLikeParserTestSuite) TestInvalidPlantUUID(t provider.T) {
+	t.Tags("negative", "parsing")
+	t.Description("Test parsing with invalid plant UUID")
+
+	text := "\\plant{invalid-uuid}"
+
+	s.mockGetter.On("GetPlantByName", "invalid-uuid").Return(nil, fmt.Errorf("not found"))
+
+	parser := parser.NewLatexLikePlantParser(s.mockGetter)
+
+	plantIDs, resultText, err := parser.Parse(text)
+
+	t.WithNewStep("Verify parsing error", func(ctx provider.StepCtx) {
+		require.Error(t, err)
+		require.Empty(t, plantIDs)
+		require.Empty(t, resultText)
+		s.mockGetter.AssertExpectations(t)
+	})
+}
+
+func (s *LatexLikeParserTestSuite) TestUnclosedPlantTag(t provider.T) {
+	t.Tags("negative", "parsing")
+	t.Description("Test parsing with unclosed plant tag")
+
+	text := "\\plant{rose"
+
+	parser := parser.NewLatexLikePlantParser(s.mockGetter)
+	plantIDs, resultText, err := parser.Parse(text)
+
+	t.WithNewStep("Verify parsing error", func(ctx provider.StepCtx) {
+		require.Error(t, err)
+		require.Empty(t, plantIDs)
+		require.Empty(t, resultText)
+	})
+}
+
+func (s *LatexLikeParserTestSuite) TestSuffix(t provider.T) {
+	t.Tags("functionality", "metadata")
+	t.Description("Test parser suffix method")
+
 	parser := parser.NewLatexLikePlantParser(nil)
-	require.Equal(t, "latex", parser.Suffix())
+
+	t.WithNewStep("Verify suffix value", func(ctx provider.StepCtx) {
+		require.Equal(t, "latex", parser.Suffix())
+	})
+}
+
+func TestLatexLikeParser(t *testing.T) {
+	suite.RunSuite(t, new(LatexLikeParserTestSuite))
 }
