@@ -37,7 +37,6 @@ const (
 const TestEnvPrefix = "test"
 
 func GetConfig() *PostgresConfig {
-
 	viper.SetDefault(ConfigTestPostgresUserKey, DefaultTestPostgresUser)
 	viper.SetDefault(ConfigTestPostgresPasswordKey, DefaultTestPostgresPassword)
 	viper.SetDefault(ConfigTestPostgresDatabaseKey, DefaultTestPostgresDatabase)

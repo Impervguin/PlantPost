@@ -11,6 +11,7 @@ var _ User = (*Author)(nil)
 
 type Author struct {
 	Member
+
 	rights     bool
 	giveTime   time.Time
 	revokeTime time.Time

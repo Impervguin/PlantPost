@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const HoursPerDay = 24
+
 var _ LogFileFactory = &EveryDayFileFactory{}
 
 type EveryDayFileFactory struct {
@@ -28,13 +30,16 @@ func NewEveryDayFileFactory(filePrefix string, fileSuffix string) (*EveryDayFile
 
 func (fa *EveryDayFileFactory) updFile() error {
 	fname := time.Now().Format(time.DateOnly)
-	fname = fname + fa.fileSuffix
+	fname += fa.fileSuffix
 	f, err := os.Create(fa.filePrefix + fname)
 	if err != nil {
 		return err
 	}
 	if fa.currentFile != nil {
-		fa.currentFile.Close()
+		err := fa.currentFile.Close()
+		if err != nil {
+			return err
+		}
 	}
 	fa.currentFile = f
 
@@ -44,12 +49,12 @@ func (fa *EveryDayFileFactory) updFile() error {
 func (f *EveryDayFileFactory) GetLogFile() *os.File {
 	if time.Since(f.lastDay) > 24*time.Hour {
 		f.updFile()
-		f.lastDay = time.Now().UTC().Truncate(24 * time.Hour)
+		f.lastDay = time.Now().UTC().Truncate(HoursPerDay * time.Hour)
 	}
 	return f.currentFile
 }
 
-func (f *EveryDayFileFactory) Write(p []byte) (n int, err error) {
+func (f *EveryDayFileFactory) Write(p []byte) (int, error) {
 	return f.GetLogFile().Write(p)
 }
 

@@ -66,7 +66,8 @@ func (r *ViewRouter) AlbumViewHandler(c *gin.Context) {
 	}
 
 	albm, err := r.albm.GetAlbum(ctx, almbID)
-	if errors.Is(err, auth.ErrNotAuthorized) || errors.Is(err, auth.ErrNoMemberRights) || errors.Is(err, albumservice.ErrNotOwner) {
+	if errors.Is(err, auth.ErrNotAuthorized) || errors.Is(err, auth.ErrNoMemberRights) ||
+		errors.Is(err, albumservice.ErrNotOwner) {
 		c.Redirect(http.StatusFound, "/view/albums")
 		return
 	} else if err != nil {
@@ -88,7 +89,7 @@ func (r *ViewRouter) AlbumViewHandler(c *gin.Context) {
 	plantMap := make(map[uuid.UUID]*searchservice.SearchPlant)
 	for _, plnt := range plants {
 		plantMap[plnt.ID] = plnt
-		plnt.MainPhoto.URL = r.plantMedia.GetUrl(plnt.MainPhoto.URL)
+		plnt.MainPhoto.URL = r.plantMedia.GetURL(plnt.MainPhoto.URL)
 	}
 	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.AlbumView(user, albm, plantMap))
 	c.Render(http.StatusOK, rend)
@@ -111,7 +112,8 @@ func (r *ViewRouter) AlbumUpdateHandler(c *gin.Context) {
 	}
 
 	albm, err := r.albm.GetAlbum(ctx, albmID)
-	if errors.Is(err, auth.ErrNotAuthorized) || errors.Is(err, auth.ErrNoMemberRights) || errors.Is(err, albumservice.ErrNotOwner) {
+	if errors.Is(err, auth.ErrNotAuthorized) || errors.Is(err, auth.ErrNoMemberRights) ||
+		errors.Is(err, albumservice.ErrNotOwner) {
 		c.Redirect(http.StatusFound, "/view/albums")
 		return
 	} else if err != nil {

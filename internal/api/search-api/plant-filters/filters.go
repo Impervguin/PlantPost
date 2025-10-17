@@ -97,21 +97,21 @@ func (f *PlantHeightFilter) ToDomain() (search.PlantFilter, error) {
 }
 
 func (f *PlantHeightFilter) Bind(params map[string]interface{}) error {
-	min, ok := params["min"]
+	minVal, ok := params["min"]
 	if !ok {
 		return fmt.Errorf("min not found in params")
 	}
-	minFloat, ok := min.(float64)
+	minFloat, ok := minVal.(float64)
 	if !ok {
 		return fmt.Errorf("min is not a float64")
 	}
 	f.Min = minFloat
 
-	max, ok := params["max"]
+	maxVal, ok := params["max"]
 	if !ok {
 		return fmt.Errorf("max not found in params")
 	}
-	maxFloat, ok := max.(float64)
+	maxFloat, ok := maxVal.(float64)
 	if !ok {
 		return fmt.Errorf("max is not a float64")
 	}
@@ -133,21 +133,21 @@ func (f *PlantDiameterFilter) ToDomain() (search.PlantFilter, error) {
 }
 
 func (f *PlantDiameterFilter) Bind(params map[string]interface{}) error {
-	min, ok := params["min"]
+	minVal, ok := params["min"]
 	if !ok {
 		return fmt.Errorf("min not found in params")
 	}
-	minFloat, ok := min.(float64)
+	minFloat, ok := minVal.(float64)
 	if !ok {
 		return fmt.Errorf("min is not a float64")
 	}
 	f.Min = minFloat
 
-	max, ok := params["max"]
+	maxVal, ok := params["max"]
 	if !ok {
 		return fmt.Errorf("max not found in params")
 	}
-	maxFloat, ok := max.(float64)
+	maxFloat, ok := maxVal.(float64)
 	if !ok {
 		return fmt.Errorf("max is not a float64")
 	}
@@ -201,21 +201,21 @@ func (f *PlantSoilAcidityFilter) ToDomain() (search.PlantFilter, error) {
 }
 
 func (f *PlantSoilAcidityFilter) Bind(params map[string]interface{}) error {
-	min, ok := params["min"]
+	minVal, ok := params["min"]
 	if !ok {
 		return fmt.Errorf("min not found in params")
 	}
-	minInt, ok := min.(int)
+	minInt, ok := minVal.(int)
 	if !ok {
 		return fmt.Errorf("min is not a int")
 	}
 	f.Min = plant.SoilAcidity(minInt)
 
-	max, ok := params["max"]
+	maxVal, ok := params["max"]
 	if !ok {
 		return fmt.Errorf("max not found in params")
 	}
-	maxInt, ok := max.(int)
+	maxInt, ok := maxVal.(int)
 	if !ok {
 		return fmt.Errorf("max is not a int")
 	}
@@ -301,21 +301,21 @@ func (f *PlantWinterHardinessFilter) ToDomain() (search.PlantFilter, error) {
 }
 
 func (f *PlantWinterHardinessFilter) Bind(params map[string]interface{}) error {
-	min, ok := params["min"]
+	minVal, ok := params["min"]
 	if !ok {
 		return fmt.Errorf("min not found in params")
 	}
-	minInt, ok := min.(int)
+	minInt, ok := minVal.(int)
 	if !ok {
 		return fmt.Errorf("min is not a int")
 	}
 	f.Min = plant.WinterHardiness(minInt)
 
-	max, ok := params["max"]
+	maxVal, ok := params["max"]
 	if !ok {
 		return fmt.Errorf("max not found in params")
 	}
-	maxInt, ok := max.(int)
+	maxInt, ok := maxVal.(int)
 	if !ok {
 		return fmt.Errorf("max is not a int")
 	}

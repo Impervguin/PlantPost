@@ -3,13 +3,14 @@ package mapper
 import (
 	"PlantSite/internal/api/album-api/response"
 	"PlantSite/internal/models/album"
+	"fmt"
 )
 
 const timeFormat = "2006-01-02 15:04:05"
 
 func MapGetAlbumResponse(alb *album.Album) (*response.GetAlbumResponse, error) {
 	if alb == nil {
-		return nil, nil
+		return nil, fmt.Errorf("album is nil")
 	}
 	plantIDs := make([]string, 0, len(alb.PlantIDs()))
 	for _, id := range alb.PlantIDs() {

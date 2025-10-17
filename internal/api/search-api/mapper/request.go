@@ -11,7 +11,7 @@ import (
 )
 
 type SearchPostsItem struct {
-	Type string                 `json:"type" form:"type" binding:"required"`
+	Type string                 `json:"type"   form:"type"   binding:"required"`
 	Data map[string]interface{} `json:"params" form:"params" binding:"required"`
 }
 
@@ -32,7 +32,7 @@ func MapSearchPostsRequest(c *gin.Context) (request.SearchPostsRequest, error) {
 }
 
 type SearchPlantsItem struct {
-	Type string                 `json:"type" form:"type" binding:"required"`
+	Type string                 `json:"type"   form:"type"   binding:"required"`
 	Data map[string]interface{} `json:"params" form:"params" binding:"required"`
 }
 

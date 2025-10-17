@@ -19,7 +19,6 @@ const LoggerKey = "logger"
 
 func LogMiddleware(l MiddlewareLogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		reqID := c.GetString(RequestIDKey)
 		if reqID == "" {
 			reqID = "unknown"
@@ -30,7 +29,17 @@ func LogMiddleware(l MiddlewareLogger) gin.HandlerFunc {
 		errs := c.Errors
 
 		if len(errs) > 0 {
-			l.Errorw("request failed", "request_id", reqID, "method", c.Request.Method, "path", c.Request.URL.Path, "error", errs)
+			l.Errorw(
+				"request failed",
+				"request_id",
+				reqID,
+				"method",
+				c.Request.Method,
+				"path",
+				c.Request.URL.Path,
+				"error",
+				errs,
+			)
 		}
 		l.Infow("request finished", "request_id", reqID, "method", c.Request.Method, "path", c.Request.URL.Path)
 	}

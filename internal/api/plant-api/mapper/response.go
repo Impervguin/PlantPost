@@ -11,7 +11,7 @@ var timeFormat = "2006-01-02 15:04:05"
 
 func MapGetPlantResponse(pl *plantservice.GetPlant) (*response.GetPlantResponse, error) {
 	if pl == nil {
-		return nil, nil
+		return nil, fmt.Errorf("plant is nil")
 	}
 	spec, err := spec.MapSpecification(pl.Specification)
 	if err != nil {

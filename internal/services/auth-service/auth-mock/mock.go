@@ -58,7 +58,11 @@ func (m *MockAuthRepository) Create(ctx context.Context, mem *auth.Member) (auth
 	return args.Get(0).(auth.User), args.Error(1)
 }
 
-func (m *MockAuthRepository) Update(ctx context.Context, id uuid.UUID, updateFn func(auth.User) (auth.User, error)) (auth.User, error) {
+func (m *MockAuthRepository) Update(
+	ctx context.Context,
+	id uuid.UUID,
+	updateFn func(auth.User) (auth.User, error),
+) (auth.User, error) {
 	args := m.Called(ctx, id, updateFn)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

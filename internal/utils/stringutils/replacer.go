@@ -2,6 +2,8 @@ package stringutils
 
 import "strings"
 
+const PercentSParts = 2
+
 // ReplaceFunc заменяет все вхождения, соответствующие pattern (где %s - любая подстрока),
 // используя функцию replacer для генерации замены для каждого совпадения
 func ReplaceFunc(s, pattern string, replacer func(match string) string) string {
@@ -10,7 +12,7 @@ func ReplaceFunc(s, pattern string, replacer func(match string) string) string {
 	}
 
 	parts := strings.Split(pattern, "%s")
-	if len(parts) != 2 {
+	if len(parts) != PercentSParts {
 		return s
 	}
 	prefix, suffix := parts[0], parts[1]

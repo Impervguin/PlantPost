@@ -11,10 +11,10 @@ import (
 )
 
 type CreatePlantBase struct {
-	Name        string `json:"name" form:"name" binding:"required"`
-	LatinName   string `json:"latin_name" form:"latin_name" binding:"required"`
+	Name        string `json:"name"        form:"name"        binding:"required"`
+	LatinName   string `json:"latin_name"  form:"latin_name"  binding:"required"`
 	Description string `json:"description" form:"description" binding:"required"`
-	Category    string `json:"category" form:"category" binding:"required"`
+	Category    string `json:"category"    form:"category"    binding:"required"`
 }
 
 type CreateConiferousPlantRequest struct {

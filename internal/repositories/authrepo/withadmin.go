@@ -11,7 +11,7 @@ import (
 
 var (
 	ErrAdminLoginExists   = errors.New("admin login already exists")
-	ErrAdminIdExists      = errors.New("admin id already exists")
+	ErrAdminIDExists      = errors.New("admin id already exists")
 	ErrAdminNotUpdateable = errors.New("admin not updateable")
 )
 
@@ -40,7 +40,13 @@ func NewWithAdminRepository(admin AdminRepository, authRepo auth.AuthRepository)
 	err := admin.Iterate(context.Background(), func(admin auth.Admin) error {
 		usr, err := authRepo.GetByName(context.Background(), admin.Login())
 		if errors.Is(err, auth.ErrUserNotFound) {
-			memb, err := auth.CreateMember(admin.ID(), admin.Login(), admin.Login()+"@admin.com", admin.HashedPassword(), time.Now())
+			memb, err := auth.CreateMember(
+				admin.ID(),
+				admin.Login(),
+				admin.Login()+"@admin.com",
+				admin.HashedPassword(),
+				time.Now(),
+			)
 			if err != nil {
 				return err
 			}
@@ -53,7 +59,7 @@ func NewWithAdminRepository(admin AdminRepository, authRepo auth.AuthRepository)
 		}
 		_, ok := usr.(*auth.Author)
 		if !ok {
-			usr, err = authRepo.Update(context.Background(), usr.ID(), func(usr auth.User) (auth.User, error) {
+			_, err = authRepo.Update(context.Background(), usr.ID(), func(usr auth.User) (auth.User, error) {
 				mem := usr.(*auth.Member)
 				return auth.CreateAuthor(*mem, time.Now(), true, time.Time{})
 			})
@@ -100,12 +106,16 @@ func (r *WithAdminRepository) Create(ctx context.Context, user *auth.Member) (au
 	}
 	_, ok = r.admin.GetByID(ctx, user.ID())
 	if ok {
-		return nil, ErrAdminIdExists
+		return nil, ErrAdminIDExists
 	}
 	return r.auth.Create(ctx, user)
 }
 
-func (r *WithAdminRepository) Update(ctx context.Context, id uuid.UUID, updateFn func(auth.User) (auth.User, error)) (auth.User, error) {
+func (r *WithAdminRepository) Update(
+	ctx context.Context,
+	id uuid.UUID,
+	updateFn func(auth.User) (auth.User, error),
+) (auth.User, error) {
 	_, exists := r.admin.GetByID(ctx, id)
 	if exists {
 		return nil, ErrAdminNotUpdateable

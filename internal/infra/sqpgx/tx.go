@@ -14,6 +14,10 @@ type SquirrelTx struct {
 	tx pgx.Tx
 }
 
+func NewSquirrelTx(tx pgx.Tx) *SquirrelTx {
+	return &SquirrelTx{tx: tx}
+}
+
 func (tx *SquirrelTx) QueryRow(ctx context.Context, sqb squirrel.SelectBuilder) (sqdb.Row, error) {
 	sql, args, err := sqb.PlaceholderFormat(squirrel.Dollar).ToSql()
 	if err != nil {
@@ -87,8 +91,4 @@ func (tx *SquirrelTx) Commit(ctx context.Context) error {
 
 func (tx *SquirrelTx) Rollback(ctx context.Context) error {
 	return tx.tx.Rollback(ctx)
-}
-
-func NewSquirrelTx(tx pgx.Tx) *SquirrelTx {
-	return &SquirrelTx{tx: tx}
 }

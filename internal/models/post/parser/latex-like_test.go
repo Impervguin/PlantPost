@@ -128,7 +128,8 @@ func (s *LatexLikeParserTestSuite) TestMultiplePlantsByUUID(t provider.T) {
 	expectedText := "\\plant{" + s.testID1.String() + "} and \\plant{" + s.testID2.String() + "}"
 	expectedPlantIDs := []uuid.UUID{s.testID1, s.testID2}
 
-	s.mockGetter.On("GetPlants", []uuid.UUID{s.testID1, s.testID2}).Return([]*plant.Plant{s.testPlant, s.testPlant}, nil)
+	s.mockGetter.On("GetPlants", []uuid.UUID{s.testID1, s.testID2}).
+		Return([]*plant.Plant{s.testPlant, s.testPlant}, nil)
 
 	parser := parser.NewLatexLikePlantParser(s.mockGetter)
 	plantIDs, resultText, err := parser.Parse(text)
@@ -172,7 +173,8 @@ func (s *LatexLikeParserTestSuite) TestMixedPlantsByUUIDAndName(t provider.T) {
 	expectedPlantIDs := []uuid.UUID{s.testID1, s.testID2}
 
 	s.mockGetter.On("GetPlantByName", "rose").Return(s.testPlant, nil)
-	s.mockGetter.On("GetPlants", []uuid.UUID{s.testID1, s.testID2}).Return([]*plant.Plant{s.testPlant, s.testPlant}, nil)
+	s.mockGetter.On("GetPlants", []uuid.UUID{s.testID1, s.testID2}).
+		Return([]*plant.Plant{s.testPlant, s.testPlant}, nil)
 
 	parser := parser.NewLatexLikePlantParser(s.mockGetter)
 	plantIDs, resultText, err := parser.Parse(text)

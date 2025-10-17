@@ -55,8 +55,10 @@ type PostPhoto struct {
 	PlaceNumber int
 }
 
-func (repo *PostgresSearchRepository) SearchPosts(ctx context.Context, srch *search.PostSearch) ([]*post.Post, error) {
-	whereClause, err := filters.NewPostgresPostSearch()
+func (repo *PostgresSearchRepository) postWhereClause(srch *search.PostSearch) (*filters.PostgresPostSearch, error) {
+	var whereClause *filters.PostgresPostSearch
+	var err error
+	whereClause, err = filters.NewPostgresPostSearch()
 	if err != nil {
 		return nil, fmt.Errorf("PostgresSearchRepository.SearchPosts failed %w", err)
 	}
@@ -69,6 +71,39 @@ func (repo *PostgresSearchRepository) SearchPosts(ctx context.Context, srch *sea
 		return whereClause.AddFilter(filt)
 	})
 
+	return whereClause, nil
+}
+
+func (repo *PostgresSearchRepository) parsePostRows(rows sqdb.Rows) ([]Post, error) {
+	posts := make([]Post, 0)
+	for rows.Next() {
+		var pst Post
+		err := rows.Scan(
+			&pst.ID,
+			&pst.Title,
+			&pst.Body,
+			&pst.AuthorID,
+			&pst.ContentType,
+			&pst.UpdatedAt,
+			&pst.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		posts = append(posts, pst)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return posts, nil
+}
+
+func (repo *PostgresSearchRepository) SearchPosts(ctx context.Context, srch *search.PostSearch) ([]*post.Post, error) {
+	whereClause, err := repo.postWhereClause(srch)
+	if err != nil {
+		return nil, fmt.Errorf("PostgresSearchRepository.SearchPosts failed %w", err)
+	}
+
 	rows, err := repo.db.Query(ctx,
 		squirrel.Select("id", "title", "body", "author_id", "content_type", "updated_at", "created_at").
 			From("post").
@@ -79,17 +114,9 @@ func (repo *PostgresSearchRepository) SearchPosts(ctx context.Context, srch *sea
 	} else if err != nil {
 		return nil, fmt.Errorf("PostgresSearchRepository.SearchPosts failed %w", err)
 	}
-	psts := make([]Post, 0)
-	for rows.Next() {
-		var pst Post
-		err := rows.Scan(&pst.ID, &pst.Title, &pst.Body, &pst.AuthorID, &pst.ContentType, &pst.UpdatedAt, &pst.CreatedAt)
-		if err != nil {
-			return nil, err
-		}
-		psts = append(psts, pst)
-	}
-	if rows.Err() != nil {
-		return nil, rows.Err()
+	psts, err := repo.parsePostRows(rows)
+	if err != nil {
+		return nil, fmt.Errorf("PostgresSearchRepository.SearchPosts failed %w", err)
 	}
 	posts := make([]*post.Post, 0)
 	for _, pst := range psts {
@@ -197,8 +224,10 @@ type PlantPhoto struct {
 	Description string
 }
 
-func (repo *PostgresSearchRepository) SearchPlants(ctx context.Context, srch *search.PlantSearch) ([]*plant.Plant, error) {
-	whereClause, err := filters.NewPostgresPlantSearch()
+func (repo *PostgresSearchRepository) whereClause(srch *search.PlantSearch) (*filters.PostgresPlantSearch, error) {
+	var whereClause *filters.PostgresPlantSearch
+	var err error
+	whereClause, err = filters.NewPostgresPlantSearch()
 	if err != nil {
 		return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
 	}
@@ -206,30 +235,33 @@ func (repo *PostgresSearchRepository) SearchPlants(ctx context.Context, srch *se
 	err = srch.Iterate(func(pf search.PlantFilter) error {
 		filt, err := filters.MapPlantFilter(pf)
 		if err != nil {
-			return err
+			return fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
 		}
 		return whereClause.AddFilter(filt)
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
 	}
+	return whereClause, nil
+}
 
-	rows, err := repo.db.Query(ctx,
-		squirrel.Select("id", "name", "latin_name", "description", "main_photo_id", "category", "updated_at", "created_at", "specification").
-			From("plant").
-			Where(whereClause),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
-	}
-	defer rows.Close()
+func (repo *PostgresSearchRepository) parsePlantRows(rows sqdb.Rows) ([]*plant.Plant, error) {
 	plants := make([]Plant, 0)
 	for rows.Next() {
 		var plnt Plant
-		var tmpSpec specificationmapper.JsonB
+		var tmpSpec specificationmapper.JSONB
 
-		err := rows.Scan(&plnt.ID, &plnt.Name, &plnt.LatinName, &plnt.Description, &plnt.MainPhotoID, &plnt.Category, &plnt.UpdatedAt, &plnt.CreatedAt, &tmpSpec)
+		err := rows.Scan(
+			&plnt.ID,
+			&plnt.Name,
+			&plnt.LatinName,
+			&plnt.Description,
+			&plnt.MainPhotoID,
+			&plnt.Category,
+			&plnt.CreatedAt,
+			&plnt.UpdatedAt,
+			&tmpSpec,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -241,12 +273,12 @@ func (repo *PostgresSearchRepository) SearchPlants(ctx context.Context, srch *se
 		plants = append(plants, plnt)
 	}
 	if rows.Err() != nil {
-		return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", rows.Err())
+		return nil, rows.Err()
 	}
 
 	truePlants := make([]*plant.Plant, 0)
 	for _, plnt := range plants {
-		photos, err := repo.fetchPlantPhotos(ctx, plnt.ID)
+		photos, err := repo.fetchPlantPhotos(context.Background(), plnt.ID)
 		if err != nil {
 			return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
 		}
@@ -263,19 +295,48 @@ func (repo *PostgresSearchRepository) SearchPlants(ctx context.Context, srch *se
 			*photos,
 			plnt.Category,
 			plantSpec,
-			plnt.CreatedAt,
-			plnt.UpdatedAt,
+			time.Now(),
+			time.Now(),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
 		}
 		truePlants = append(truePlants, truePlant)
 	}
-
 	return truePlants, nil
 }
 
-func (repo *PostgresSearchRepository) fetchPlantPhotos(ctx context.Context, plantID uuid.UUID) (*plant.PlantPhotos, error) {
+func (repo *PostgresSearchRepository) SearchPlants(
+	ctx context.Context,
+	srch *search.PlantSearch,
+) ([]*plant.Plant, error) {
+	whereClause, err := repo.whereClause(srch)
+	if err != nil {
+		return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
+	}
+
+	rows, err := repo.db.Query(
+		ctx,
+		squirrel.Select("id", "name", "latin_name", "description", "main_photo_id", "category", "updated_at", "created_at", "specification").
+			From("plant").
+			Where(whereClause),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
+	}
+	defer rows.Close()
+	plants, err := repo.parsePlantRows(rows)
+	if err != nil {
+		return nil, fmt.Errorf("PostgresSearchRepository.SearchPlants failed %w", err)
+	}
+
+	return plants, nil
+}
+
+func (repo *PostgresSearchRepository) fetchPlantPhotos(
+	ctx context.Context,
+	plantID uuid.UUID,
+) (*plant.PlantPhotos, error) {
 	rows, err := repo.db.Query(ctx, squirrel.Select("id", "file_id", "description").
 		From("plant_photo").
 		Where(squirrel.Eq{"plant_id": plantID}),
@@ -307,9 +368,13 @@ func (repo *PostgresSearchRepository) fetchPlantPhotos(ctx context.Context, plan
 }
 
 func (s *PostgresSearchRepository) GetPostAuthors(ctx context.Context) ([]*auth.Author, error) {
-	rows, err := s.db.Query(ctx, squirrel.Select("app_user.id", "app_user.username", "app_user.email", "app_user.password_hash", "app_user.created_at", "author.has_rights", "author.grant_at", "author.revoke_at").
-		From("author").Join("app_user ON author.id = app_user.id").
-		Where(squirrel.Expr("EXISTS (SELECT 1 FROM post WHERE post.author_id = author.id)")))
+	rows, err := s.db.Query(
+		ctx,
+		squirrel.Select("app_user.id", "app_user.username", "app_user.email", "app_user.password_hash", "app_user.created_at", "author.has_rights", "author.grant_at", "author.revoke_at").
+			From("author").
+			Join("app_user ON author.id = app_user.id").
+			Where(squirrel.Expr("EXISTS (SELECT 1 FROM post WHERE post.author_id = author.id)")),
+	)
 	if errors.Is(err, sqdb.ErrNoRows) {
 		return []*auth.Author{}, nil
 	} else if err != nil {

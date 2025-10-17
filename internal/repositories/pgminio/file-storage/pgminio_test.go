@@ -84,7 +84,7 @@ func (s *FileStorageTestSuite) BeforeAll(t provider.T) {
 	dbConfig := &sqpgx.SqpgxConfig{
 		User:                   pgCreds.User,
 		Password:               pgCreds.Password,
-		DbName:                 pgCreds.Database,
+		DBName:                 pgCreds.Database,
 		Host:                   pgCreds.Host,
 		Port:                   pgCreds.Port,
 		MaxConnections:         10,
@@ -108,7 +108,7 @@ func (s *FileStorageTestSuite) BeforeAll(t provider.T) {
 
 	err = miniotest.CheckBucketExists(context.Background(), fileCreds)
 	if err != nil {
-		require.ErrorIs(t, err, miniotest.BucketDoesNotExistError)
+		require.ErrorIs(t, err, miniotest.ErrBucketDoesNotExist)
 		err = miniotest.Migrate(context.Background(), fileCreds)
 		require.NoError(t, err)
 	} else {

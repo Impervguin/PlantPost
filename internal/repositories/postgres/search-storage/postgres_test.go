@@ -92,7 +92,7 @@ func (s *SearchRepositoryTestSuite) BeforeAll(t provider.T) {
 	dbConfig := &sqpgx.SqpgxConfig{
 		User:                   pgCreds.User,
 		Password:               pgCreds.Password,
-		DbName:                 pgCreds.Database,
+		DBName:                 pgCreds.Database,
 		Host:                   pgCreds.Host,
 		Port:                   pgCreds.Port,
 		MaxConnections:         10,
@@ -117,7 +117,7 @@ func (s *SearchRepositoryTestSuite) BeforeAll(t provider.T) {
 
 	err = miniotest.CheckBucketExists(context.Background(), fileCreds)
 	if err != nil {
-		require.ErrorIs(t, err, miniotest.BucketDoesNotExistError)
+		require.ErrorIs(t, err, miniotest.ErrBucketDoesNotExist)
 		err = miniotest.Migrate(context.Background(), fileCreds)
 		require.NoError(t, err)
 	} else {
@@ -244,7 +244,17 @@ func (s *SearchRepositoryTestSuite) createAuthorPost(ctx context.Context, t prov
 	return pst
 }
 
-func (s *SearchRepositoryTestSuite) createConiferousPlant(ctx context.Context, t provider.T, name string, height, diameter float64, moisture plant.SoilMoisture, acid plant.SoilAcidity, light plant.LightRelation, soilType plant.Soil, winterHardiness plant.WinterHardiness) *plant.Plant {
+func (s *SearchRepositoryTestSuite) createConiferousPlant(
+	ctx context.Context,
+	t provider.T,
+	name string,
+	height, diameter float64,
+	moisture plant.SoilMoisture,
+	acid plant.SoilAcidity,
+	light plant.LightRelation,
+	soilType plant.Soil,
+	winterHardiness plant.WinterHardiness,
+) *plant.Plant {
 	// Upload main photo
 	mainPhotoID := s.uploadTestPhoto(ctx, t)
 
@@ -287,7 +297,18 @@ func (s *SearchRepositoryTestSuite) createConiferousPlant(ctx context.Context, t
 	return plnt
 }
 
-func (s *SearchRepositoryTestSuite) createDeciduousPlant(ctx context.Context, t provider.T, name string, height, diameter float64, moisture plant.SoilMoisture, acid plant.SoilAcidity, light plant.LightRelation, soilType plant.Soil, winterHardiness plant.WinterHardiness, flowering plant.FloweringPeriod) *plant.Plant {
+func (s *SearchRepositoryTestSuite) createDeciduousPlant(
+	ctx context.Context,
+	t provider.T,
+	name string,
+	height, diameter float64,
+	moisture plant.SoilMoisture,
+	acid plant.SoilAcidity,
+	light plant.LightRelation,
+	soilType plant.Soil,
+	winterHardiness plant.WinterHardiness,
+	flowering plant.FloweringPeriod,
+) *plant.Plant {
 	// Upload main photo
 	mainPhotoID := s.uploadTestPhoto(ctx, t)
 
@@ -405,8 +426,32 @@ func (s *SearchRepositoryTestSuite) TestSearchPlants(t provider.T) {
 
 		t.WithNewStep("Create test plants", func(pctx provider.StepCtx) {
 			u := uuid.NewString()
-			coniferousPlant := s.createDeciduousPlant(ctx, t, u+"Pine Tree", 1.5, 0.5, plant.MediumMoisture, 10, plant.Light, plant.MediumSoil, plant.WinterHardiness(10), plant.Spring)
-			deciduousPlant := s.createDeciduousPlant(ctx, t, u+"Oak Tree", 5.0, 1.0, plant.HighMoisture, 10, plant.Light, plant.MediumSoil, plant.WinterHardiness(10), plant.Spring)
+			coniferousPlant := s.createDeciduousPlant(
+				ctx,
+				t,
+				u+"Pine Tree",
+				1.5,
+				0.5,
+				plant.MediumMoisture,
+				10,
+				plant.Light,
+				plant.MediumSoil,
+				plant.WinterHardiness(10),
+				plant.Spring,
+			)
+			deciduousPlant := s.createDeciduousPlant(
+				ctx,
+				t,
+				u+"Oak Tree",
+				5.0,
+				1.0,
+				plant.HighMoisture,
+				10,
+				plant.Light,
+				plant.MediumSoil,
+				plant.WinterHardiness(10),
+				plant.Spring,
+			)
 
 			_, err := s.plantRepo.Create(ctx, coniferousPlant)
 			require.NoError(t, err)
@@ -431,8 +476,30 @@ func (s *SearchRepositoryTestSuite) TestSearchPlants(t provider.T) {
 		u := uuid.NewString()
 
 		t.WithNewStep("Create test plants", func(pctx provider.StepCtx) {
-			tallConifer := s.createConiferousPlant(ctx, t, u+"Tall Pine", 10.0, 2.0, plant.MediumMoisture, 10, plant.Light, plant.MediumSoil, plant.WinterHardiness(10))
-			shortConifer := s.createConiferousPlant(ctx, t, u+"Short Pine", 1.5, 0.5, plant.MediumMoisture, 10, plant.Light, plant.MediumSoil, plant.WinterHardiness(10))
+			tallConifer := s.createConiferousPlant(
+				ctx,
+				t,
+				u+"Tall Pine",
+				10.0,
+				2.0,
+				plant.MediumMoisture,
+				10,
+				plant.Light,
+				plant.MediumSoil,
+				plant.WinterHardiness(10),
+			)
+			shortConifer := s.createConiferousPlant(
+				ctx,
+				t,
+				u+"Short Pine",
+				1.5,
+				0.5,
+				plant.MediumMoisture,
+				10,
+				plant.Light,
+				plant.MediumSoil,
+				plant.WinterHardiness(10),
+			)
 
 			_, err := s.plantRepo.Create(ctx, tallConifer)
 			require.NoError(t, err)
@@ -481,7 +548,18 @@ func (s *SearchRepositoryTestSuite) TestGetPlantByID(t provider.T) {
 	t.Description("Test plant retrieval by ID")
 
 	ctx := context.Background()
-	testPlant := s.createConiferousPlant(ctx, t, "Test Plant", 1.0, 0.5, plant.MediumMoisture, 10, plant.Light, plant.MediumSoil, plant.WinterHardiness(10))
+	testPlant := s.createConiferousPlant(
+		ctx,
+		t,
+		"Test Plant",
+		1.0,
+		0.5,
+		plant.MediumMoisture,
+		10,
+		plant.Light,
+		plant.MediumSoil,
+		plant.WinterHardiness(10),
+	)
 
 	t.WithNewStep("Create plant", func(pctx provider.StepCtx) {
 		_, err := s.plantRepo.Create(ctx, testPlant)

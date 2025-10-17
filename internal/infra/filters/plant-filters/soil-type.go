@@ -29,7 +29,7 @@ func PlantSoilTypeFilterFactory(f search.PlantFilter) (registry.PostgresPlantFil
 
 	// in {list}
 	filt := squirrel.Eq{
-		fmt.Sprintf("specification->>'%s'", pgconsts.JsonBSoilTypeKey): pf.PossibleSoilTypes,
+		fmt.Sprintf("specification->>'%s'", pgconsts.JSONBSoilTypeKey): pf.PossibleSoilTypes,
 	}
 
 	return filt, nil

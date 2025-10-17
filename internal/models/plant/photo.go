@@ -13,8 +13,8 @@ type PlantPhoto struct {
 	description string
 }
 
-type PlantPhotos struct {
-	photos []PlantPhoto
+func NewPlantPhoto(fileID uuid.UUID, description string) (*PlantPhoto, error) {
+	return CreatePlantPhoto(uuid.New(), fileID, description)
 }
 
 func CreatePlantPhoto(id, fileID uuid.UUID, description string) (*PlantPhoto, error) {
@@ -27,6 +27,14 @@ func CreatePlantPhoto(id, fileID uuid.UUID, description string) (*PlantPhoto, er
 		return nil, err
 	}
 	return pphoto, nil
+}
+
+type PlantPhotos struct {
+	photos []PlantPhoto
+}
+
+func NewPlantPhotos() *PlantPhotos {
+	return &PlantPhotos{photos: make([]PlantPhoto, 0)}
 }
 
 func (pphoto *PlantPhoto) Compare(other *PlantPhoto) bool {
@@ -48,10 +56,6 @@ func (pphoto *PlantPhoto) ID() uuid.UUID {
 	return pphoto.id
 }
 
-func NewPlantPhoto(fileID uuid.UUID, description string) (*PlantPhoto, error) {
-	return CreatePlantPhoto(uuid.New(), fileID, description)
-}
-
 func (pphoto *PlantPhoto) Validate() error {
 	if pphoto.id == uuid.Nil {
 		return fmt.Errorf("plant photo ID cannot be empty")
@@ -60,10 +64,6 @@ func (pphoto *PlantPhoto) Validate() error {
 		return fmt.Errorf("plant photo file ID cannot be empty")
 	}
 	return nil
-}
-
-func NewPlantPhotos() *PlantPhotos {
-	return &PlantPhotos{photos: make([]PlantPhoto, 0)}
 }
 
 func (pp *PlantPhotos) Add(photo *PlantPhoto) error {

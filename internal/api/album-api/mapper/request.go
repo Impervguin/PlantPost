@@ -9,9 +9,9 @@ import (
 )
 
 type CreateAlbumRequest struct {
-	Name        string   `json:"name" form:"name" binding:"required"`
+	Name        string   `json:"name"        form:"name"        binding:"required"`
 	Description string   `json:"description" form:"description" binding:"required"`
-	PlantIDs    []string `json:"plant_ids" form:"plant_ids" binding:"required"`
+	PlantIDs    []string `json:"plant_ids"   form:"plant_ids"   binding:"required"`
 }
 
 func MapCreateAlbumRequest(c *gin.Context) (*request.CreateAlbumRequest, error) {

@@ -17,24 +17,39 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Install make
-        run: sudo apt-get update && sudo apt-get install -y make
-
-      - name: Install Docker
-        uses: docker/setup-docker-action@v2
-      
       - name: Install Go dependencies
         run: |
           go mod download
           go mod verify
       
+      - name: Install golangci-lint
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      
+      - name: Run golangci-lint
+        id: golangci-lint
+        run: |
+          golangci-lint run $(go list ./... | grep  internal | sed 's/^PlantSite//' | sed 's/^/./')
+          go vet -vettool=$(which complexity) -halsteadover 160 $(go list ./... | grep  internal | sed 's/^PlantSite//' | sed 's/^/./')
+
+      - name: Install make
+        if: steps.golangci-lint.outcome == 'success'
+        run: sudo apt-get update && sudo apt-get install -y make
+        
+
+      - name: Install Docker
+        if: steps.golangci-lint.outcome == 'success'
+        uses: docker/setup-docker-action@v2      
+      
       - name: Make scripts executable
+        if: steps.golangci-lint.outcome == 'success'
         run: chmod +x scripts/unit_tests.sh scripts/integration_tests.sh
 
       - name: Create output directory
+        if: steps.golangci-lint.outcome == 'success'
         run: mkdir -p out
       
       - name: Create test env files
+        if: steps.golangci-lint.outcome == 'success'
         run: |
           mkdir -p config
           echo "TEST_POSTGRES_USER=testgo" > config/pgtest.env
@@ -51,6 +66,7 @@ jobs:
           TEST_MINIO_USER=test
       
       - name: Run unit tests
+        if: steps.golangci-lint.outcome == 'success'
         id: unit-tests
         run: ./scripts/unit_tests.sh
         env:
@@ -60,14 +76,14 @@ jobs:
       - name: Run integration tests
         id: integration-tests
         run: ./scripts/integration_tests.sh
-        if: steps.unit-tests.outcome == 'success'
+        if: steps.unit-tests.outcome == 'success' && steps.golangci-lint.outcome == 'success'
         env:
           ALLURE_OUTPUT_PATH: ${{ github.workspace }}
           ALLURE_OUTPUT_DIR: allure-results
         
       - name: Run e2e tests
         run: ./scripts/e2e_tests.sh
-        if: steps.unit-tests.outcome == 'success' && steps.integration-tests.outcome == 'success'
+        if: steps.unit-tests.outcome == 'success' && steps.integration-tests.outcome == 'success' && steps.golangci-lint.outcome == 'success'
         env:
           ALLURE_OUTPUT_PATH: ${{ github.workspace }}
           ALLURE_OUTPUT_DIR: allure-results

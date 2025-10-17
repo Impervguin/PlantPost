@@ -1,3 +1,3 @@
 package registry
 
-type JsonB map[string]interface{}
+type JSONB map[string]interface{}

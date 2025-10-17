@@ -17,7 +17,12 @@ type PlantService struct {
 	auth         *authservice.AuthService
 }
 
-func NewPlantService(repository plant.PlantRepository, crep plant.PlantCategoryRepository, filerepo models.FileRepository, auth *authservice.AuthService) *PlantService {
+func NewPlantService(
+	repository plant.PlantRepository,
+	crep plant.PlantCategoryRepository,
+	filerepo models.FileRepository,
+	auth *authservice.AuthService,
+) *PlantService {
 	if repository == nil {
 		panic("nil repository")
 	}
@@ -38,7 +43,6 @@ func NewPlantService(repository plant.PlantRepository, crep plant.PlantCategoryR
 }
 
 func (s *PlantService) UpdatePlantSpec(ctx context.Context, id uuid.UUID, spec plant.PlantSpecification) error {
-
 	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return auth.ErrNotAuthorized
@@ -64,7 +68,12 @@ func (s *PlantService) DeletePlant(ctx context.Context, id uuid.UUID) error {
 	return s.plantrepo.Delete(ctx, id)
 }
 
-func (s *PlantService) UploadPlantPhoto(ctx context.Context, id uuid.UUID, fdata models.FileData, description string) error {
+func (s *PlantService) UploadPlantPhoto(
+	ctx context.Context,
+	id uuid.UUID,
+	fdata models.FileData,
+	description string,
+) error {
 	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return auth.ErrNotAuthorized

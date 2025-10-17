@@ -7,14 +7,28 @@ import (
 	"PlantSite/internal/models/search"
 )
 
-type PostgresPlantSearch registry.PostgresPlantSearch
+type PostgresPlantSearch struct {
+	registry.PostgresPlantSearch
+}
 
-type PostgresPostSearch registry.PostgresPostSearch
+type PostgresPostSearch struct {
+	registry.PostgresPostSearch
+}
 
-var (
-	NewPostgresPlantSearch = registry.NewPostgresPlantSearch
-	NewPostgresPostSearch  = registry.NewPostgresPostSearch
-)
+// var (
+// 	NewPostgresPlantSearch = registry.NewPostgresPlantSearch
+// 	NewPostgresPostSearch  = registry.NewPostgresPostSearch
+// )
+
+func NewPostgresPlantSearch() (*PostgresPlantSearch, error) {
+	r, err := registry.NewPostgresPlantSearch()
+	return &PostgresPlantSearch{*r}, err
+}
+
+func NewPostgresPostSearch() (*PostgresPostSearch, error) {
+	r, err := registry.NewPostgresPostSearch()
+	return &PostgresPostSearch{*r}, err
+}
 
 func MapPlantFilter(filter search.PlantFilter) (registry.PostgresPlantFilter, error) {
 	return registry.MapPlantFilter(filter)

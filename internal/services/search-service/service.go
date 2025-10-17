@@ -14,7 +14,11 @@ type SearchService struct {
 	postFileRepo  models.FileRepository
 }
 
-func NewSearchService(repo search.SearchRepository, plantFileRepo models.FileRepository, postFileRepo models.FileRepository) *SearchService {
+func NewSearchService(
+	repo search.SearchRepository,
+	plantFileRepo models.FileRepository,
+	postFileRepo models.FileRepository,
+) *SearchService {
 	if repo == nil {
 		panic("Search repository cannot be nil")
 	}

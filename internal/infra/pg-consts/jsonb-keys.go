@@ -1,12 +1,12 @@
 package pgconsts
 
 const (
-	JsonBHeightMKey         = "height_m"
-	JsonBDiameterMKey       = "diameter_m"
-	JsonBFloweringPeriodKey = "flowering_period"
-	JsonBSoilAcidityKey     = "soil_acidity"
-	JsonBSoilMoistureKey    = "soil_moisture"
-	JsonBLightRelationKey   = "light_relation"
-	JsonBSoilTypeKey        = "soil_type"
-	JsonBWinterHardinessKey = "winter_hardiness"
+	JSONBHeightMKey         = "height_m"
+	JSONBDiameterMKey       = "diameter_m"
+	JSONBFloweringPeriodKey = "flowering_period"
+	JSONBSoilAcidityKey     = "soil_acidity"
+	JSONBSoilMoistureKey    = "soil_moisture"
+	JSONBLightRelationKey   = "light_relation"
+	JSONBSoilTypeKey        = "soil_type"
+	JSONBWinterHardinessKey = "winter_hardiness"
 )

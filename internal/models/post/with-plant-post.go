@@ -34,6 +34,7 @@ type ContentPlantParser interface {
 
 type ContentWithPlant struct {
 	Content
+
 	plantIDs []uuid.UUID
 	parser   ContentPlantParser
 }
@@ -45,7 +46,7 @@ func NewContentWithPlant(text string, format ContentFormat, plantParser ContentP
 
 	plantIDs, text, err := plantParser.Parse(text)
 	if err != nil {
-		return nil, fmt.Errorf("plant parser failed: %v", err)
+		return nil, fmt.Errorf("plant parser failed: %w", err)
 	}
 
 	content := &ContentWithPlant{
@@ -73,7 +74,7 @@ func (c *ContentWithPlant) Parser() ContentPlantParser {
 func (c *ContentWithPlant) UpdateContent(text string, plantParser ContentPlantParser) error {
 	plantIDs, text, err := plantParser.Parse(text)
 	if err != nil {
-		return fmt.Errorf("plant parser failed: %v", err)
+		return fmt.Errorf("plant parser failed: %w", err)
 	}
 	c.plantIDs = plantIDs
 	c.Text = text

@@ -23,8 +23,8 @@ func PlantWinterHardinessFilterFactory(f search.PlantFilter) (registry.PostgresP
 
 	// Between {min} and {max}
 	filt := squirrel.And{
-		squirrel.GtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JsonBWinterHardinessKey): pf.Min},
-		squirrel.LtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JsonBWinterHardinessKey): pf.Max},
+		squirrel.GtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JSONBWinterHardinessKey): pf.Min},
+		squirrel.LtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JSONBWinterHardinessKey): pf.Max},
 	}
 
 	return filt, nil

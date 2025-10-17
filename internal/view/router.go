@@ -12,8 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type MediaUrlStrategy interface {
-	GetUrl(path string) string
+type MediaURLStrategy interface {
+	GetURL(path string) string
 }
 
 type ViewRouter struct {
@@ -22,8 +22,8 @@ type ViewRouter struct {
 	srch       *searchservice.SearchService
 	albm       *albumservice.AlbumService
 	plntGet    parser.PlantGetter
-	plantMedia MediaUrlStrategy
-	postMedia  MediaUrlStrategy
+	plantMedia MediaURLStrategy
+	postMedia  MediaURLStrategy
 }
 
 func (r *ViewRouter) Init(
@@ -33,8 +33,8 @@ func (r *ViewRouter) Init(
 	srch *searchservice.SearchService,
 	albm *albumservice.AlbumService,
 	sear parser.PlantGetter,
-	plantMedia MediaUrlStrategy,
-	postMedia MediaUrlStrategy) {
+	plantMedia MediaURLStrategy,
+	postMedia MediaURLStrategy) {
 	r.auth = auth
 	r.srch = srch
 	r.albm = albm

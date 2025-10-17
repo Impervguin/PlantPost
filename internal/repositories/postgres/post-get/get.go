@@ -35,25 +35,7 @@ type PostPhoto struct {
 	PhotoID     uuid.UUID
 }
 
-func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post, error) {
-	var pst Post
-	row, err := g.db.QueryRow(ctx, squirrel.Select("id", "title", "body", "content_type", "author_id", "created_at", "updated_at").
-		From("post").
-		Where(squirrel.Eq{"id": postID}),
-	)
-	if errors.Is(err, sqdb.ErrNoRows) {
-		return nil, post.ErrPostNotFound
-	} else if err != nil {
-		return nil, err
-	}
-
-	err = row.Scan(&pst.ID, &pst.Title, &pst.Body, &pst.ContentType, &pst.AuthorID, &pst.CreatedAt, &pst.UpdatedAt)
-	if errors.Is(err, sqdb.ErrNoRows) {
-		return nil, post.ErrPostNotFound
-	} else if err != nil {
-		return nil, err
-	}
-	photos := post.NewPostPhotos()
+func (g *PostgresPostGet) fetchPostPhotos(ctx context.Context, postID uuid.UUID) (*post.PostPhotos, error) {
 	rows, err := g.db.Query(ctx, squirrel.Select("id", "place_number", "file_id").
 		From("post_photo").
 		Where(squirrel.Eq{"post_id": postID}),
@@ -62,6 +44,7 @@ func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post
 		return nil, err
 	}
 	defer rows.Close()
+	photos := post.NewPostPhotos()
 	for rows.Next() {
 		var tmpPhoto PostPhoto
 		err := rows.Scan(&tmpPhoto.ID, &tmpPhoto.PlaceNumber, &tmpPhoto.PhotoID)
@@ -77,8 +60,14 @@ func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post
 			return nil, err
 		}
 	}
-	tags := make([]string, 0)
-	rows, err = g.db.Query(ctx, squirrel.Select("tag").
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return photos, nil
+}
+
+func (g *PostgresPostGet) fetchPostTags(ctx context.Context, postID uuid.UUID) ([]string, error) {
+	rows, err := g.db.Query(ctx, squirrel.Select("tag").
 		From("post_tag").
 		Where(squirrel.Eq{"post_id": postID}),
 	)
@@ -86,6 +75,7 @@ func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post
 		return nil, err
 	}
 	defer rows.Close()
+	tags := make([]string, 0)
 	for rows.Next() {
 		var tmpTag string
 		err := rows.Scan(&tmpTag)
@@ -93,6 +83,40 @@ func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post
 			return nil, err
 		}
 		tags = append(tags, tmpTag)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return tags, nil
+}
+
+func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post, error) {
+	var pst Post
+	row, err := g.db.QueryRow(
+		ctx,
+		squirrel.Select("id", "title", "body", "content_type", "author_id", "created_at", "updated_at").
+			From("post").
+			Where(squirrel.Eq{"id": postID}),
+	)
+	if errors.Is(err, sqdb.ErrNoRows) {
+		return nil, post.ErrPostNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	err = row.Scan(&pst.ID, &pst.Title, &pst.Body, &pst.ContentType, &pst.AuthorID, &pst.CreatedAt, &pst.UpdatedAt)
+	if errors.Is(err, sqdb.ErrNoRows) {
+		return nil, post.ErrPostNotFound
+	} else if err != nil {
+		return nil, err
+	}
+	photos, err := g.fetchPostPhotos(ctx, postID)
+	if err != nil {
+		return nil, err
+	}
+	tags, err := g.fetchPostTags(ctx, postID)
+	if err != nil {
+		return nil, err
 	}
 
 	content, err := post.NewContent(pst.Body, post.ContentFormat(pst.ContentType))
@@ -112,5 +136,4 @@ func (g *PostgresPostGet) Get(ctx context.Context, postID uuid.UUID) (*post.Post
 	)
 
 	return post, err
-
 }

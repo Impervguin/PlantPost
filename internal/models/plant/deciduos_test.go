@@ -213,12 +213,27 @@ func (s *DeciduousSpecificationTestSuite) TestGettersReturnCorrectValues(t provi
 	t.WithNewStep("Verify all getter methods", func(ctx provider.StepCtx) {
 		assert.Equal(t, s.validHeight, spec.GetHeightM(), "Height getter should return correct value")
 		assert.Equal(t, s.validDiameter, spec.GetDiameterM(), "Diameter getter should return correct value")
-		assert.Equal(t, s.validFloweringPeriod, spec.GetFloweringPeriod(), "Flowering period getter should return correct value")
+		assert.Equal(
+			t,
+			s.validFloweringPeriod,
+			spec.GetFloweringPeriod(),
+			"Flowering period getter should return correct value",
+		)
 		assert.Equal(t, s.validSoilAcidity, spec.GetSoilAcidity(), "Soil acidity getter should return correct value")
 		assert.Equal(t, s.validSoilMoisture, spec.GetSoilMoisture(), "Soil moisture getter should return correct value")
-		assert.Equal(t, s.validLightRelation, spec.GetLightRelation(), "Light relation getter should return correct value")
+		assert.Equal(
+			t,
+			s.validLightRelation,
+			spec.GetLightRelation(),
+			"Light relation getter should return correct value",
+		)
 		assert.Equal(t, s.validSoilType, spec.GetSoilType(), "Soil type getter should return correct value")
-		assert.Equal(t, s.validWinterHardiness, spec.GetWinterHardiness(), "Winter hardiness getter should return correct value")
+		assert.Equal(
+			t,
+			s.validWinterHardiness,
+			spec.GetWinterHardiness(),
+			"Winter hardiness getter should return correct value",
+		)
 	})
 }
 

@@ -7,6 +7,7 @@ import (
 
 type MinioClient struct {
 	minio.Client
+
 	bucket string
 }
 

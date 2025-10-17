@@ -81,7 +81,7 @@ func (s *AuthRepositoryTestSuite) BeforeAll(t provider.T) {
 	config := &sqpgx.SqpgxConfig{
 		User:                   pgCreds.User,
 		Password:               pgCreds.Password,
-		DbName:                 pgCreds.Database,
+		DBName:                 pgCreds.Database,
 		Host:                   pgCreds.Host,
 		Port:                   pgCreds.Port,
 		MaxConnections:         10,

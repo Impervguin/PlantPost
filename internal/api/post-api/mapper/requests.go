@@ -49,9 +49,9 @@ type UpdatePostRequestID struct {
 }
 
 type UpdatePostRequestBody struct {
-	Title   string   `json:"title" form:"title" binding:"required"`
+	Title   string   `json:"title"   form:"title"   binding:"required"`
 	Content string   `json:"content" form:"content" binding:"required"`
-	Tags    []string `json:"tags" form:"tags"`
+	Tags    []string `json:"tags"    form:"tags"`
 }
 
 func MapPostUpdateRequest(c *gin.Context) (*request.UpdateTextPostRequest, error) {

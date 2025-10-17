@@ -10,9 +10,9 @@ var (
 )
 
 type PlantSpecification interface {
-	ToJsonB() (JsonB, error)
+	ToJSONB() (JSONB, error)
 	ToDomain() (plant.PlantSpecification, error)
 }
 
 type FromDomain func(plant.PlantSpecification) (PlantSpecification, error)
-type FromDB func(JsonB) (PlantSpecification, error)
+type FromDB func(JSONB) (PlantSpecification, error)

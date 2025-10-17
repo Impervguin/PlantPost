@@ -23,7 +23,7 @@ func PlantSoilMoistureFilterFactory(f search.PlantFilter) (registry.PostgresPlan
 
 	// in {list}
 	filt := squirrel.Eq{
-		fmt.Sprintf("specification->>'%s'", pgconsts.JsonBSoilMoistureKey): pf.PossibleMoistures,
+		fmt.Sprintf("specification->>'%s'", pgconsts.JSONBSoilMoistureKey): pf.PossibleMoistures,
 	}
 
 	return filt, nil

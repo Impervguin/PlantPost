@@ -11,7 +11,7 @@ import (
 
 func AuthMiddleware(s *authservice.AuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var sessID uuid.UUID = uuid.Nil
+		var sessID = uuid.Nil
 		if cookie, err := c.Request.Cookie(authapi.SessionCookieName); err == nil {
 			sessID, err = uuid.Parse(cookie.Value)
 			if err != nil {

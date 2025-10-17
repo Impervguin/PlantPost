@@ -64,16 +64,25 @@ func (repo *PostgresAlbumRepository) Create(ctx context.Context, alb *album.Albu
 
 func (repo *PostgresAlbumRepository) Get(ctx context.Context, id uuid.UUID) (*album.Album, error) {
 	var tmpAlbum Album
-	row, err := repo.db.QueryRow(ctx, squirrel.Select("id", "name", "description", "owner_id", "created_at", "updated_at").
-		From("album").
-		Where(squirrel.Eq{"id": id}),
+	row, err := repo.db.QueryRow(
+		ctx,
+		squirrel.Select("id", "name", "description", "owner_id", "created_at", "updated_at").
+			From("album").
+			Where(squirrel.Eq{"id": id}),
 	)
 	if errors.Is(err, sqdb.ErrNoRows) {
 		return nil, fmt.Errorf("PostgresAlbumRepository.Get failed %w", album.ErrAlbumNotFound)
 	} else if err != nil {
 		return nil, fmt.Errorf("PostgresAlbumRepository.Get failed %w", err)
 	}
-	err = row.Scan(&tmpAlbum.ID, &tmpAlbum.Name, &tmpAlbum.Description, &tmpAlbum.OwnerID, &tmpAlbum.CreatedAt, &tmpAlbum.UpdatedAt)
+	err = row.Scan(
+		&tmpAlbum.ID,
+		&tmpAlbum.Name,
+		&tmpAlbum.Description,
+		&tmpAlbum.OwnerID,
+		&tmpAlbum.CreatedAt,
+		&tmpAlbum.UpdatedAt,
+	)
 
 	if errors.Is(err, sqdb.ErrNoRows) {
 		return nil, fmt.Errorf("PostgresAlbumRepository.Get failed %w", album.ErrAlbumNotFound)
@@ -101,7 +110,11 @@ func (repo *PostgresAlbumRepository) Get(ctx context.Context, id uuid.UUID) (*al
 	return alb, nil
 }
 
-func (repo *PostgresAlbumRepository) Update(ctx context.Context, id uuid.UUID, updateFn func(*album.Album) (*album.Album, error)) (*album.Album, error) {
+func (repo *PostgresAlbumRepository) Update(
+	ctx context.Context,
+	id uuid.UUID,
+	updateFn func(*album.Album) (*album.Album, error),
+) (*album.Album, error) {
 	alb, err := repo.Get(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("PostgresAlbumRepository.Update failed %w", err)
@@ -154,7 +167,6 @@ func (repo *PostgresAlbumRepository) Update(ctx context.Context, id uuid.UUID, u
 
 func (repo *PostgresAlbumRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	err := repo.db.Transaction(ctx, func(tx sqdb.SquirrelQuirier) error {
-
 		_, err := tx.Delete(ctx, squirrel.Delete("plant_album").
 			Where(squirrel.Eq{"album_id": id}),
 		)
@@ -218,9 +230,11 @@ func (repo *PostgresAlbumRepository) List(ctx context.Context, ownerID uuid.UUID
 
 func (repo *PostgresAlbumRepository) fetchAlbumsByOwner(ctx context.Context, ownerID uuid.UUID) ([]*AlbumRow, error) {
 	var albums []*AlbumRow
-	rows, err := repo.db.Query(ctx, squirrel.Select("id", "name", "description", "owner_id", "created_at", "updated_at").
-		From("album").
-		Where(squirrel.Eq{"owner_id": ownerID}),
+	rows, err := repo.db.Query(
+		ctx,
+		squirrel.Select("id", "name", "description", "owner_id", "created_at", "updated_at").
+			From("album").
+			Where(squirrel.Eq{"owner_id": ownerID}),
 	)
 	if errors.Is(err, sqdb.ErrNoRows) {
 		return albums, nil
@@ -230,7 +244,14 @@ func (repo *PostgresAlbumRepository) fetchAlbumsByOwner(ctx context.Context, own
 	defer rows.Close()
 	for rows.Next() {
 		var tmpAlbum AlbumRow
-		err := rows.Scan(&tmpAlbum.ID, &tmpAlbum.Name, &tmpAlbum.Description, &tmpAlbum.OwnerID, &tmpAlbum.CreatedAt, &tmpAlbum.UpdatedAt)
+		err := rows.Scan(
+			&tmpAlbum.ID,
+			&tmpAlbum.Name,
+			&tmpAlbum.Description,
+			&tmpAlbum.OwnerID,
+			&tmpAlbum.CreatedAt,
+			&tmpAlbum.UpdatedAt,
+		)
 		if err != nil {
 			return nil, err
 		}

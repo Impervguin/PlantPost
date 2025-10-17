@@ -29,7 +29,11 @@ func (m *MockPostRepository) Create(ctx context.Context, p *post.Post) (*post.Po
 	return args.Get(0).(*post.Post), args.Error(1)
 }
 
-func (m *MockPostRepository) Update(ctx context.Context, id uuid.UUID, updateFn func(*post.Post) (*post.Post, error)) (*post.Post, error) {
+func (m *MockPostRepository) Update(
+	ctx context.Context,
+	id uuid.UUID,
+	updateFn func(*post.Post) (*post.Post, error),
+) (*post.Post, error) {
 	args := m.Called(ctx, id, updateFn)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -85,7 +89,11 @@ func (m *MockFileRepository) Download(ctx context.Context, fileID uuid.UUID) (*m
 	return args.Get(0).(*models.FileData), args.Error(1)
 }
 
-func (m *MockFileRepository) Update(ctx context.Context, fileID uuid.UUID, data *models.FileData) (*models.File, error) {
+func (m *MockFileRepository) Update(
+	ctx context.Context,
+	fileID uuid.UUID,
+	data *models.FileData,
+) (*models.File, error) {
 	args := m.Called(ctx, fileID, data)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -93,7 +101,11 @@ func (m *MockFileRepository) Update(ctx context.Context, fileID uuid.UUID, data 
 	return args.Get(0).(*models.File), args.Error(1)
 }
 
-func setupAuthService(t provider.T, userID uuid.UUID, hasAuthorRights bool) (*authservice.AuthService, context.Context) {
+func setupAuthService(
+	t provider.T,
+	userID uuid.UUID,
+	hasAuthorRights bool,
+) (*authservice.AuthService, context.Context) {
 	arepo := new(authmock.MockAuthRepository)
 	sessions := new(authmock.MockSessionStorage)
 	hasher := new(authmock.MockPasswdHasher)

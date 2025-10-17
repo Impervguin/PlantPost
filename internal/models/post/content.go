@@ -12,15 +12,12 @@ const (
 )
 
 func (c *ContentFormat) Validate() error {
-	switch *c {
-	case ContentTypePlainText:
+	if *c == ContentTypePlainText {
 		return nil
-	default:
-		if strings.HasPrefix(string(*c), string(ContentTypeWithPlant)) {
-			return nil
-		}
-		return fmt.Errorf("invalid content format: %s", *c)
+	} else if strings.HasPrefix(string(*c), string(ContentTypeWithPlant)) {
+		return nil
 	}
+	return fmt.Errorf("invalid content format: %s", *c)
 }
 
 type Content struct {
@@ -51,8 +48,7 @@ func (c *Content) Validate() error {
 	}
 
 	// Проверки для будущих типов, например html, markdown, etc.
-	switch c.ContentType {
-	case ContentTypePlainText: // для plain text не нужны проверки
+	if c.ContentType == ContentTypePlainText {
 		return nil
 	}
 	if CheckContentWithPlant(c) {

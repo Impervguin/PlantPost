@@ -12,7 +12,7 @@ func Register(category string, fromDB FromDB, fromDomain FromDomain) error {
 	return globalRegistry.Register(category, fromDB, fromDomain)
 }
 
-func MapFromDB(category string, json JsonB) (PlantSpecification, error) {
+func MapFromDB(category string, json JSONB) (PlantSpecification, error) {
 	return globalRegistry.FromDB(category, json)
 }
 

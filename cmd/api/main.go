@@ -190,9 +190,18 @@ func main() {
 	viewGroup.Use(middleware.LogMiddleware(logg))
 	viewGroup.Use(middleware.AuthMiddleware(authService))
 
-	mediaStrategy := &urllib.StaticUrlStrategy{BaseUrl: GetMediaPath()}
+	mediaStrategy := &urllib.StaticURLStrategy{BaseURL: GetMediaPath()}
 
-	viewRouter.Init(viewGroup, GetStaticPath(), authService, searchService, albumService, plantGetter, mediaStrategy, mediaStrategy)
+	viewRouter.Init(
+		viewGroup,
+		GetStaticPath(),
+		authService,
+		searchService,
+		albumService,
+		plantGetter,
+		mediaStrategy,
+		mediaStrategy,
+	)
 	fmt.Println("Starting API on port", GetApiPort())
 	engine.Run(fmt.Sprintf(":%d", GetApiPort()))
 }

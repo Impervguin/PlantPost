@@ -25,6 +25,10 @@ type PlantNameFilter struct {
 
 var _ PlantFilter = &ExactPlantNameFilter{}
 
+func NewExactPlantNameFilter(name string) *ExactPlantNameFilter {
+	return &ExactPlantNameFilter{Name: name}
+}
+
 func (p *ExactPlantNameFilter) Identifier() string {
 	return ExactPlantNameFilterID
 }
@@ -33,15 +37,15 @@ func (p *ExactPlantNameFilter) Filter(plant *plant.Plant) bool {
 	return plant.GetName() == p.Name
 }
 
-func NewExactPlantNameFilter(name string) *ExactPlantNameFilter {
-	return &ExactPlantNameFilter{Name: name}
-}
-
 type PlantIDsFilter struct {
 	IDs []uuid.UUID
 }
 
 var _ PlantFilter = &PlantIDsFilter{}
+
+func NewPlantIDsFilter(ids []uuid.UUID) *PlantIDsFilter {
+	return &PlantIDsFilter{IDs: ids}
+}
 
 func (p *PlantIDsFilter) Identifier() string {
 	return PlantIDsFilterID
@@ -49,10 +53,6 @@ func (p *PlantIDsFilter) Identifier() string {
 
 func (p *PlantIDsFilter) Filter(plant *plant.Plant) bool {
 	return slices.Contains(p.IDs, plant.ID())
-}
-
-func NewPlantIDsFilter(ids []uuid.UUID) *PlantIDsFilter {
-	return &PlantIDsFilter{IDs: ids}
 }
 
 var _ PlantFilter = &PlantNameFilter{}
@@ -111,8 +111,8 @@ type PlantHeightFilter struct {
 
 var _ PlantFilter = &PlantHeightFilter{}
 
-func NewPlantHeightFilter(min, max float64) *PlantHeightFilter {
-	return &PlantHeightFilter{Min: min, Max: max}
+func NewPlantHeightFilter(minVal, maxVal float64) *PlantHeightFilter {
+	return &PlantHeightFilter{Min: minVal, Max: maxVal}
 }
 
 func (p *PlantHeightFilter) Identifier() string {
@@ -136,12 +136,12 @@ type PlantDiameterFilter struct {
 
 var _ PlantFilter = &PlantDiameterFilter{}
 
-func (p *PlantDiameterFilter) Identifier() string {
-	return PlantDiameterFilterID
+func NewPlantDiameterFilter(minVal, maxVal float64) *PlantDiameterFilter {
+	return &PlantDiameterFilter{Min: minVal, Max: maxVal}
 }
 
-func NewPlantDiameterFilter(min, max float64) *PlantDiameterFilter {
-	return &PlantDiameterFilter{Min: min, Max: max}
+func (p *PlantDiameterFilter) Identifier() string {
+	return PlantDiameterFilterID
 }
 
 func (p *PlantDiameterFilter) Filter(pl *plant.Plant) bool {
@@ -161,12 +161,12 @@ type PlantSoilAcidityFilter struct {
 
 var _ PlantFilter = &PlantSoilAcidityFilter{}
 
-func (p *PlantSoilAcidityFilter) Identifier() string {
-	return PlantSoilAcidityFilterID
+func NewSoilAcidityFilter(minVal, maxVal plant.SoilAcidity) *PlantSoilAcidityFilter {
+	return &PlantSoilAcidityFilter{Min: minVal, Max: maxVal}
 }
 
-func NewSoilAcidityFilter(min, max plant.SoilAcidity) *PlantSoilAcidityFilter {
-	return &PlantSoilAcidityFilter{Min: min, Max: max}
+func (p *PlantSoilAcidityFilter) Identifier() string {
+	return PlantSoilAcidityFilterID
 }
 
 func (p *PlantSoilAcidityFilter) Filter(pl *plant.Plant) bool {
@@ -186,12 +186,12 @@ type PlantSoilMoistureFilter struct {
 
 var _ PlantFilter = &PlantSoilMoistureFilter{}
 
-func (p *PlantSoilMoistureFilter) Identifier() string {
-	return PlantSoilMoistureFilterID
-}
-
 func NewSoilMoistureFilter(possibleMoistures []plant.SoilMoisture) *PlantSoilMoistureFilter {
 	return &PlantSoilMoistureFilter{PossibleMoistures: possibleMoistures}
+}
+
+func (p *PlantSoilMoistureFilter) Identifier() string {
+	return PlantSoilMoistureFilterID
 }
 
 func (p *PlantSoilMoistureFilter) Filter(pl *plant.Plant) bool {
@@ -211,12 +211,12 @@ type PlantLightRelationFilter struct {
 
 var _ PlantFilter = &PlantLightRelationFilter{}
 
-func (p *PlantLightRelationFilter) Identifier() string {
-	return PlantLightRelationFilterID
-}
-
 func NewLightRelationFilter(possibleRelations []plant.LightRelation) *PlantLightRelationFilter {
 	return &PlantLightRelationFilter{PossibleRelations: possibleRelations}
+}
+
+func (p *PlantLightRelationFilter) Identifier() string {
+	return PlantLightRelationFilterID
 }
 
 func (p *PlantLightRelationFilter) Filter(pl *plant.Plant) bool {
@@ -236,12 +236,12 @@ type PlantHardinessFilter struct {
 
 var _ PlantFilter = &PlantHardinessFilter{}
 
-func (f *PlantHardinessFilter) Identifier() string {
-	return PlantWinterHardinessFilterID
+func NewWinterHardinessFilter(minVal, maxVal plant.WinterHardiness) *PlantHardinessFilter {
+	return &PlantHardinessFilter{Min: minVal, Max: maxVal}
 }
 
-func NewWinterHardinessFilter(min, max plant.WinterHardiness) *PlantHardinessFilter {
-	return &PlantHardinessFilter{Min: min, Max: max}
+func (f *PlantHardinessFilter) Identifier() string {
+	return PlantWinterHardinessFilterID
 }
 
 func (p *PlantHardinessFilter) Filter(pl *plant.Plant) bool {
@@ -261,12 +261,12 @@ type PlantSoilTypeFilter struct {
 
 var _ PlantFilter = &PlantSoilTypeFilter{}
 
-func (p *PlantSoilTypeFilter) Identifier() string {
-	return PlantSoilTypeFilterID
-}
-
 func NewSoilTypeFilter(possibleSoilTypes []plant.Soil) *PlantSoilTypeFilter {
 	return &PlantSoilTypeFilter{PossibleSoilTypes: possibleSoilTypes}
+}
+
+func (p *PlantSoilTypeFilter) Identifier() string {
+	return PlantSoilTypeFilterID
 }
 
 func (p *PlantSoilTypeFilter) Filter(pl *plant.Plant) bool {
@@ -286,23 +286,23 @@ type PlantFloweringPeriodFilter struct {
 
 var _ PlantFilter = &PlantFloweringPeriodFilter{}
 
-func (p *PlantFloweringPeriodFilter) Identifier() string {
-	return PlantFloweringPeriodFilterID
-}
-
 func NewFloweringPeriodFilter(arr []plant.FloweringPeriod) *PlantFloweringPeriodFilter {
 	return &PlantFloweringPeriodFilter{
 		PossibleFloweringPeriods: arr,
 	}
 }
 
+func (p *PlantFloweringPeriodFilter) Identifier() string {
+	return PlantFloweringPeriodFilterID
+}
+
 func (p *PlantFloweringPeriodFilter) Filter(pl *plant.Plant) bool {
 	spec := pl.GetSpecification()
-	switch impl := spec.(type) {
-	case *plant.DeciduousSpecification:
-		return slices.Contains(p.PossibleFloweringPeriods, impl.GetFloweringPeriod())
+	impl, ok := spec.(*plant.DeciduousSpecification)
+	if !ok {
+		return false
 	}
-	return false
+	return slices.Contains(p.PossibleFloweringPeriods, impl.GetFloweringPeriod())
 }
 
 type PlantAlbumFilter struct {
@@ -321,10 +321,6 @@ var _ PlantFilter = &PlantAlbumFilter{}
 
 func (p *PlantAlbumFilter) Identifier() string {
 	return PlantAlbumFilterID
-}
-
-func NewPlantAlnumFilter(albmID uuid.UUID) *PlantAlbumFilter {
-	return &PlantAlbumFilter{AlbumID: albmID}
 }
 
 func (p *PlantAlbumFilter) Filter(pl *plant.Plant) bool {

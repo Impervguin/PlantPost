@@ -12,9 +12,9 @@ import (
 
 func Migrate(ctx context.Context, db *PostgresCredentials, database string) error {
 	config := GetConfig()
-	sourceUrl := fmt.Sprintf("file://%s", config.MigrationDir)
-	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, database)
-	m, err := migrate.New(sourceUrl, dbUrl)
+	sourceURL := fmt.Sprintf("file://%s", config.MigrationDir)
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, database)
+	m, err := migrate.New(sourceURL, dbURL)
 	if err != nil {
 		return err
 	}
@@ -28,9 +28,9 @@ func Migrate(ctx context.Context, db *PostgresCredentials, database string) erro
 
 func MigrateDown(ctx context.Context, db *PostgresCredentials, database string) error {
 	config := GetConfig()
-	sourceUrl := fmt.Sprintf("file://%s", config.MigrationDir)
-	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, database)
-	m, err := migrate.New(sourceUrl, dbUrl)
+	sourceURL := fmt.Sprintf("file://%s", config.MigrationDir)
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, database)
+	m, err := migrate.New(sourceURL, dbURL)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func getVersionFromFilename(filename string) (uint, error) {
 	return version, nil
 }
 
-func getMaxSourceVersion(ctx context.Context, db *PostgresCredentials) (uint, error) {
+func getMaxSourceVersion() (uint, error) {
 	config := GetConfig()
 	entries, err := os.ReadDir(config.MigrationDir)
 	if err != nil {
@@ -75,9 +75,9 @@ func getMaxSourceVersion(ctx context.Context, db *PostgresCredentials) (uint, er
 
 func CheckMigrationVersion(ctx context.Context, db *PostgresCredentials, database string) error {
 	config := GetConfig()
-	sourceUrl := fmt.Sprintf("file://%s", config.MigrationDir)
-	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, database)
-	m, err := migrate.New(sourceUrl, dbUrl)
+	sourceURL := fmt.Sprintf("file://%s", config.MigrationDir)
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, database)
+	m, err := migrate.New(sourceURL, dbURL)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func CheckMigrationVersion(ctx context.Context, db *PostgresCredentials, databas
 		return err
 	}
 
-	sourceVersion, err := getMaxSourceVersion(ctx, db)
+	sourceVersion, err := getMaxSourceVersion()
 	if err != nil {
 		return err
 	}

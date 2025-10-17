@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const TwoPartFormatParts = 2
+
 func parsePlantNameFilterfunc(queryValue string) (search.PlantFilter, error) {
 	filt := search.NewPlantNameFilter(queryValue)
 	if filt == nil {
@@ -33,20 +35,20 @@ func parsePlantCategoryFilterfunc(queryValue string) (search.PlantFilter, error)
 }
 
 func parsePlantHeightFilterfunc(queryValue string) (search.PlantFilter, error) {
-	// {min}-{max} format
+	// {minVal}-{maxVal} format
 	parts := strings.Split(queryValue, "-")
-	if len(parts) != 2 {
+	if len(parts) != TwoPartFormatParts {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantHeightFilterParam, queryValue)
 	}
-	min, err := strconv.ParseFloat(parts[0], 64)
+	minVal, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantHeightFilterParam, queryValue)
 	}
-	max, err := strconv.ParseFloat(parts[1], 64)
+	maxVal, err := strconv.ParseFloat(parts[1], 64)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantHeightFilterParam, queryValue)
 	}
-	filt := search.NewPlantHeightFilter(min, max)
+	filt := search.NewPlantHeightFilter(minVal, maxVal)
 	if filt == nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantHeightFilterParam, queryValue)
 	}
@@ -54,20 +56,20 @@ func parsePlantHeightFilterfunc(queryValue string) (search.PlantFilter, error) {
 }
 
 func parsePlantDiameterFilterfunc(queryValue string) (search.PlantFilter, error) {
-	// {min}-{max} format
+	// {minVal}-{maxVal} format
 	parts := strings.Split(queryValue, "-")
-	if len(parts) != 2 {
+	if len(parts) != TwoPartFormatParts {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantDiameterFilterParam, queryValue)
 	}
-	min, err := strconv.ParseFloat(parts[0], 64)
+	minVal, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantDiameterFilterParam, queryValue)
 	}
-	max, err := strconv.ParseFloat(parts[1], 64)
+	maxVal, err := strconv.ParseFloat(parts[1], 64)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantDiameterFilterParam, queryValue)
 	}
-	filt := search.NewPlantDiameterFilter(min, max)
+	filt := search.NewPlantDiameterFilter(minVal, maxVal)
 	if filt == nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantDiameterFilterParam, queryValue)
 	}
@@ -75,20 +77,20 @@ func parsePlantDiameterFilterfunc(queryValue string) (search.PlantFilter, error)
 }
 
 func parsePlantSoilAcidityFilterfunc(queryValue string) (search.PlantFilter, error) {
-	// {min}-{max} format
+	// {minVal}-{maxVal} format
 	parts := strings.Split(queryValue, "-")
-	if len(parts) != 2 {
+	if len(parts) != TwoPartFormatParts {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantSoilAcidityFilterParam, queryValue)
 	}
-	min, err := strconv.Atoi(parts[0])
+	minVal, err := strconv.Atoi(parts[0])
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantSoilAcidityFilterParam, queryValue)
 	}
-	max, err := strconv.Atoi(parts[1])
+	maxVal, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantSoilAcidityFilterParam, queryValue)
 	}
-	filt := search.NewSoilAcidityFilter(plant.SoilAcidity(min), plant.SoilAcidity(max))
+	filt := search.NewSoilAcidityFilter(plant.SoilAcidity(minVal), plant.SoilAcidity(maxVal))
 	if filt == nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantSoilAcidityFilterParam, queryValue)
 	}
@@ -150,20 +152,20 @@ func parseSoilTypeFilterfunc(queryValue string) (search.PlantFilter, error) {
 }
 
 func parsePlantWinterHardinessFilterfunc(queryValue string) (search.PlantFilter, error) {
-	// {min}-{max} format
+	// {minVal}-{maxVal} format
 	parts := strings.Split(queryValue, "-")
-	if len(parts) != 2 {
+	if len(parts) != TwoPartFormatParts {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantWinterHardinessFilterParam, queryValue)
 	}
-	min, err := strconv.Atoi(parts[0])
+	minVal, err := strconv.Atoi(parts[0])
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantWinterHardinessFilterParam, queryValue)
 	}
-	max, err := strconv.Atoi(parts[1])
+	maxVal, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantWinterHardinessFilterParam, queryValue)
 	}
-	filt := search.NewWinterHardinessFilter(plant.WinterHardiness(min), plant.WinterHardiness(max))
+	filt := search.NewWinterHardinessFilter(plant.WinterHardiness(minVal), plant.WinterHardiness(maxVal))
 	if filt == nil {
 		return nil, fmt.Errorf("%w: %v, %v", ErrParsingFailed, PlantWinterHardinessFilterParam, queryValue)
 	}

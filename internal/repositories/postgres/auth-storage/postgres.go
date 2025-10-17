@@ -35,8 +35,12 @@ type Author struct {
 	RevokeTime time.Time
 }
 
-func (repo *PostgresAuthRepository) getMember(ctx context.Context, whereStatement interface{}, args ...interface{}) (*auth.Member, error) {
-	var mem *Member = &Member{}
+func (repo *PostgresAuthRepository) getMember(
+	ctx context.Context,
+	whereStatement interface{},
+	args ...interface{},
+) (*auth.Member, error) {
+	var mem = &Member{}
 	row, err := repo.db.QueryRow(ctx,
 		squirrel.Select("id", "username", "email", "password_hash", "created_at").
 			From("app_user").
@@ -49,7 +53,7 @@ func (repo *PostgresAuthRepository) getMember(ctx context.Context, whereStatemen
 
 	err = row.Scan(&mem.ID, &mem.Name, &mem.Email, &mem.PasswordHash, &mem.CreatedAt)
 
-	if err == sqdb.ErrNoRows {
+	if errors.Is(err, sqdb.ErrNoRows) {
 		return nil, auth.ErrUserNotFound
 	} else if err != nil {
 		return nil, fmt.Errorf("PostgresAuthRepository.getMember failed %w", err)
@@ -70,7 +74,7 @@ func (repo *PostgresAuthRepository) getMember(ctx context.Context, whereStatemen
 }
 
 func (repo *PostgresAuthRepository) getAuthor(ctx context.Context, mem *auth.Member) (*auth.Author, error) {
-	var aut *Author = &Author{}
+	var aut = &Author{}
 	row, err := repo.db.QueryRow(ctx,
 		squirrel.Select("id", "grant_at", "has_rights", "revoke_at").
 			From("author").
@@ -83,7 +87,7 @@ func (repo *PostgresAuthRepository) getAuthor(ctx context.Context, mem *auth.Mem
 
 	err = row.Scan(&aut.ID, &aut.GiveTime, &aut.Rights, &aut.RevokeTime)
 
-	if err == sqdb.ErrNoRows {
+	if errors.Is(err, sqdb.ErrNoRows) {
 		return nil, auth.ErrUserNotFound
 	} else if err != nil {
 		return nil, err
@@ -102,7 +106,11 @@ func (repo *PostgresAuthRepository) getAuthor(ctx context.Context, mem *auth.Mem
 	return domainAuth, err
 }
 
-func (repo *PostgresAuthRepository) getUser(ctx context.Context, whereStatement interface{}, args ...interface{}) (auth.User, error) {
+func (repo *PostgresAuthRepository) getUser(
+	ctx context.Context,
+	whereStatement interface{},
+	args ...interface{},
+) (auth.User, error) {
 	domainMem, err := repo.getMember(ctx, whereStatement, args...)
 	if errors.Is(err, auth.ErrUserNotFound) {
 		return nil, auth.ErrUserNotFound
@@ -118,7 +126,6 @@ func (repo *PostgresAuthRepository) getUser(ctx context.Context, whereStatement 
 	}
 
 	return domainAuth, err
-
 }
 
 func (repo *PostgresAuthRepository) Get(ctx context.Context, id uuid.UUID) (auth.User, error) {
@@ -161,7 +168,11 @@ func (repo *PostgresAuthRepository) updateAuthor(ctx context.Context, updAuth *a
 	return err
 }
 
-func (repo *PostgresAuthRepository) Update(ctx context.Context, id uuid.UUID, updateFn func(auth.User) (auth.User, error)) (auth.User, error) {
+func (repo *PostgresAuthRepository) Update(
+	ctx context.Context,
+	id uuid.UUID,
+	updateFn func(auth.User) (auth.User, error),
+) (auth.User, error) {
 	usr, err := repo.Get(ctx, id)
 	if err != nil {
 		return nil, err

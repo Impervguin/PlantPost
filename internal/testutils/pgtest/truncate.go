@@ -31,7 +31,10 @@ func truncateCommand(username string) string {
 }
 
 func TruncateTables(ctx context.Context, db *PostgresCredentials) error {
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, db.Database))
+	conn, err := pgx.Connect(
+		ctx,
+		fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, db.Database),
+	)
 	if err != nil {
 		return err
 	}

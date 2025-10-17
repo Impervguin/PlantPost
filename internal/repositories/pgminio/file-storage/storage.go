@@ -22,7 +22,11 @@ type PgMinioStorage struct {
 	db          sqdb.SquirrelDatabase
 }
 
-func NewPgMinioStorage(ctx context.Context, db sqdb.SquirrelDatabase, minioCl *minioclient.MinioClient) (*PgMinioStorage, error) {
+func NewPgMinioStorage(
+	ctx context.Context,
+	db sqdb.SquirrelDatabase,
+	minioCl *minioclient.MinioClient,
+) (*PgMinioStorage, error) {
 	return &PgMinioStorage{
 		minioClient: minioCl,
 		bucketName:  minioCl.GetBucket(),
@@ -102,7 +106,11 @@ func (storage *PgMinioStorage) Delete(ctx context.Context, fileID uuid.UUID) err
 	return nil
 }
 
-func (storage *PgMinioStorage) Update(ctx context.Context, fileID uuid.UUID, data *models.FileData) (*models.File, error) {
+func (storage *PgMinioStorage) Update(
+	ctx context.Context,
+	fileID uuid.UUID,
+	data *models.FileData,
+) (*models.File, error) {
 	f, err := storage.get(ctx, fileID)
 	if err != nil {
 		return nil, err
@@ -110,7 +118,14 @@ func (storage *PgMinioStorage) Update(ctx context.Context, fileID uuid.UUID, dat
 
 	f.Name = data.Name
 	if data.Reader != nil {
-		info, err := storage.minioClient.PutObject(ctx, storage.bucketName, f.URL, data.Reader, -1, minio.PutObjectOptions{})
+		info, err := storage.minioClient.PutObject(
+			ctx,
+			storage.bucketName,
+			f.URL,
+			data.Reader,
+			-1,
+			minio.PutObjectOptions{},
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -153,11 +168,10 @@ func (storage *PgMinioStorage) get(ctx context.Context, fileID uuid.UUID) (*mode
 
 	err = row.Scan(&f.ID, &f.Name, &f.URL, &f.CreatedAt)
 
-	if err == sqdb.ErrNoRows {
+	if errors.Is(err, sqdb.ErrNoRows) {
 		return nil, models.ErrFileNotFound
 	} else if err != nil {
 		return nil, err
 	}
 	return &f, nil
-
 }

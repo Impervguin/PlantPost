@@ -19,12 +19,12 @@ type PostTitleFilter struct {
 
 var _ PostFilter = &PostTitleFilter{}
 
-func (p *PostTitleFilter) Identifier() string {
-	return PostTitleFilterID
-}
-
 func NewPostTitleFilter(title string) *PostTitleFilter {
 	return &PostTitleFilter{Title: title}
+}
+
+func (p *PostTitleFilter) Identifier() string {
+	return PostTitleFilterID
 }
 
 func (p *PostTitleFilter) Filter(post *post.Post) bool {
@@ -37,12 +37,12 @@ type PostTitleContainsFilter struct {
 
 var _ PostFilter = &PostTitleContainsFilter{}
 
-func (p *PostTitleContainsFilter) Identifier() string {
-	return PostTitleContainsFilterID
-}
-
 func NewPostTitleContainsFilter(part string) *PostTitleContainsFilter {
 	return &PostTitleContainsFilter{Part: part}
+}
+
+func (p *PostTitleContainsFilter) Identifier() string {
+	return PostTitleContainsFilterID
 }
 
 func (p *PostTitleContainsFilter) Filter(post *post.Post) bool {
@@ -55,12 +55,12 @@ type PostTagFilter struct {
 
 var _ PostFilter = &PostTagFilter{}
 
-func (p *PostTagFilter) Identifier() string {
-	return PostTagFilterID
-}
-
 func NewPostTagFilter(tags []string) *PostTagFilter {
 	return &PostTagFilter{Tags: tags}
+}
+
+func (p *PostTagFilter) Identifier() string {
+	return PostTagFilterID
 }
 
 func (p *PostTagFilter) Filter(post *post.Post) bool {
@@ -78,12 +78,12 @@ type PostAuthorFilter struct {
 
 var _ PostFilter = &PostAuthorFilter{}
 
-func (p *PostAuthorFilter) Identifier() string {
-	return PostAuthorFilterID
-}
-
 func NewPostAuthorFilter(authorID uuid.UUID) *PostAuthorFilter {
 	return &PostAuthorFilter{AuthorID: authorID}
+}
+
+func (p *PostAuthorFilter) Identifier() string {
+	return PostAuthorFilterID
 }
 
 func (p *PostAuthorFilter) Filter(post *post.Post) bool {

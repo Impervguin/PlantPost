@@ -22,6 +22,49 @@ type Plant struct {
 	updatedAt     time.Time
 }
 
+func CreatePlant(id uuid.UUID,
+	name, latinName, description string,
+	mainPhotoID uuid.UUID,
+	photos PlantPhotos, category string,
+	specification PlantSpecification,
+	createdAt time.Time,
+	updatedAt time.Time) (*Plant, error) {
+	plant := &Plant{
+		id:            id,
+		name:          name,
+		latinName:     latinName,
+		description:   description,
+		mainPhotoID:   mainPhotoID,
+		photos:        photos,
+		category:      category,
+		specification: specification,
+		createdAt:     createdAt,
+		updatedAt:     updatedAt,
+	}
+	if err := plant.Validate(); err != nil {
+		return nil, err
+	}
+	return plant, nil
+}
+
+func NewPlant(name, latinName, description string,
+	mainPhotoID uuid.UUID,
+	photos PlantPhotos, category string,
+	specification PlantSpecification) (*Plant, error) {
+	return CreatePlant(
+		uuid.New(),
+		name,
+		latinName,
+		description,
+		mainPhotoID,
+		photos,
+		category,
+		specification,
+		time.Now(),
+		time.Now(),
+	)
+}
+
 func (p *Plant) ID() uuid.UUID {
 	return p.id
 }
@@ -86,66 +129,34 @@ type PlantSpecification interface {
 	Category() string
 }
 
-func CreatePlant(id uuid.UUID,
-	name, latinName, description string,
-	mainPhotoID uuid.UUID,
-	photos PlantPhotos, category string,
-	specification PlantSpecification,
-	createdAt time.Time, updatedAt time.Time) (*Plant, error) {
-
-	plant := &Plant{
-		id:            id,
-		name:          name,
-		latinName:     latinName,
-		description:   description,
-		mainPhotoID:   mainPhotoID,
-		photos:        photos,
-		category:      category,
-		specification: specification,
-		createdAt:     createdAt,
-		updatedAt:     updatedAt,
-	}
-	if err := plant.Validate(); err != nil {
-		return nil, err
-	}
-	return plant, nil
-}
-
-func NewPlant(name, latinName, description string,
-	mainPhotoID uuid.UUID,
-	photos PlantPhotos, category string,
-	specification PlantSpecification) (*Plant, error) {
-	return CreatePlant(uuid.New(), name, latinName, description, mainPhotoID, photos, category, specification, time.Now(), time.Now())
-}
-
 func (p *Plant) Validate() error {
-	if p.id == uuid.Nil {
+	switch {
+	case p.id == uuid.Nil:
 		return fmt.Errorf("plant ID cannot be empty")
-	}
-	if p.name == "" {
+	case p.name == "":
 		return fmt.Errorf("plant name cannot be empty")
-	}
-	if p.latinName == "" {
+	case p.latinName == "":
 		return fmt.Errorf("plant latin name cannot be empty")
-	}
-	if p.description == "" {
+	case p.description == "":
 		return fmt.Errorf("plant description cannot be empty")
-	}
-	if p.mainPhotoID == uuid.Nil {
+	case p.mainPhotoID == uuid.Nil:
 		return fmt.Errorf("plant main photo ID cannot be empty")
-	}
-	if p.category == "" {
+	case p.category == "":
 		return fmt.Errorf("plant category cannot be empty")
-	}
-	if p.specification == nil || p.specification.Validate() != nil {
-		return fmt.Errorf("%v is not a valid specification", p.specification)
-	}
-	if p.updatedAt.After(time.Now()) {
+	case p.updatedAt.After(time.Now()):
 		return fmt.Errorf("plant update date cannot be in the future: %v", p.createdAt)
-	}
-	if p.createdAt.After(p.updatedAt) {
+	case p.createdAt.After(p.updatedAt):
 		return fmt.Errorf("plant creation date cannot be after update date: %v %v", p.createdAt, p.updatedAt)
 	}
+
+	return p.subValidate()
+}
+
+func (p *Plant) subValidate() error {
+	if p.specification == nil || p.specification.Validate() != nil {
+		return fmt.Errorf("plant specification cannot be empty")
+	}
+
 	if err := p.photos.Validate(); err != nil {
 		return err
 	}

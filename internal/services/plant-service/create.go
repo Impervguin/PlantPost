@@ -34,7 +34,15 @@ func (s *PlantService) CreatePlant(ctx context.Context, data CreatePlantData, ma
 	if err != nil {
 		return fmt.Errorf("failed to upload main photo: %w", err)
 	}
-	plant, err := plant.NewPlant(data.Name, data.LatinName, data.Description, f.ID, *plant.NewPlantPhotos(), data.Category, data.Spec)
+	plant, err := plant.NewPlant(
+		data.Name,
+		data.LatinName,
+		data.Description,
+		f.ID,
+		*plant.NewPlantPhotos(),
+		data.Category,
+		data.Spec,
+	)
 	if err != nil {
 		return Wrap(err)
 	}

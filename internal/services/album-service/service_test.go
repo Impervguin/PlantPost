@@ -81,7 +81,11 @@ func (m *MockAlbumRepository) Get(ctx context.Context, id uuid.UUID) (*album.Alb
 	return nil, args.Error(1)
 }
 
-func (m *MockAlbumRepository) Update(ctx context.Context, id uuid.UUID, updateFn func(*album.Album) (*album.Album, error)) (*album.Album, error) {
+func (m *MockAlbumRepository) Update(
+	ctx context.Context,
+	id uuid.UUID,
+	updateFn func(*album.Album) (*album.Album, error),
+) (*album.Album, error) {
 	args := m.Called(ctx, id, updateFn)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -109,7 +113,11 @@ func (s *AlbumServiceTestSuite) BeforeEach(t provider.T) {
 	t.Feature("Album Management")
 }
 
-func setupAuthService(t provider.T, userID uuid.UUID, hasMemberRights bool) (*authservice.AuthService, context.Context) {
+func setupAuthService(
+	t provider.T,
+	userID uuid.UUID,
+	hasMemberRights bool,
+) (*authservice.AuthService, context.Context) {
 	arepo := new(authmock.MockAuthRepository)
 	sessions := new(authmock.MockSessionStorage)
 	hasher := new(authmock.MockPasswdHasher)

@@ -47,9 +47,9 @@ export abstract class PlantField {
 
 export abstract class PlantSpecificationField extends PlantField {
     toFormData(formData: FormData)  {
-        let specJson = formData.get('specification')?.toString();
-        if (!specJson) specJson = "{}";
-        let spec = JSON.parse(specJson);
+        let specJSON = formData.get('specification')?.toString();
+        if (!specJSON) specJSON = "{}";
+        let spec = JSON.parse(specJSON);
         console.log(spec);
         spec[this.name] = this.value;
         formData.delete('specification');

@@ -2,16 +2,16 @@ package urllib
 
 import "net/url"
 
-type UrlStrategy interface {
-	GetUrl(path string) string
+type URLStrategy interface {
+	GetURL(path string) string
 }
 
-type StaticUrlStrategy struct {
-	BaseUrl string
+type StaticURLStrategy struct {
+	BaseURL string
 }
 
-func (s *StaticUrlStrategy) GetUrl(path string) string {
-	res, err := url.JoinPath(s.BaseUrl, path)
+func (s *StaticURLStrategy) GetURL(path string) string {
+	res, err := url.JoinPath(s.BaseURL, path)
 	if err != nil {
 		return ""
 	}

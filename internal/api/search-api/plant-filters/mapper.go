@@ -23,77 +23,32 @@ var (
 	ErrInvalidFilterType = errors.New("invalid plant filter type")
 )
 
+var (
+	filterConstructors = map[string]func() PlantFilter{
+		PlantNameFilterID:            func() PlantFilter { return &PlantNameFilter{} },
+		PlantCategoryFilterID:        func() PlantFilter { return &PlantCategoryFilter{} },
+		PlantLatinNameFilterID:       func() PlantFilter { return &PlantLatinNameFilter{} },
+		PlantHeightFilterID:          func() PlantFilter { return &PlantHeightFilter{} },
+		PlantDiameterFilterID:        func() PlantFilter { return &PlantDiameterFilter{} },
+		PlantSoilAcidityFilterID:     func() PlantFilter { return &PlantSoilAcidityFilter{} },
+		PlantSoilMoistureFilterID:    func() PlantFilter { return &PlantSoilMoistureFilter{} },
+		PlantLightRelationFilterID:   func() PlantFilter { return &PlantLightRelationFilter{} },
+		PlantSoilTypeFilterID:        func() PlantFilter { return &PlantSoilTypeFilter{} },
+		PlantWinterHardinessFilterID: func() PlantFilter { return &PlantWinterHardinessFilter{} },
+		PlantFloweringPeriodFilterID: func() PlantFilter { return &PlantFloweringPeriodFilter{} },
+	}
+)
+
 func ParsePlantFilter(ftype string, params map[string]interface{}) (PlantFilter, error) {
-	switch ftype {
-	case PlantNameFilterID:
-		var f PlantNameFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantCategoryFilterID:
-		var f PlantCategoryFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantLatinNameFilterID:
-		var f PlantLatinNameFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantHeightFilterID:
-		var f PlantHeightFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantDiameterFilterID:
-		var f PlantDiameterFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantSoilAcidityFilterID:
-		var f PlantSoilAcidityFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantSoilMoistureFilterID:
-		var f PlantSoilMoistureFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantLightRelationFilterID:
-		var f PlantLightRelationFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantSoilTypeFilterID:
-		var f PlantSoilTypeFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantWinterHardinessFilterID:
-		var f PlantWinterHardinessFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	case PlantFloweringPeriodFilterID:
-		var f PlantFloweringPeriodFilter
-		if err := f.Bind(params); err != nil {
-			return nil, err
-		}
-		return &f, nil
-	default:
+	if _, ok := filterConstructors[ftype]; !ok {
 		return nil, ErrInvalidFilterType
 	}
+	filter := filterConstructors[ftype]()
+	err := filter.Bind(params)
+	if err != nil {
+		return nil, err
+	}
+	return filter, nil
 }
 
 func MapPlantFilters(filters []PlantFilter) ([]search.PlantFilter, error) {

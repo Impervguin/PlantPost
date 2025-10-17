@@ -43,4 +43,3 @@ func GetMediaPath() string {
 	}
 	return viper.GetString(Key(ApiPrefix, ApiMediaKey))
 }
-

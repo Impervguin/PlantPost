@@ -10,6 +10,7 @@ import (
 	"PlantSite/internal/models/post/parser"
 	postservice "PlantSite/internal/services/post-service"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,26 @@ func (r *PostRouter) Init(router *gin.RouterGroup, post *postservice.PostService
 	gr.GET("/get/:id", r.Get)
 	gr.DELETE("/delete/:id", r.Delete)
 	gr.PUT("/text/:id", r.Update)
+}
+
+func (r *PostRouter) parseFiles(c *gin.Context) ([]models.FileData, error) {
+	form, err := c.MultipartForm()
+	if err != nil {
+		return nil, err
+	}
+	files := make([]models.FileData, 0)
+	for _, file := range form.File["files"] {
+		f, err := file.Open()
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, models.FileData{
+			Name:        file.Filename,
+			ContentType: file.Header.Get("Content-Type"),
+			Reader:      f,
+		})
+	}
+	return files, nil
 }
 
 // @Summary Create a new post
@@ -56,25 +77,11 @@ func (r *PostRouter) Create(c *gin.Context) {
 		req.Tags = make([]string, 0)
 	}
 
-	form, err := c.MultipartForm()
+	files, err := r.parseFiles(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("can't parse files: %w", err).Error()})
 		c.Error(err)
 		return
-	}
-
-	files := make([]models.FileData, 0)
-	for _, file := range form.File["files"] {
-		f, err := file.Open()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		files = append(files, models.FileData{
-			Name:        file.Filename,
-			ContentType: file.Header.Get("Content-Type"),
-			Reader:      f,
-		})
 	}
 
 	content, err := post.NewContent(req.Content, post.WithPlantContentType(parser.LatexLikePlantParserType))
@@ -88,20 +95,23 @@ func (r *PostRouter) Create(c *gin.Context) {
 		Content: *content,
 		Tags:    req.Tags,
 	}, files)
-	if errors.Is(err, auth.ErrNotAuthorized) {
+
+	switch {
+	case errors.Is(err, auth.ErrNotAuthorized):
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if errors.Is(err, auth.ErrNoAuthorRights) {
+	case errors.Is(err, auth.ErrNoAuthorRights):
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if err != nil {
+	case err != nil:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
+	default:
+		c.JSON(http.StatusOK, gin.H{})
 	}
-	c.JSON(http.StatusOK, gin.H{})
 }
 
 // Get Post Handler
@@ -127,26 +137,29 @@ func (r *PostRouter) Get(c *gin.Context) {
 	}
 
 	post, err := r.post.GetPost(ctx, req.ID)
-	if errors.Is(err, auth.ErrNotAuthorized) {
+
+	switch {
+	case errors.Is(err, auth.ErrNotAuthorized):
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if errors.Is(err, auth.ErrNoAuthorRights) {
+	case errors.Is(err, auth.ErrNoAuthorRights):
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if err != nil {
+	case err != nil:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	}
-	resp := mapper.MapGetPostResponse(post)
-	if resp == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "post not found"})
+	default:
+		resp := mapper.MapGetPostResponse(post)
+		if resp == nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "post not found"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"post": resp})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"post": resp})
 }
 
 // Delete Post Handler
@@ -171,21 +184,23 @@ func (r *PostRouter) Delete(c *gin.Context) {
 	}
 
 	err = r.post.Delete(ctx, req.ID)
-	if errors.Is(err, auth.ErrNotAuthorized) {
+	switch {
+	case errors.Is(err, auth.ErrNotAuthorized):
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if errors.Is(err, auth.ErrNoAuthorRights) {
+	case errors.Is(err, auth.ErrNoAuthorRights):
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if err != nil {
+	case err != nil:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
+	default:
+		c.JSON(http.StatusOK, gin.H{})
+		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{})
 }
 
 // Update Post Handler
@@ -206,7 +221,7 @@ func (r *PostRouter) Update(c *gin.Context) {
 
 	req, err := mapper.MapPostUpdateRequest(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
 	}
@@ -223,15 +238,18 @@ func (r *PostRouter) Update(c *gin.Context) {
 		Content: *newContent,
 		Tags:    req.Tags,
 	})
-	if errors.Is(err, auth.ErrNotAuthorized) {
+	switch {
+	case errors.Is(err, auth.ErrNotAuthorized):
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if errors.Is(err, auth.ErrNoAuthorRights) {
+	case errors.Is(err, auth.ErrNoAuthorRights):
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if err != nil {
+	case err != nil:
+		c.JSON(http.StatusOK, gin.H{})
+	default:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)
 		return

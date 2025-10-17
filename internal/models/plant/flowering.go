@@ -25,7 +25,22 @@ const (
 
 func (fp FloweringPeriod) Validate() error {
 	switch fp {
-	case January, February, March, April, May, June, July, August, September, October, November, December, Winter, Spring, Summer, Autumn:
+	case January,
+		February,
+		March,
+		April,
+		May,
+		June,
+		July,
+		August,
+		September,
+		October,
+		November,
+		December,
+		Winter,
+		Spring,
+		Summer,
+		Autumn:
 		return nil
 	default:
 		return fmt.Errorf("invalid flowering period: %s", fp)

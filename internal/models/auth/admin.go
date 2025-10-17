@@ -14,6 +14,11 @@ type Admin struct {
 	hashPassword []byte
 }
 
+func NewAdmin(login string, hashPassword []byte) (*Admin, error) {
+	id := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(login))
+	return CreateAdmin(id, login, hashPassword)
+}
+
 func CreateAdmin(id uuid.UUID, login string, hashPassword []byte) (*Admin, error) {
 	admin := &Admin{
 		id:           id,
@@ -39,11 +44,6 @@ func (a *Admin) Validate() error {
 	return nil
 }
 
-func NewAdmin(login string, hashPassword []byte) (*Admin, error) {
-	id := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(login))
-	return CreateAdmin(id, login, hashPassword)
-}
-
 func (a *Admin) HasAuthorRights() bool {
 	return true
 }
@@ -53,7 +53,7 @@ func (a *Admin) HasMemberRights() bool {
 }
 
 func (a *Admin) Auth(passwd []byte, authFunc func(hashPasswd []byte, plainPasswd []byte) (bool, error)) bool {
-	res, err := authFunc([]byte(a.hashPassword), passwd)
+	res, err := authFunc(a.hashPassword, passwd)
 	if err != nil {
 		return false
 	}
@@ -69,7 +69,7 @@ func (a *Admin) Login() string {
 }
 
 func (a *Admin) HashedPassword() []byte {
-	return []byte(a.hashPassword)
+	return a.hashPassword
 }
 
 func (a *Admin) IsAuthenticated() bool {

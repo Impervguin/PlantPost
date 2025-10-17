@@ -14,7 +14,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func (r *ViewRouter) handlePostsWithPlant(c *gin.Context, psts []*searchservice.SearchPost) (map[uuid.UUID]*searchservice.SearchPlant, error) {
+func (r *ViewRouter) handlePostsWithPlant(
+	c *gin.Context,
+	psts []*searchservice.SearchPost,
+) (map[uuid.UUID]*searchservice.SearchPlant, error) {
 	plantMap := make(map[uuid.UUID]*searchservice.SearchPlant)
 	plants := make(map[uuid.UUID]struct{})
 	for _, pst := range psts {
@@ -73,8 +76,8 @@ func (r *ViewRouter) PostsHandler(c *gin.Context) {
 	}
 
 	for _, post := range posts {
-		for i, _ := range post.Photos {
-			post.Photos[i].File.URL = r.postMedia.GetUrl(post.Photos[i].File.URL)
+		for i := range post.Photos {
+			post.Photos[i].File.URL = r.postMedia.GetURL(post.Photos[i].File.URL)
 		}
 	}
 
@@ -97,10 +100,14 @@ func (r *ViewRouter) PostsHandler(c *gin.Context) {
 	}
 
 	for _, plnt := range plantMap {
-		plnt.MainPhoto.URL = r.plantMedia.GetUrl(plnt.MainPhoto.URL)
+		plnt.MainPhoto.URL = r.plantMedia.GetURL(plnt.MainPhoto.URL)
 	}
 
-	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.Posts(user, posts, tags, authors, plantMap))
+	rend := gintemplrenderer.New(
+		c.Request.Context(),
+		http.StatusOK,
+		components.Posts(user, posts, tags, authors, plantMap),
+	)
 	c.Render(http.StatusOK, rend)
 }
 
@@ -108,7 +115,10 @@ type postView struct {
 	ID string `uri:"id" binding:"required"`
 }
 
-func (r *ViewRouter) handlePostWithPlant(c *gin.Context, pst *searchservice.GetPost) (map[uuid.UUID]*searchservice.SearchPlant, error) {
+func (r *ViewRouter) handlePostWithPlant(
+	c *gin.Context,
+	pst *searchservice.GetPost,
+) (map[uuid.UUID]*searchservice.SearchPlant, error) {
 	parser, err := parser.GetParser(&pst.Content, r.plntGet)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -159,8 +169,8 @@ func (r *ViewRouter) PostViewHandler(c *gin.Context) {
 		return
 	}
 
-	for i, _ := range pst.Photos {
-		pst.Photos[i].File.URL = r.postMedia.GetUrl(pst.Photos[i].File.URL)
+	for i := range pst.Photos {
+		pst.Photos[i].File.URL = r.postMedia.GetURL(pst.Photos[i].File.URL)
 	}
 
 	plantMap := make(map[uuid.UUID]*searchservice.SearchPlant)
@@ -173,7 +183,7 @@ func (r *ViewRouter) PostViewHandler(c *gin.Context) {
 	}
 
 	for _, plnt := range plantMap {
-		plnt.MainPhoto.URL = r.plantMedia.GetUrl(plnt.MainPhoto.URL)
+		plnt.MainPhoto.URL = r.plantMedia.GetURL(plnt.MainPhoto.URL)
 	}
 
 	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.PostView(user, pst, plantMap))

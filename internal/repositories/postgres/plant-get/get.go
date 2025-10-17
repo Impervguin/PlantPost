@@ -4,6 +4,7 @@ import (
 	"PlantSite/internal/infra/sqdb"
 	"PlantSite/internal/models/plant"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -41,10 +42,11 @@ func NewPostgresPlantGet(db sqdb.SquirrelDatabase) *PostgresPlantGet {
 
 func (g *PostgresPlantGet) Get(ctx context.Context, plantID uuid.UUID) (*plant.Plant, error) {
 	var tmpPlant Plant
-	var tmpSpec specificationmapper.JsonB
+	var tmpSpec specificationmapper.JSONB
 	photos := plant.NewPlantPhotos()
 
-	row, err := g.db.QueryRow(ctx,
+	row, err := g.db.QueryRow(
+		ctx,
 		squirrel.Select("id", "name", "latin_name", "description", "main_photo_id", "category", "created_at", "updated_at", "specification").
 			From("plant").
 			Where(squirrel.Eq{"id": plantID}),
@@ -53,8 +55,18 @@ func (g *PostgresPlantGet) Get(ctx context.Context, plantID uuid.UUID) (*plant.P
 		return nil, fmt.Errorf("PostgresPlantGet failed %w", err)
 	}
 
-	err = row.Scan(&tmpPlant.ID, &tmpPlant.Name, &tmpPlant.LatinName, &tmpPlant.Description, &tmpPlant.MainPhotoID, &tmpPlant.Category, &tmpPlant.CreatedAt, &tmpPlant.UpdatedAt, &tmpSpec)
-	if err == sqdb.ErrNoRows {
+	err = row.Scan(
+		&tmpPlant.ID,
+		&tmpPlant.Name,
+		&tmpPlant.LatinName,
+		&tmpPlant.Description,
+		&tmpPlant.MainPhotoID,
+		&tmpPlant.Category,
+		&tmpPlant.CreatedAt,
+		&tmpPlant.UpdatedAt,
+		&tmpSpec,
+	)
+	if errors.Is(err, sqdb.ErrNoRows) {
 		return nil, plant.ErrPlantNotFound
 	} else if err != nil {
 		return nil, err

@@ -19,20 +19,94 @@ type ConiferousSpecification struct {
 }
 
 func init() {
-	registry.Register(plant.ConiferousCategory, ConiferousFromJsonB, ConiferousFromDomain)
+	registry.Register(plant.ConiferousCategory, ConiferousFromJSONB, ConiferousFromDomain)
 }
 
 var _ registry.PlantSpecification = &ConiferousSpecification{}
 
-func (spec *ConiferousSpecification) ToJsonB() (registry.JsonB, error) {
+var coniferousSpecDecoders = map[string]func(v any, conSpec *ConiferousSpecification) error{
+	pgconsts.JSONBHeightMKey: func(v any, conSpec *ConiferousSpecification) error {
+		switch fact := v.(type) {
+		case float64:
+			conSpec.HeightM = fact
+		case int:
+			conSpec.HeightM = float64(fact)
+		default:
+			return ErrJSONBFormatHeightM
+		}
+		return nil
+	},
+	pgconsts.JSONBDiameterMKey: func(v any, conSpec *ConiferousSpecification) error {
+		switch fact := v.(type) {
+		case float64:
+			conSpec.DiameterM = fact
+		case int:
+			conSpec.DiameterM = float64(fact)
+		default:
+			return ErrJSONBFormatDiameterM
+		}
+		return nil
+	},
+	pgconsts.JSONBSoilAcidityKey: func(v any, conSpec *ConiferousSpecification) error {
+		switch fact := v.(type) {
+		case float64:
+			conSpec.SoilAcidity = plant.SoilAcidity(math.Round(fact))
+		case int:
+			conSpec.SoilAcidity = plant.SoilAcidity(fact)
+		default:
+			return ErrJSONBFormatSoilAcidity
+		}
+		return nil
+	},
+	pgconsts.JSONBSoilMoistureKey: func(v any, conSpec *ConiferousSpecification) error {
+		switch fact := v.(type) {
+		case string:
+			conSpec.SoilMoisture = plant.SoilMoisture(fact)
+		default:
+			return ErrJSONBFormatSoilMoisture
+		}
+		return nil
+	},
+	pgconsts.JSONBLightRelationKey: func(v any, conSpec *ConiferousSpecification) error {
+		switch fact := v.(type) {
+		case string:
+			conSpec.LightRelation = plant.LightRelation(fact)
+		default:
+			return ErrJSONBFormatLightRelation
+		}
+		return nil
+	},
+	pgconsts.JSONBSoilTypeKey: func(v any, conSpec *ConiferousSpecification) error {
+		switch fact := v.(type) {
+		case string:
+			conSpec.SoilType = plant.Soil(fact)
+		default:
+			return ErrJSONBFormatSoilType
+		}
+		return nil
+	},
+	pgconsts.JSONBWinterHardinessKey: func(v any, conSpec *ConiferousSpecification) error {
+		switch fact := v.(type) {
+		case float64:
+			conSpec.WinterHardiness = plant.WinterHardiness(math.Round(fact))
+		case int:
+			conSpec.WinterHardiness = plant.WinterHardiness(fact)
+		default:
+			return ErrJSONBFormatWinterHardiness
+		}
+		return nil
+	},
+}
+
+func (spec *ConiferousSpecification) ToJSONB() (registry.JSONB, error) {
 	return map[string]interface{}{
-		pgconsts.JsonBHeightMKey:         spec.HeightM,
-		pgconsts.JsonBDiameterMKey:       spec.DiameterM,
-		pgconsts.JsonBSoilAcidityKey:     spec.SoilAcidity,
-		pgconsts.JsonBSoilMoistureKey:    spec.SoilMoisture,
-		pgconsts.JsonBLightRelationKey:   spec.LightRelation,
-		pgconsts.JsonBSoilTypeKey:        spec.SoilType,
-		pgconsts.JsonBWinterHardinessKey: spec.WinterHardiness,
+		pgconsts.JSONBHeightMKey:         spec.HeightM,
+		pgconsts.JSONBDiameterMKey:       spec.DiameterM,
+		pgconsts.JSONBSoilAcidityKey:     spec.SoilAcidity,
+		pgconsts.JSONBSoilMoistureKey:    spec.SoilMoisture,
+		pgconsts.JSONBLightRelationKey:   spec.LightRelation,
+		pgconsts.JSONBSoilTypeKey:        spec.SoilType,
+		pgconsts.JSONBWinterHardinessKey: spec.WinterHardiness,
 	}, nil
 }
 
@@ -48,92 +122,29 @@ func (spec *ConiferousSpecification) ToDomain() (plant.PlantSpecification, error
 	)
 }
 
-func ConiferousFromJsonB(JsonB registry.JsonB) (registry.PlantSpecification, error) {
+func ConiferousFromJSONB(jsonB registry.JSONB) (registry.PlantSpecification, error) {
 	var conSpec ConiferousSpecification
-	if val, ok := JsonB[pgconsts.JsonBHeightMKey]; ok {
-		switch fact := val.(type) {
-		case float64:
-			conSpec.HeightM = fact
-		case int:
-			conSpec.HeightM = float64(fact)
-		default:
-			return nil, ErrJsonBFormatHeightM
-		}
-	} else {
-		return nil, ErrJsonBMissingHeightM
+	var mustBeKeys = map[string]error{
+		pgconsts.JSONBHeightMKey:         ErrJSONBMissingHeightM,
+		pgconsts.JSONBDiameterMKey:       ErrJSONBMissingDiameterM,
+		pgconsts.JSONBSoilAcidityKey:     ErrJSONBMissingSoilAcidity,
+		pgconsts.JSONBSoilMoistureKey:    ErrJSONBMissingSoilMoisture,
+		pgconsts.JSONBLightRelationKey:   ErrJSONBMissingLightRelation,
+		pgconsts.JSONBSoilTypeKey:        ErrJSONBMissingSoilType,
+		pgconsts.JSONBWinterHardinessKey: ErrJSONBMissingWinterHardiness,
 	}
 
-	if val, ok := JsonB[pgconsts.JsonBDiameterMKey]; ok {
-		switch fact := val.(type) {
-		case float64:
-			conSpec.DiameterM = fact
-		case int:
-			conSpec.DiameterM = float64(fact)
-		default:
-			return nil, ErrJsonBFormatDiameterM
-		}
-	} else {
-		return nil, ErrJsonBMissingDiameterM
+	err := checkJSONBKeys(jsonB, mustBeKeys)
+	if err != nil {
+		return nil, err
 	}
 
-	if val, ok := JsonB[pgconsts.JsonBSoilAcidityKey]; ok {
-		switch fact := val.(type) {
-		case float64:
-			conSpec.SoilAcidity = plant.SoilAcidity(math.Round(fact))
-		case int:
-			conSpec.SoilAcidity = plant.SoilAcidity(fact)
-		default:
-			return nil, ErrJsonBFormatSoilAcidity
+	for key, decoder := range coniferousSpecDecoders {
+		if err := decoder(jsonB[key], &conSpec); err != nil {
+			return nil, err
 		}
-	} else {
-		return nil, ErrJsonBMissingSoilAcidity
 	}
 
-	if val, ok := JsonB[pgconsts.JsonBSoilMoistureKey]; ok {
-		switch fact := val.(type) {
-		case string:
-			conSpec.SoilMoisture = plant.SoilMoisture(fact)
-		default:
-			return nil, ErrJsonBFormatSoilMoisture
-		}
-	} else {
-		return nil, ErrJsonBMissingSoilMoisture
-	}
-
-	if val, ok := JsonB[pgconsts.JsonBLightRelationKey]; ok {
-		switch fact := val.(type) {
-		case string:
-			conSpec.LightRelation = plant.LightRelation(fact)
-		default:
-			return nil, ErrJsonBFormatLightRelation
-		}
-	} else {
-		return nil, ErrJsonBMissingLightRelation
-	}
-
-	if val, ok := JsonB[pgconsts.JsonBSoilTypeKey]; ok {
-		switch fact := val.(type) {
-		case string:
-			conSpec.SoilType = plant.Soil(fact)
-		default:
-			return nil, ErrJsonBFormatSoilType
-		}
-	} else {
-		return nil, ErrJsonBMissingSoilType
-	}
-
-	if val, ok := JsonB[pgconsts.JsonBWinterHardinessKey]; ok {
-		switch fact := val.(type) {
-		case float64:
-			conSpec.WinterHardiness = plant.WinterHardiness(math.Round(fact))
-		case int:
-			conSpec.WinterHardiness = plant.WinterHardiness(fact)
-		default:
-			return nil, ErrJsonBFormatWinterHardiness
-		}
-	} else {
-		return nil, ErrJsonBMissingWinterHardiness
-	}
 	return &conSpec, nil
 }
 

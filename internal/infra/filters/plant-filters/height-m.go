@@ -23,8 +23,8 @@ func PlantHeightMFilterFactory(f search.PlantFilter) (registry.PostgresPlantFilt
 
 	// Between {min} and {max}
 	filt := squirrel.And{
-		squirrel.GtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JsonBHeightMKey): pf.Min},
-		squirrel.LtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JsonBHeightMKey): pf.Max},
+		squirrel.GtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JSONBHeightMKey): pf.Min},
+		squirrel.LtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JSONBHeightMKey): pf.Max},
 	}
 
 	return filt, nil

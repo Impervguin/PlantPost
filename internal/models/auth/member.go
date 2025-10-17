@@ -17,6 +17,12 @@ type Member struct {
 	createdAt  time.Time
 }
 
+func NewMember(name, email string, hashPasswd []byte) (*Member, error) {
+	id := uuid.New()
+	createdAt := time.Now()
+	return CreateMember(id, name, email, hashPasswd, createdAt)
+}
+
 func CreateMember(id uuid.UUID, name string, email string, hashPasswd []byte, createdAt time.Time) (*Member, error) {
 	member := &Member{
 		id:         id,
@@ -43,7 +49,7 @@ func (m *Member) Validate() error {
 		return fmt.Errorf("name should not exceed %d characters", MaximumNameLength)
 	}
 	if err := validateEmail(m.email); err != nil {
-		return fmt.Errorf("invalid email address: %v", err)
+		return fmt.Errorf("invalid email address: %w", err)
 	}
 	if m.createdAt.IsZero() {
 		return fmt.Errorf("created_at should not be zero")
@@ -53,12 +59,6 @@ func (m *Member) Validate() error {
 	}
 
 	return nil
-}
-
-func NewMember(name, email string, hashPasswd []byte) (*Member, error) {
-	id := uuid.New()
-	createdAt := time.Now()
-	return CreateMember(id, name, email, hashPasswd, createdAt)
 }
 
 func (m *Member) HasAuthorRights() bool {

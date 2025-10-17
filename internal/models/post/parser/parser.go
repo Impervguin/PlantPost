@@ -21,5 +21,4 @@ func GetParser(content *post.Content, plantGetter PlantGetter) (post.ContentPlan
 	default:
 		return nil, fmt.Errorf("unsupported plant parser: %s", parser)
 	}
-
 }

@@ -8,19 +8,23 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-var TemplateDatabaseAlreadyExistsError = errors.New("template database already exists")
-var TemplateDatabaseDoesNotExistError = errors.New("template database does not exist")
+var ErrTemplateDatabaseAlreadyExists = errors.New("template database already exists")
+var ErrTemplateDatabaseDoesNotExist = errors.New("template database does not exist")
 
 func CreateTemplateDatabase(ctx context.Context, db *PostgresCredentials) error {
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, db.Database))
+	conn, err := pgx.Connect(
+		ctx,
+		fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, db.Database),
+	)
 	if err != nil {
 		return err
 	}
 	defer conn.Close(ctx)
 	var tmp int
-	err = conn.QueryRow(ctx, fmt.Sprintf("SELECT 1 FROM pg_database WHERE datname = '%s'", db.TemplateDatabase)).Scan(&tmp)
+	err = conn.QueryRow(ctx, fmt.Sprintf("SELECT 1 FROM pg_database WHERE datname = '%s'", db.TemplateDatabase)).
+		Scan(&tmp)
 	if !errors.Is(err, pgx.ErrNoRows) {
-		return TemplateDatabaseAlreadyExistsError
+		return ErrTemplateDatabaseAlreadyExists
 	}
 
 	_, err = conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE %s", db.TemplateDatabase))
@@ -31,15 +35,19 @@ func CreateTemplateDatabase(ctx context.Context, db *PostgresCredentials) error 
 }
 
 func DropTemplateDatabase(ctx context.Context, db *PostgresCredentials) error {
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d?sslmode=disable", db.User, db.Password, db.Host, db.Port))
+	conn, err := pgx.Connect(
+		ctx,
+		fmt.Sprintf("postgres://%s:%s@%s:%d?sslmode=disable", db.User, db.Password, db.Host, db.Port),
+	)
 	if err != nil {
 		return err
 	}
 	defer conn.Close(ctx)
 	var tmp int
-	err = conn.QueryRow(ctx, fmt.Sprintf("SELECT 1 FROM pg_database WHERE datname = '%s'", db.TemplateDatabase)).Scan(&tmp)
+	err = conn.QueryRow(ctx, fmt.Sprintf("SELECT 1 FROM pg_database WHERE datname = '%s'", db.TemplateDatabase)).
+		Scan(&tmp)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return TemplateDatabaseDoesNotExistError
+		return ErrTemplateDatabaseDoesNotExist
 	}
 	_, err = conn.Exec(ctx, fmt.Sprintf("DROP DATABASE %s", db.TemplateDatabase))
 	if err != nil {
@@ -49,15 +57,26 @@ func DropTemplateDatabase(ctx context.Context, db *PostgresCredentials) error {
 }
 
 func ApplyTemplate(ctx context.Context, db *PostgresCredentials) error {
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", db.User, db.Password, db.Host, db.Port, db.TemplateDatabase))
+	conn, err := pgx.Connect(
+		ctx,
+		fmt.Sprintf(
+			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+			db.User,
+			db.Password,
+			db.Host,
+			db.Port,
+			db.TemplateDatabase,
+		),
+	)
 	if err != nil {
 		return err
 	}
 	defer conn.Close(ctx)
 	var tmp int
-	err = conn.QueryRow(ctx, fmt.Sprintf("SELECT 1 FROM pg_database WHERE datname = '%s'", db.TemplateDatabase)).Scan(&tmp)
+	err = conn.QueryRow(ctx, fmt.Sprintf("SELECT 1 FROM pg_database WHERE datname = '%s'", db.TemplateDatabase)).
+		Scan(&tmp)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return TemplateDatabaseDoesNotExistError
+		return ErrTemplateDatabaseDoesNotExist
 	}
 	_, err = conn.Exec(ctx, fmt.Sprintf("DROP DATABASE %s with (FORCE)", db.Database))
 	if err != nil {

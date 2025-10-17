@@ -8,7 +8,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-var BucketDoesNotExistError = fmt.Errorf("bucket does not exist")
+var ErrBucketDoesNotExist = fmt.Errorf("bucket does not exist")
 
 func Migrate(ctx context.Context, creds *MinioCredentials) error {
 	clnt, err := minio.New(creds.GetEndpoint(), &minio.Options{
@@ -51,7 +51,7 @@ func CheckBucketExists(ctx context.Context, creds *MinioCredentials) error {
 		return err
 	}
 	if !f {
-		return BucketDoesNotExistError
+		return ErrBucketDoesNotExist
 	}
 	return nil
 }
@@ -64,6 +64,11 @@ func CleanUpBucket(ctx context.Context, creds *MinioCredentials) error {
 	if err != nil {
 		return err
 	}
-	clnt.RemoveObjects(ctx, creds.Bucket, clnt.ListObjects(ctx, creds.Bucket, minio.ListObjectsOptions{}), minio.RemoveObjectsOptions{})
+	clnt.RemoveObjects(
+		ctx,
+		creds.Bucket,
+		clnt.ListObjects(ctx, creds.Bucket, minio.ListObjectsOptions{}),
+		minio.RemoveObjectsOptions{},
+	)
 	return nil
 }

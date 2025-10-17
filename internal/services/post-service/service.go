@@ -12,7 +12,11 @@ type PostService struct {
 	auth     *authservice.AuthService
 }
 
-func NewPostService(repo post.PostRepository, fileRepo models.FileRepository, auth *authservice.AuthService) *PostService {
+func NewPostService(
+	repo post.PostRepository,
+	fileRepo models.FileRepository,
+	auth *authservice.AuthService,
+) *PostService {
 	if repo == nil {
 		panic("nil repository")
 	}

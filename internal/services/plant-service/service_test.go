@@ -71,7 +71,11 @@ func (m *MockPlantRepository) Create(ctx context.Context, p *plant.Plant) (*plan
 	return args.Get(0).(*plant.Plant), args.Error(1)
 }
 
-func (m *MockPlantRepository) Update(ctx context.Context, id uuid.UUID, updateFn func(*plant.Plant) (*plant.Plant, error)) (*plant.Plant, error) {
+func (m *MockPlantRepository) Update(
+	ctx context.Context,
+	id uuid.UUID,
+	updateFn func(*plant.Plant) (*plant.Plant, error),
+) (*plant.Plant, error) {
 	args := m.Called(ctx, id, updateFn)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -148,7 +152,11 @@ func (m *MockFileRepository) Download(ctx context.Context, fileID uuid.UUID) (*m
 	return args.Get(0).(*models.FileData), args.Error(1)
 }
 
-func (m *MockFileRepository) Update(ctx context.Context, fileID uuid.UUID, data *models.FileData) (*models.File, error) {
+func (m *MockFileRepository) Update(
+	ctx context.Context,
+	fileID uuid.UUID,
+	data *models.FileData,
+) (*models.File, error) {
 	args := m.Called(ctx, fileID, data)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -181,7 +189,11 @@ func (s *PlantServiceTestSuite) BeforeEach(t provider.T) {
 	s.plantMother = &PlantMother{}
 }
 
-func setupAuthService(t provider.T, userID uuid.UUID, hasAuthorRights bool) (*authservice.AuthService, context.Context) {
+func setupAuthService(
+	t provider.T,
+	userID uuid.UUID,
+	hasAuthorRights bool,
+) (*authservice.AuthService, context.Context) {
 	arepo := new(authmock.MockAuthRepository)
 	sessions := new(authmock.MockSessionStorage)
 	hasher := new(authmock.MockPasswdHasher)
@@ -229,12 +241,14 @@ func (s *PlantServiceTestSuite) TestUpdatePlantSpec(t provider.T) {
 
 		prepo := new(MockPlantRepository)
 		t.WithNewStep("Setup plant repository", func(pctx provider.StepCtx) {
-			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(validPlant, nil).Run(func(args mock.Arguments) {
-				fn, ok := args.Get(2).(func(*plant.Plant) (*plant.Plant, error))
-				require.True(t, ok)
-				_, err := fn(validPlant)
-				require.NoError(t, err)
-			})
+			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).
+				Return(validPlant, nil).
+				Run(func(args mock.Arguments) {
+					fn, ok := args.Get(2).(func(*plant.Plant) (*plant.Plant, error))
+					require.True(t, ok)
+					_, err := fn(validPlant)
+					require.NoError(t, err)
+				})
 		})
 
 		crepo := new(MockPlantCategoryRepository)
@@ -273,12 +287,14 @@ func (s *PlantServiceTestSuite) TestUpdatePlantSpec(t provider.T) {
 
 		t.WithNewStep("Setup plant repository", func(pctx provider.StepCtx) {
 			prepo.On("Get", mock.Anything, validPlantID).Return(validPlant, nil)
-			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(validPlant, assert.AnError).Run(func(args mock.Arguments) {
-				fn, ok := args.Get(2).(func(*plant.Plant) (*plant.Plant, error))
-				require.True(t, ok)
-				_, err := fn(validPlant)
-				require.Error(t, err)
-			})
+			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).
+				Return(validPlant, assert.AnError).
+				Run(func(args mock.Arguments) {
+					fn, ok := args.Get(2).(func(*plant.Plant) (*plant.Plant, error))
+					require.True(t, ok)
+					_, err := fn(validPlant)
+					require.Error(t, err)
+				})
 		})
 
 		svc := plantservice.NewPlantService(prepo, crepo, frepo, asvc)
@@ -358,10 +374,12 @@ func (s *PlantServiceTestSuite) TestUploadPlantPhoto(t provider.T) {
 
 		prepo := new(MockPlantRepository)
 		t.WithNewStep("Setup plant update", func(pctx provider.StepCtx) {
-			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).Return(validPlant, nil).Run(func(args mock.Arguments) {
-				_, ok := args.Get(2).(func(*plant.Plant) (*plant.Plant, error))
-				require.True(t, ok)
-			})
+			prepo.On("Update", mock.Anything, validPlantID, mock.Anything).
+				Return(validPlant, nil).
+				Run(func(args mock.Arguments) {
+					_, ok := args.Get(2).(func(*plant.Plant) (*plant.Plant, error))
+					require.True(t, ok)
+				})
 		})
 
 		crepo := new(MockPlantCategoryRepository)

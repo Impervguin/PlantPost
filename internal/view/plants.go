@@ -23,7 +23,7 @@ func (r *ViewRouter) PlantsHandler(c *gin.Context) {
 	}
 
 	for _, plnt := range plnts {
-		plnt.MainPhoto.URL = r.plantMedia.GetUrl(plnt.MainPhoto.URL)
+		plnt.MainPhoto.URL = r.plantMedia.GetURL(plnt.MainPhoto.URL)
 	}
 
 	ctx := c.Request.Context()
@@ -71,10 +71,10 @@ func (r *ViewRouter) PlantViewHandler(c *gin.Context) {
 		return
 	}
 
-	plnt.MainPhoto.URL = r.plantMedia.GetUrl(plnt.MainPhoto.URL)
+	plnt.MainPhoto.URL = r.plantMedia.GetURL(plnt.MainPhoto.URL)
 
 	for _, photo := range plnt.Photos {
-		photo.File.URL = r.plantMedia.GetUrl(photo.File.URL)
+		photo.File.URL = r.plantMedia.GetURL(photo.File.URL)
 	}
 
 	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.PlantView(user, plnt))
@@ -107,10 +107,10 @@ func (r *ViewRouter) UpdatePlantHandler(c *gin.Context) {
 		return
 	}
 
-	plnt.MainPhoto.URL = r.plantMedia.GetUrl(plnt.MainPhoto.URL)
+	plnt.MainPhoto.URL = r.plantMedia.GetURL(plnt.MainPhoto.URL)
 
 	for _, photo := range plnt.Photos {
-		photo.File.URL = r.plantMedia.GetUrl(photo.File.URL)
+		photo.File.URL = r.plantMedia.GetURL(photo.File.URL)
 	}
 
 	rend := gintemplrenderer.New(c.Request.Context(), http.StatusOK, components.UpdatePlantSpecification(user, plnt))

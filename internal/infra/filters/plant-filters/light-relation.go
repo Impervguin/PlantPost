@@ -23,7 +23,7 @@ func PlantLightRelationFilterFactory(f search.PlantFilter) (registry.PostgresPla
 
 	// in {list}
 	filt := squirrel.Eq{
-		fmt.Sprintf("specification->>'%s'", pgconsts.JsonBLightRelationKey): pf.PossibleRelations,
+		fmt.Sprintf("specification->>'%s'", pgconsts.JSONBLightRelationKey): pf.PossibleRelations,
 	}
 
 	return filt, nil

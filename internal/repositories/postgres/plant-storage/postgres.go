@@ -56,13 +56,13 @@ func (repo *PostgresPlantRepository) Create(ctx context.Context, plnt *plant.Pla
 		if err != nil {
 			return err
 		}
-		specJson, err := tmpSpec.ToJsonB()
+		specJSON, err := tmpSpec.ToJSONB()
 		if err != nil {
 			return err
 		}
 		_, err = tx.Insert(ctx, squirrel.Insert("plant").
 			Columns("id", "name", "latin_name", "description", "main_photo_id", "category", "created_at", "updated_at", "specification").
-			Values(plnt.ID(), plnt.GetName(), plnt.GetLatinName(), plnt.GetDescription(), plnt.MainPhotoID(), plnt.GetCategory(), plnt.CreatedAt(), plnt.UpdatedAt(), specJson),
+			Values(plnt.ID(), plnt.GetName(), plnt.GetLatinName(), plnt.GetDescription(), plnt.MainPhotoID(), plnt.GetCategory(), plnt.CreatedAt(), plnt.UpdatedAt(), specJSON),
 		)
 
 		if err != nil {
@@ -92,7 +92,36 @@ func (repo *PostgresPlantRepository) Create(ctx context.Context, plnt *plant.Pla
 	return plnt, err
 }
 
-func (repo *PostgresPlantRepository) Update(ctx context.Context, plantID uuid.UUID, updateFn func(*plant.Plant) (*plant.Plant, error)) (*plant.Plant, error) {
+func (repo *PostgresPlantRepository) updatePlantPhotos(ctx context.Context,
+	updated *plant.Plant,
+	tx sqdb.SquirrelQuirier) error {
+	_, err := tx.Delete(ctx, squirrel.Delete("plant_photo").
+		Where(squirrel.Eq{"plant_id": updated.ID()}))
+	if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
+		return fmt.Errorf("PostgresPlantRepository.Update can't delete plant photos: %w", err)
+	}
+	query := squirrel.Insert("plant_photo").
+		Columns("id", "plant_id", "file_id", "description")
+	err = updated.GetPhotos().Iterate(func(e plant.PlantPhoto) error {
+		query = query.Values(e.ID(), updated.ID(), e.FileID(), e.Description())
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	_, err = tx.Insert(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *PostgresPlantRepository) Update(
+	ctx context.Context,
+	plantID uuid.UUID,
+	updateFn func(*plant.Plant) (*plant.Plant, error),
+) (*plant.Plant, error) {
 	plnt, err := repo.Get(ctx, plantID)
 	if err != nil {
 		return nil, err
@@ -105,7 +134,7 @@ func (repo *PostgresPlantRepository) Update(ctx context.Context, plantID uuid.UU
 	if err != nil {
 		return nil, err
 	}
-	specJson, err := tmpSpec.ToJsonB()
+	specJSON, err := tmpSpec.ToJSONB()
 	if err != nil {
 		return nil, err
 	}
@@ -119,32 +148,16 @@ func (repo *PostgresPlantRepository) Update(ctx context.Context, plantID uuid.UU
 			Set("category", plnt.GetCategory()).
 			Set("created_at", plnt.CreatedAt()).
 			Set("updated_at", plnt.UpdatedAt()).
-			Set("specification", specJson).
+			Set("specification", specJSON).
 			Where(squirrel.Eq{"id": plantID}),
 		)
 		if err != nil {
 			return err
 		}
 
-		_, err = tx.Delete(ctx, squirrel.Delete("plant_photo").
-			Where(squirrel.Eq{"plant_id": plantID}))
-		if err != nil && !errors.Is(err, sqdb.ErrNoRows) {
+		err = repo.updatePlantPhotos(ctx, plnt, tx)
+		if err != nil {
 			return err
-		}
-		if plnt.GetPhotos().Len() > 0 {
-			query := squirrel.Insert("plant_photo").
-				Columns("id", "plant_id", "file_id", "description")
-			err = plnt.GetPhotos().Iterate(func(e plant.PlantPhoto) error {
-				query = query.Values(e.ID(), plnt.ID(), e.FileID(), e.Description())
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-			_, err = tx.Insert(ctx, query)
-			if err != nil {
-				return err
-			}
 		}
 		return nil
 	})

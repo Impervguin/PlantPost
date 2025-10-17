@@ -8,8 +8,8 @@ import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/auth"
 	plantservice "PlantSite/internal/services/plant-service"
-
 	"errors"
+
 	"fmt"
 	"net/http"
 
@@ -28,6 +28,32 @@ func (r *PlantRouter) Init(router *gin.RouterGroup, plantService *plantservice.P
 	gr.PUT("/specification/:id", r.UpdateSpecification)
 	gr.DELETE("/delete/:id", r.Delete)
 	gr.POST("/upload/:id", r.UploadPhoto)
+}
+
+func (r *PlantRouter) parseFile(c *gin.Context) (models.FileData, error) {
+	form, err := c.MultipartForm()
+	if err != nil {
+		return models.FileData{}, err
+	}
+	if len(form.File["file"]) == 0 {
+		return models.FileData{}, errors.New("no main photo provided")
+	}
+
+	if len(form.File["file"]) > 1 {
+		return models.FileData{}, errors.New("only one main photo allowed")
+	}
+
+	file := form.File["file"][0]
+	f, err := file.Open()
+	if err != nil {
+		return models.FileData{}, err
+	}
+
+	return models.FileData{
+		Name:        file.Filename,
+		ContentType: file.Header.Get("Content-Type"),
+		Reader:      f,
+	}, nil
 }
 
 // Create plant handler
@@ -60,39 +86,12 @@ func (r *PlantRouter) Create(c *gin.Context) {
 
 	spec, err := req.Spec.ToDomain()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("can't convert specification to domain: %w", err).Error()})
+		c.JSON(
+			http.StatusBadRequest,
+			gin.H{"error": fmt.Errorf("can't convert specification to domain: %w", err).Error()},
+		)
 		c.Error(err)
 		return
-	}
-
-	form, err := c.MultipartForm()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		c.Error(err)
-		return
-	}
-	if len(form.File["file"]) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no main photo provided"})
-		return
-	}
-
-	if len(form.File["file"]) > 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "only one main photo allowed"})
-		return
-	}
-
-	file := form.File["file"][0]
-	f, err := file.Open()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		c.Error(err)
-		return
-	}
-
-	fileData := models.FileData{
-		Name:        file.Filename,
-		ContentType: file.Header.Get("Content-Type"),
-		Reader:      f,
 	}
 
 	data := plantservice.CreatePlantData{
@@ -102,22 +101,30 @@ func (r *PlantRouter) Create(c *gin.Context) {
 		Category:    req.Category,
 		Spec:        spec,
 	}
-
-	err = r.plant.CreatePlant(ctx, data, fileData)
-	if errors.Is(err, auth.ErrNotAuthorized) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		c.Error(err)
-		return
-	} else if errors.Is(err, auth.ErrNoAuthorRights) {
-		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
-		c.Error(err)
-		return
-	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	fileData, err := r.parseFile(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("can't parse file: %w", err).Error()})
 		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
+
+	err = r.plant.CreatePlant(ctx, data, fileData)
+	switch {
+	case errors.Is(err, auth.ErrNotAuthorized):
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.Error(err)
+		return
+	case errors.Is(err, auth.ErrNoAuthorRights):
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		c.Error(err)
+		return
+	case err != nil:
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
+		return
+	default:
+		c.JSON(http.StatusOK, gin.H{})
+	}
 }
 
 // @Summary Get plant
@@ -142,26 +149,28 @@ func (r *PlantRouter) Get(c *gin.Context) {
 	}
 
 	pl, err := r.plant.GetPlant(ctx, req.ID)
-	if errors.Is(err, auth.ErrNotAuthorized) {
+	switch {
+	case errors.Is(err, auth.ErrNotAuthorized):
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if errors.Is(err, auth.ErrNoAuthorRights) {
+	case errors.Is(err, auth.ErrNoAuthorRights):
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if err != nil {
+	case err != nil:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
+	default:
+		resp, err := mapper.MapGetPlantResponse(pl)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.Error(err)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"plant": resp})
 	}
-	resp, err := mapper.MapGetPlantResponse(pl)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		c.Error(err)
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"plant": resp})
 }
 
 // @Summary Update plant specification
@@ -186,30 +195,35 @@ func (r *PlantRouter) UpdateSpecification(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	
 
 	spec, err := req.Spec.ToDomain()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("can't convert specification to domain: %w", err).Error()})
+		c.JSON(
+			http.StatusBadRequest,
+			gin.H{"error": fmt.Errorf("can't convert specification to domain: %w", err).Error()},
+		)
 		c.Error(err)
 		return
 	}
 
 	err = r.plant.UpdatePlantSpec(ctx, req.ID, spec)
-	if errors.Is(err, auth.ErrNotAuthorized) {
+	switch {
+	case errors.Is(err, auth.ErrNotAuthorized):
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if errors.Is(err, auth.ErrNoAuthorRights) {
+	case errors.Is(err, auth.ErrNoAuthorRights):
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if err != nil {
+	case err != nil:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
+	default:
+		c.JSON(http.StatusOK, gin.H{})
+		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
 }
 
 // @Summary Delete plant
@@ -233,20 +247,22 @@ func (r *PlantRouter) Delete(c *gin.Context) {
 	}
 
 	err = r.plant.DeletePlant(ctx, req.ID)
-	if errors.Is(err, auth.ErrNotAuthorized) {
+	switch {
+	case errors.Is(err, auth.ErrNotAuthorized):
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if errors.Is(err, auth.ErrNoAuthorRights) {
+	case errors.Is(err, auth.ErrNoAuthorRights):
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if err != nil {
+	case err != nil:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
+	default:
+		c.JSON(http.StatusOK, gin.H{})
 	}
-	c.JSON(http.StatusOK, gin.H{})
 }
 
 // @Summary Upload plant photo
@@ -272,56 +288,27 @@ func (r *PlantRouter) UploadPhoto(c *gin.Context) {
 		return
 	}
 
-	form, err := c.MultipartForm()
+	data, err := r.parseFile(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		c.Error(err)
-		return
-	}
-
-	if len(form.File["file"]) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no main photo provided"})
-		return
-	}
-
-	if len(form.File["file"]) > 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "only one main photo allowed"})
-		return
-	}
-
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		c.Error(err)
-		return
-	}
-
-	f, err := file.Open()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		c.Error(err)
-		return
-	}
-
-	data := models.FileData{
-		Name:        file.Filename,
-		ContentType: file.Header.Get("Content-Type"),
-		Reader:      f,
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Errorf("can't parse file: %w", err).Error()})
 	}
 
 	err = r.plant.UploadPlantPhoto(ctx, req.ID, data, req.Description)
-	if errors.Is(err, auth.ErrNotAuthorized) {
+
+	switch {
+	case errors.Is(err, auth.ErrNotAuthorized):
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if errors.Is(err, auth.ErrNoAuthorRights) {
+	case errors.Is(err, auth.ErrNoAuthorRights):
 		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
-	} else if err != nil {
+	case err != nil:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		c.Error(err)
 		return
+	default:
+		c.JSON(http.StatusOK, gin.H{})
 	}
-	c.JSON(http.StatusOK, gin.H{})
 }

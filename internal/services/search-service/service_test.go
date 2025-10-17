@@ -115,7 +115,11 @@ func (m *MockFileRepository) Download(ctx context.Context, fileID uuid.UUID) (*m
 	return args.Get(0).(*models.FileData), args.Error(1)
 }
 
-func (m *MockFileRepository) Update(ctx context.Context, fileID uuid.UUID, data *models.FileData) (*models.File, error) {
+func (m *MockFileRepository) Update(
+	ctx context.Context,
+	fileID uuid.UUID,
+	data *models.FileData,
+) (*models.File, error) {
 	args := m.Called(ctx, fileID, data)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

@@ -132,12 +132,14 @@ func (s *AuthServiceTestSuite) TestLogin(t provider.T) {
 		mockUser := new(authmock.MockUser)
 		t.WithNewStep("Setup user authentication", func(pctx provider.StepCtx) {
 			mockUser.On("ID").Return(validUserID)
-			mockUser.On("Auth", []byte(validPassword), mock.AnythingOfType("func([]uint8, []uint8) (bool, error)")).Return(true)
+			mockUser.On("Auth", []byte(validPassword), mock.AnythingOfType("func([]uint8, []uint8) (bool, error)")).
+				Return(true)
 		})
 
 		t.WithNewStep("Setup repository and session storage", func(pctx provider.StepCtx) {
 			repo.On("GetByEmail", ctx, validEmail).Return(mockUser, nil)
-			sessions.On("Store", ctx, mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("*authservice.Session")).Return(nil)
+			sessions.On("Store", ctx, mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("*authservice.Session")).
+				Return(nil)
 		})
 
 		svc := authservice.NewAuthService(sessions, repo, hasher)
@@ -170,13 +172,15 @@ func (s *AuthServiceTestSuite) TestLogin(t provider.T) {
 		mockUser := new(authmock.MockUser)
 		t.WithNewStep("Setup user authentication", func(pctx provider.StepCtx) {
 			mockUser.On("ID").Return(validUserID)
-			mockUser.On("Auth", []byte(validPassword), mock.AnythingOfType("func([]uint8, []uint8) (bool, error)")).Return(true)
+			mockUser.On("Auth", []byte(validPassword), mock.AnythingOfType("func([]uint8, []uint8) (bool, error)")).
+				Return(true)
 		})
 
 		t.WithNewStep("Setup repository fallback to username", func(pctx provider.StepCtx) {
 			repo.On("GetByEmail", ctx, validName).Return(nil, assert.AnError)
 			repo.On("GetByName", ctx, validName).Return(mockUser, nil)
-			sessions.On("Store", ctx, mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("*authservice.Session")).Return(nil)
+			sessions.On("Store", ctx, mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("*authservice.Session")).
+				Return(nil)
 		})
 
 		svc := authservice.NewAuthService(sessions, repo, hasher)
@@ -202,7 +206,8 @@ func (s *AuthServiceTestSuite) TestLogin(t provider.T) {
 
 		mockUser := new(authmock.MockUser)
 		t.WithNewStep("Setup failed authentication", func(pctx provider.StepCtx) {
-			mockUser.On("Auth", []byte("wrongpassword"), mock.AnythingOfType("func([]uint8, []uint8) (bool, error)")).Return(false)
+			mockUser.On("Auth", []byte("wrongpassword"), mock.AnythingOfType("func([]uint8, []uint8) (bool, error)")).
+				Return(false)
 		})
 
 		t.WithNewStep("Setup repository lookup", func(pctx provider.StepCtx) {
@@ -248,12 +253,14 @@ func (s *AuthServiceTestSuite) TestLogin(t provider.T) {
 		mockUser := new(authmock.MockUser)
 		t.WithNewStep("Setup successful authentication", func(pctx provider.StepCtx) {
 			mockUser.On("ID").Return(validUserID)
-			mockUser.On("Auth", []byte(validPassword), mock.AnythingOfType("func([]uint8, []uint8) (bool, error)")).Return(true)
+			mockUser.On("Auth", []byte(validPassword), mock.AnythingOfType("func([]uint8, []uint8) (bool, error)")).
+				Return(true)
 		})
 
 		t.WithNewStep("Setup session storage error", func(pctx provider.StepCtx) {
 			repo.On("GetByEmail", ctx, validEmail).Return(mockUser, nil)
-			sessions.On("Store", ctx, mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("*authservice.Session")).Return(assert.AnError)
+			sessions.On("Store", ctx, mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("*authservice.Session")).
+				Return(assert.AnError)
 		})
 
 		svc := authservice.NewAuthService(sessions, repo, hasher)

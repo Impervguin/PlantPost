@@ -21,7 +21,7 @@ func (ps *PostgresPlantSearch) AddFilter(filter PostgresPlantFilter) error {
 	return nil
 }
 
-func (ps *PostgresPlantSearch) ToSql() (string, []interface{}, error) {
+func (ps *PostgresPlantSearch) ToSql() (string, []interface{}, error) { // nolint:staticcheck
 	and := squirrel.And{}
 	for _, filter := range *ps {
 		and = append(and, filter)
@@ -39,7 +39,7 @@ func (ps *PostgresPostSearch) AddFilter(filter PostgresPostFilter) error {
 	return nil
 }
 
-func (ps *PostgresPostSearch) ToSql() (string, []interface{}, error) {
+func (ps *PostgresPostSearch) ToSql() (string, []interface{}, error) { // nolint:staticcheck
 	and := squirrel.And{}
 	for _, filter := range *ps {
 		and = append(and, filter)

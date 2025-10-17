@@ -3,9 +3,9 @@ package request
 import "github.com/google/uuid"
 
 type CreateAlbumRequest struct {
-	Name        string     `json:"name" form:"name" binding:"required"`
+	Name        string     `json:"name"        form:"name"        binding:"required"`
 	Description string     `json:"description" form:"description" binding:"required"`
-	PlantIDs    uuid.UUIDs `json:"plant_ids" form:"plant_ids" binding:"required"`
+	PlantIDs    uuid.UUIDs `json:"plant_ids"   form:"plant_ids"   binding:"required"`
 }
 
 type GetAlbumRequest struct {
@@ -14,22 +14,22 @@ type GetAlbumRequest struct {
 
 type UpdateAlbumNameRequest struct {
 	ID   uuid.UUID `uri:"id" binding:"required"`
-	Name string    `json:"name" form:"name" binding:"required"`
+	Name string    `         binding:"required" json:"name" form:"name"`
 }
 
 type UpdateAlbumDescriptionRequest struct {
 	ID          uuid.UUID `uri:"id" binding:"required"`
-	Description string    `json:"description" form:"description" binding:"required"`
+	Description string    `         binding:"required" json:"description" form:"description"`
 }
 
 type AddPlantToAlbumRequest struct {
 	ID      uuid.UUID `uri:"id" binding:"required"`
-	PlantID uuid.UUID `json:"plant_id" form:"plant_id" binding:"required"`
+	PlantID uuid.UUID `         binding:"required" json:"plant_id" form:"plant_id"`
 }
 
 type RemovePlantFromAlbumRequest struct {
 	ID      uuid.UUID `uri:"id" binding:"required"`
-	PlantID uuid.UUID `json:"plant_id" form:"plant_id" binding:"required"`
+	PlantID uuid.UUID `         binding:"required" json:"plant_id" form:"plant_id"`
 }
 
 type DeleteAlbumRequest struct {

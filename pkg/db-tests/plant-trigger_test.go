@@ -61,7 +61,7 @@ func (s *TestPlantTriggerSuite) SetupSuite() {
 	dbConfig := &sqpgx.SqpgxConfig{
 		User:                   dbCreds.User,
 		Password:               dbCreds.Password,
-		DbName:                 dbCreds.Database,
+		DBName:                 dbCreds.Database,
 		Host:                   dbCreds.Host,
 		Port:                   dbCreds.Port,
 		MaxConnections:         10,
@@ -287,7 +287,8 @@ func (s *TestPlantTriggerSuite) TestPlantTriggerInsert() {
 			plantID := uuid.New()
 			_, err := s.db.Insert(context.Background(), squirrel.Insert("plant").
 				Columns("id", "name", "latin_name", "description", "category", "main_photo_id", "specification").
-				Values(plantID, "Test Plant name", "Testus plantus", "Test description", testCase.category, s.photoId, testCase.specification))
+				Values(plantID, "Test Plant name", "Testus plantus", "Test description", testCase.category, s.photoId, testCase.specification),
+			)
 			if testCase.expectingErr {
 				require.Error(s.T(), err)
 			} else {

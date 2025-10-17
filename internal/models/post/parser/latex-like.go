@@ -55,7 +55,7 @@ func (p *LatexLikePlantParser) Parse(text string) ([]uuid.UUID, string, error) {
 		} else {
 			plant, err := p.plantGetter.GetPlantByName(content)
 			if err != nil {
-				return nil, "", fmt.Errorf("%w: %v", post.ErrContentParsingError, err)
+				return nil, "", fmt.Errorf("%w: %w", post.ErrContentParsingError, err)
 			}
 			plantID = plant.ID()
 			content = plantID.String() // Change name to UUID
@@ -75,7 +75,7 @@ func (p *LatexLikePlantParser) Parse(text string) ([]uuid.UUID, string, error) {
 	if len(plantIDs) > 0 {
 		_, err := p.plantGetter.GetPlants(plantIDs)
 		if err != nil {
-			return nil, "", fmt.Errorf("%w: %v", post.ErrContentParsingError, err)
+			return nil, "", fmt.Errorf("%w: %w", post.ErrContentParsingError, err)
 		}
 	}
 

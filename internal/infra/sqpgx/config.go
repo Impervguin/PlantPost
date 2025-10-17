@@ -9,7 +9,7 @@ import (
 type SqpgxConfig struct {
 	User     string
 	Password string
-	DbName   string
+	DBName   string
 	Port     uint16
 	Host     string
 
@@ -25,7 +25,7 @@ const (
 var (
 	ErrIncorrectUser     = errors.New("incorrect user")
 	ErrIncorrectPassword = errors.New("incorrect password")
-	ErrIncorrectDbName   = errors.New("incorrect dbname")
+	ErrIncorrectDBName   = errors.New("incorrect dbname")
 	ErrIncorrectHost     = errors.New("incorrect host")
 )
 
@@ -37,7 +37,7 @@ func NewSqpgxConfig(user, password, dbname, host string, port int) (*SqpgxConfig
 		return nil, ErrIncorrectPassword
 	}
 	if dbname == "" {
-		return nil, ErrIncorrectDbName
+		return nil, ErrIncorrectDBName
 	}
 	if host == "" {
 		return nil, ErrIncorrectHost
@@ -46,7 +46,7 @@ func NewSqpgxConfig(user, password, dbname, host string, port int) (*SqpgxConfig
 	config := &SqpgxConfig{
 		User:                   user,
 		Password:               password,
-		DbName:                 dbname,
+		DBName:                 dbname,
 		Host:                   host,
 		Port:                   uint16(port),
 		MaxConnections:         DefaultMaxConnections,
@@ -56,5 +56,14 @@ func NewSqpgxConfig(user, password, dbname, host string, port int) (*SqpgxConfig
 }
 
 func (c *SqpgxConfig) GetConnectionString() string {
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s pool_max_conns=%d pool_max_conn_lifetime=%s", c.Host, c.Port, c.User, c.Password, c.DbName, c.MaxConnections, c.MaxConnectionsLifetime.String())
+	return fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s pool_max_conns=%d pool_max_conn_lifetime=%s",
+		c.Host,
+		c.Port,
+		c.User,
+		c.Password,
+		c.DBName,
+		c.MaxConnections,
+		c.MaxConnectionsLifetime.String(),
+	)
 }

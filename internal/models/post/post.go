@@ -21,43 +21,6 @@ type Post struct {
 	createdAt time.Time
 }
 
-func (p *Post) Validate() error {
-	if p.id == uuid.Nil {
-		return fmt.Errorf("post ID cannot be empty")
-	}
-	if p.title == "" {
-		return fmt.Errorf("post title cannot be empty")
-	}
-	if err := p.content.Validate(); err != nil {
-		return fmt.Errorf("post content validation failed: %v", err)
-	}
-	if p.authorID == uuid.Nil {
-		return fmt.Errorf("author ID cannot be empty")
-	}
-	if p.tags == nil {
-		return fmt.Errorf("tags cannot be nil")
-	}
-	if err := p.photos.Validate(); err != nil {
-		return fmt.Errorf("post photo validation failed: %v", err)
-	}
-
-	for _, tag := range p.tags {
-		if tag == "" {
-			return fmt.Errorf("empty tag")
-		}
-	}
-
-	if p.updatedAt.Before(p.createdAt) {
-		return fmt.Errorf("post update date cannot be before creation date")
-	}
-
-	if p.updatedAt.After(time.Now()) {
-		return fmt.Errorf("post update date cannot be in the future")
-	}
-
-	return nil
-}
-
 func CreatePost(
 	id uuid.UUID,
 	title string,
@@ -93,6 +56,42 @@ func NewPost(
 ) (*Post, error) {
 	t := time.Now()
 	return CreatePost(uuid.New(), title, content, tags, authorID, *photos, t, t)
+}
+
+func (p *Post) Validate() error {
+	switch {
+	case p.id == uuid.Nil:
+		return fmt.Errorf("post ID cannot be empty")
+	case p.title == "":
+		return fmt.Errorf("post title cannot be empty")
+	case p.authorID == uuid.Nil:
+		return fmt.Errorf("author ID cannot be empty")
+	case p.tags == nil:
+		return fmt.Errorf("tags cannot be nil")
+	case p.updatedAt.After(time.Now()):
+		return fmt.Errorf("post update date cannot be in the future: %v", p.createdAt)
+	case p.createdAt.After(p.updatedAt):
+		return fmt.Errorf("post creation date cannot be after update date: %v %v", p.createdAt, p.updatedAt)
+	}
+
+	return p.subValidate()
+}
+
+func (p *Post) subValidate() error {
+	if err := p.content.ContentType.Validate(); err != nil {
+		return fmt.Errorf("post content type validation failed: %w", err)
+	}
+
+	if err := p.photos.Validate(); err != nil {
+		return fmt.Errorf("post photo validation failed: %w", err)
+	}
+
+	for _, tag := range p.tags {
+		if tag == "" {
+			return fmt.Errorf("empty tag")
+		}
+	}
+	return nil
 }
 
 func (p Post) ID() uuid.UUID {

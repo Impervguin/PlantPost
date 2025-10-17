@@ -22,9 +22,16 @@ func NewMigrator(config *Config) (*Migrator, error) {
 }
 
 func (m *Migrator) Up() error {
-	sourceUrl := fmt.Sprintf("file://%s", m.config.MigrationDir)
-	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", m.config.User, m.config.Password, m.config.Host, m.config.Port, m.config.Database)
-	mig, err := migrate.New(sourceUrl, dbUrl)
+	sourceURL := fmt.Sprintf("file://%s", m.config.MigrationDir)
+	dbURL := fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		m.config.User,
+		m.config.Password,
+		m.config.Host,
+		m.config.Port,
+		m.config.Database,
+	)
+	mig, err := migrate.New(sourceURL, dbURL)
 	if err != nil {
 		return err
 	}
@@ -41,9 +48,16 @@ func (m *Migrator) Up() error {
 }
 
 func (m *Migrator) Down() error {
-	sourceUrl := fmt.Sprintf("file://%s", m.config.MigrationDir)
-	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", m.config.User, m.config.Password, m.config.Host, m.config.Port, m.config.Database)
-	mig, err := migrate.New(sourceUrl, dbUrl)
+	sourceURL := fmt.Sprintf("file://%s", m.config.MigrationDir)
+	dbURL := fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		m.config.User,
+		m.config.Password,
+		m.config.Host,
+		m.config.Port,
+		m.config.Database,
+	)
+	mig, err := migrate.New(sourceURL, dbURL)
 	if err != nil {
 		return err
 	}

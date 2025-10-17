@@ -6,12 +6,12 @@ import (
 	"PlantSite/internal/models/plant"
 )
 
-type JsonB registry.JsonB
+type JSONB registry.JSONB
 
 type PlantSpecification registry.PlantSpecification
 
-func SpecificationFromDB(category string, json JsonB) (PlantSpecification, error) {
-	return registry.MapFromDB(category, registry.JsonB(json))
+func SpecificationFromDB(category string, json JSONB) (PlantSpecification, error) {
+	return registry.MapFromDB(category, registry.JSONB(json))
 }
 
 func SpecificationFromDomain(category string, spec plant.PlantSpecification) (PlantSpecification, error) {

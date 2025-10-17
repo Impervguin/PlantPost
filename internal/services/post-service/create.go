@@ -13,7 +13,11 @@ type CreatePostTextData struct {
 	Tags    []string
 }
 
-func (s *PostService) CreatePost(ctx context.Context, data CreatePostTextData, files []models.FileData) (*post.Post, error) {
+func (s *PostService) CreatePost(
+	ctx context.Context,
+	data CreatePostTextData,
+	files []models.FileData,
+) (*post.Post, error) {
 	user := s.auth.UserFromContext(ctx)
 	if user == nil {
 		return nil, auth.ErrNotAuthorized
@@ -49,5 +53,4 @@ func (s *PostService) CreatePost(ctx context.Context, data CreatePostTextData, f
 	}
 
 	return s.postRepo.Create(ctx, post)
-
 }

@@ -75,7 +75,6 @@ func (pp *PostPhotos) Validate() error {
 }
 
 func (pp *PostPhotos) RebalancePositions() {
-
 	// Sort photos by place number
 	sort.Slice(pp.photos, func(i, j int) bool {
 		return pp.photos[i].PlaceNumber() < pp.photos[j].PlaceNumber()
@@ -94,7 +93,10 @@ func (pp *PostPhotos) Add(photo *PostPhoto) error {
 	if err := photo.Validate(); err != nil {
 		return err
 	}
-	if slices.ContainsFunc(pp.photos, func(ph PostPhoto) bool { return photo.ID() == ph.ID() || photo.FileID() == ph.FileID() }) {
+	if slices.ContainsFunc(
+		pp.photos,
+		func(ph PostPhoto) bool { return photo.ID() == ph.ID() || photo.FileID() == ph.FileID() },
+	) {
 		return fmt.Errorf("photo already exists")
 	}
 	for i := range pp.photos {

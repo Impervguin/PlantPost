@@ -23,8 +23,8 @@ func PlantDiameterMFilterFactory(f search.PlantFilter) (registry.PostgresPlantFi
 
 	// Between {min} and {max}
 	filt := squirrel.And{
-		squirrel.GtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JsonBDiameterMKey): pf.Min},
-		squirrel.LtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JsonBDiameterMKey): pf.Max},
+		squirrel.GtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JSONBDiameterMKey): pf.Min},
+		squirrel.LtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JSONBDiameterMKey): pf.Max},
 	}
 
 	return filt, nil

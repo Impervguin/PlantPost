@@ -10,6 +10,8 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
+const Timeout = 10 * time.Second
+
 type TestLogConsumer struct {
 	Msgs []string // store the logs as a slice of strings
 }
@@ -38,7 +40,7 @@ func NewTestMinio(ctx context.Context) (testcontainers.Container, *MinioCredenti
 			wait.ForListeningPort(nat.Port(strPort)),
 		),
 		LogConsumerCfg: &testcontainers.LogConsumerConfig{
-			Opts:      []testcontainers.LogProductionOption{testcontainers.WithLogProductionTimeout(10 * time.Second)},
+			Opts:      []testcontainers.LogProductionOption{testcontainers.WithLogProductionTimeout(Timeout)},
 			Consumers: []testcontainers.LogConsumer{&g},
 		},
 	}

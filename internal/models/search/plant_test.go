@@ -40,10 +40,27 @@ func (s *PlantFiltersTestSuite) BeforeEach(t provider.T) {
 	t.Feature("Plant Filters")
 
 	var err error
-	s.coniferousSpec, err = plant.NewConiferousSpecification(10.5, 2.3, 5, plant.MediumMoisture, plant.HalfShadow, plant.MediumSoil, 6)
+	s.coniferousSpec, err = plant.NewConiferousSpecification(
+		10.5,
+		2.3,
+		5,
+		plant.MediumMoisture,
+		plant.HalfShadow,
+		plant.MediumSoil,
+		6,
+	)
 	require.NoError(t, err)
 
-	s.deciduousSpec, err = plant.NewDeciduousSpecification(8.2, 1.8, plant.Spring, 6, plant.MediumMoisture, plant.HalfShadow, plant.MediumSoil, 5)
+	s.deciduousSpec, err = plant.NewDeciduousSpecification(
+		8.2,
+		1.8,
+		plant.Spring,
+		6,
+		plant.MediumMoisture,
+		plant.HalfShadow,
+		plant.MediumSoil,
+		5,
+	)
 	require.NoError(t, err)
 
 	s.coniferousPlant, err = mockPlant("Pine", "Pinus sylvestris", "coniferous", s.coniferousSpec)

@@ -3,9 +3,9 @@ package request
 import "github.com/google/uuid"
 
 type CreatePostRequest struct {
-	Title   string   `json:"title" form:"title" binding:"required"`
+	Title   string   `json:"title"   form:"title"   binding:"required"`
 	Content string   `json:"content" form:"content" binding:"required"`
-	Tags    []string `json:"tags" form:"tags"`
+	Tags    []string `json:"tags"    form:"tags"`
 }
 
 type GetPostRequest struct {
@@ -18,7 +18,7 @@ type DeletePostRequest struct {
 
 type UpdateTextPostRequest struct {
 	ID      uuid.UUID `uri:"id" binding:"required"`
-	Title   string    `json:"title" form:"title" binding:"required"`
-	Content string    `json:"content" form:"content" binding:"required"`
-	Tags    []string  `json:"tags" form:"tags"`
+	Title   string    `         binding:"required" json:"title"   form:"title"`
+	Content string    `         binding:"required" json:"content" form:"content"`
+	Tags    []string  `                            json:"tags"    form:"tags"`
 }

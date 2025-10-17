@@ -23,8 +23,8 @@ func PlantSoilAcidityFilterFactory(f search.PlantFilter) (registry.PostgresPlant
 
 	// Between {min} and {max}
 	filt := squirrel.And{
-		squirrel.GtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JsonBSoilAcidityKey): pf.Min},
-		squirrel.LtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JsonBSoilAcidityKey): pf.Max},
+		squirrel.GtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JSONBSoilAcidityKey): pf.Min},
+		squirrel.LtOrEq{fmt.Sprintf("specification->'%s'", pgconsts.JSONBSoilAcidityKey): pf.Max},
 	}
 
 	return filt, nil

@@ -59,10 +59,12 @@ func (s *PostServiceUpdateTextTestSuite) TestUpdatePost(t provider.T) {
 
 		prepo := new(MockPostRepository)
 		t.WithNewStep("Setup post update", func(pctx provider.StepCtx) {
-			prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).Return(validPost, nil).Run(func(args mock.Arguments) {
-				fn := args.Get(2).(func(*post.Post) (*post.Post, error))
-				fn(validPost)
-			})
+			prepo.On("Update", mock.Anything, validPostID, mock.AnythingOfType("func(*post.Post) (*post.Post, error)")).
+				Return(validPost, nil).
+				Run(func(args mock.Arguments) {
+					fn := args.Get(2).(func(*post.Post) (*post.Post, error))
+					fn(validPost)
+				})
 		})
 
 		frepo := new(MockFileRepository)

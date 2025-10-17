@@ -23,7 +23,7 @@ func PlantFloweringPeriodFilterFactory(f search.PlantFilter) (registry.PostgresP
 
 	// in {list}
 	filt := squirrel.Eq{
-		fmt.Sprintf("specification->>'%s'", pgconsts.JsonBFloweringPeriodKey): pf.PossibleFloweringPeriods,
+		fmt.Sprintf("specification->>'%s'", pgconsts.JSONBFloweringPeriodKey): pf.PossibleFloweringPeriods,
 	}
 
 	return filt, nil

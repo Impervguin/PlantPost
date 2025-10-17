@@ -9,10 +9,93 @@ import (
 )
 
 func init() {
-	registry.Register(plant.DeciduousCategory, DeciduousFromJsonB, DeciduousFromDomain)
+	registry.Register(plant.DeciduousCategory, DeciduousFromJSONB, DeciduousFromDomain)
 }
 
 var _ registry.PlantSpecification = &DeciduousSpecification{}
+
+var decidousSpecDecoders = map[string]func(v any, decSpec *DeciduousSpecification) error{
+	pgconsts.JSONBHeightMKey: func(v any, decSpec *DeciduousSpecification) error {
+		switch fact := v.(type) {
+		case float64:
+			decSpec.HeightM = fact
+		case int:
+			decSpec.HeightM = float64(fact)
+		default:
+			return ErrJSONBFormatHeightM
+		}
+		return nil
+	},
+	pgconsts.JSONBDiameterMKey: func(v any, decSpec *DeciduousSpecification) error {
+		switch fact := v.(type) {
+		case float64:
+			decSpec.DiameterM = fact
+		case int:
+			decSpec.DiameterM = float64(fact)
+		default:
+			return ErrJSONBFormatDiameterM
+		}
+		return nil
+	},
+	pgconsts.JSONBFloweringPeriodKey: func(v any, decSpec *DeciduousSpecification) error {
+		switch fact := v.(type) {
+		case string:
+			decSpec.FloweringPeriod = plant.FloweringPeriod(fact)
+		default:
+			return ErrJSONBFormatFloweringPeriod
+		}
+		return nil
+	},
+	pgconsts.JSONBSoilAcidityKey: func(v any, decSpec *DeciduousSpecification) error {
+		switch fact := v.(type) {
+		case float64:
+			decSpec.SoilAcidity = plant.SoilAcidity(math.Round(fact))
+		case int:
+			decSpec.SoilAcidity = plant.SoilAcidity(fact)
+		default:
+			return ErrJSONBFormatSoilAcidity
+		}
+		return nil
+	},
+	pgconsts.JSONBSoilMoistureKey: func(v any, decSpec *DeciduousSpecification) error {
+		switch fact := v.(type) {
+		case string:
+			decSpec.SoilMoisture = plant.SoilMoisture(fact)
+		default:
+			return ErrJSONBFormatSoilMoisture
+		}
+		return nil
+	},
+	pgconsts.JSONBLightRelationKey: func(v any, decSpec *DeciduousSpecification) error {
+		switch fact := v.(type) {
+		case string:
+			decSpec.LightRelation = plant.LightRelation(fact)
+		default:
+			return ErrJSONBFormatLightRelation
+		}
+		return nil
+	},
+	pgconsts.JSONBSoilTypeKey: func(v any, decSpec *DeciduousSpecification) error {
+		switch fact := v.(type) {
+		case string:
+			decSpec.SoilType = plant.Soil(fact)
+		default:
+			return ErrJSONBFormatSoilType
+		}
+		return nil
+	},
+	pgconsts.JSONBWinterHardinessKey: func(v any, decSpec *DeciduousSpecification) error {
+		switch fact := v.(type) {
+		case float64:
+			decSpec.WinterHardiness = plant.WinterHardiness(math.Round(fact))
+		case int:
+			decSpec.WinterHardiness = plant.WinterHardiness(fact)
+		default:
+			return ErrJSONBFormatWinterHardiness
+		}
+		return nil
+	},
+}
 
 type DeciduousSpecification struct {
 	HeightM         float64
@@ -25,16 +108,16 @@ type DeciduousSpecification struct {
 	WinterHardiness plant.WinterHardiness
 }
 
-func (spec *DeciduousSpecification) ToJsonB() (registry.JsonB, error) {
+func (spec *DeciduousSpecification) ToJSONB() (registry.JSONB, error) {
 	return map[string]interface{}{
-		pgconsts.JsonBHeightMKey:         spec.HeightM,
-		pgconsts.JsonBDiameterMKey:       spec.DiameterM,
-		pgconsts.JsonBFloweringPeriodKey: spec.FloweringPeriod,
-		pgconsts.JsonBSoilAcidityKey:     spec.SoilAcidity,
-		pgconsts.JsonBSoilMoistureKey:    spec.SoilMoisture,
-		pgconsts.JsonBLightRelationKey:   spec.LightRelation,
-		pgconsts.JsonBSoilTypeKey:        spec.SoilType,
-		pgconsts.JsonBWinterHardinessKey: spec.WinterHardiness,
+		pgconsts.JSONBHeightMKey:         spec.HeightM,
+		pgconsts.JSONBDiameterMKey:       spec.DiameterM,
+		pgconsts.JSONBFloweringPeriodKey: spec.FloweringPeriod,
+		pgconsts.JSONBSoilAcidityKey:     spec.SoilAcidity,
+		pgconsts.JSONBSoilMoistureKey:    spec.SoilMoisture,
+		pgconsts.JSONBLightRelationKey:   spec.LightRelation,
+		pgconsts.JSONBSoilTypeKey:        spec.SoilType,
+		pgconsts.JSONBWinterHardinessKey: spec.WinterHardiness,
 	}, nil
 }
 
@@ -51,101 +134,28 @@ func (spec *DeciduousSpecification) ToDomain() (plant.PlantSpecification, error)
 	)
 }
 
-func DeciduousFromJsonB(JsonB registry.JsonB) (registry.PlantSpecification, error) {
+func DeciduousFromJSONB(jsonB registry.JSONB) (registry.PlantSpecification, error) {
 	var decSpec DeciduousSpecification
-	if val, ok := JsonB[pgconsts.JsonBHeightMKey]; ok {
-		switch fact := val.(type) {
-		case float64:
-			decSpec.HeightM = fact
-		case int:
-			decSpec.HeightM = float64(fact)
-		default:
-			return nil, ErrJsonBFormatHeightM
-		}
-	} else {
-		return nil, ErrJsonBMissingHeightM
+	var mustBeKeys = map[string]error{
+		pgconsts.JSONBHeightMKey:         ErrJSONBMissingHeightM,
+		pgconsts.JSONBDiameterMKey:       ErrJSONBMissingDiameterM,
+		pgconsts.JSONBFloweringPeriodKey: ErrJSONBMissingFloweringPeriod,
+		pgconsts.JSONBSoilAcidityKey:     ErrJSONBMissingSoilAcidity,
+		pgconsts.JSONBSoilMoistureKey:    ErrJSONBMissingSoilMoisture,
+		pgconsts.JSONBLightRelationKey:   ErrJSONBMissingLightRelation,
+		pgconsts.JSONBSoilTypeKey:        ErrJSONBMissingSoilType,
+		pgconsts.JSONBWinterHardinessKey: ErrJSONBMissingWinterHardiness,
 	}
 
-	if val, ok := JsonB[pgconsts.JsonBDiameterMKey]; ok {
-		switch fact := val.(type) {
-		case float64:
-			decSpec.DiameterM = fact
-		case int:
-			decSpec.DiameterM = float64(fact)
-		default:
-			return nil, ErrJsonBFormatDiameterM
-		}
-	} else {
-		return nil, ErrJsonBMissingDiameterM
+	err := checkJSONBKeys(jsonB, mustBeKeys)
+	if err != nil {
+		return nil, err
 	}
 
-	if val, ok := JsonB[pgconsts.JsonBSoilAcidityKey]; ok {
-		switch fact := val.(type) {
-		case float64:
-			decSpec.SoilAcidity = plant.SoilAcidity(math.Round(fact))
-		case int:
-			decSpec.SoilAcidity = plant.SoilAcidity(fact)
-		default:
-			return nil, ErrJsonBFormatSoilAcidity
+	for key, decoder := range decidousSpecDecoders {
+		if err := decoder(jsonB[key], &decSpec); err != nil {
+			return nil, err
 		}
-	} else {
-		return nil, ErrJsonBMissingSoilAcidity
-	}
-
-	if val, ok := JsonB[pgconsts.JsonBSoilMoistureKey]; ok {
-		switch fact := val.(type) {
-		case string:
-			decSpec.SoilMoisture = plant.SoilMoisture(fact)
-		default:
-			return nil, ErrJsonBFormatSoilMoisture
-		}
-	} else {
-		return nil, ErrJsonBMissingSoilMoisture
-	}
-
-	if val, ok := JsonB[pgconsts.JsonBLightRelationKey]; ok {
-		switch fact := val.(type) {
-		case string:
-			decSpec.LightRelation = plant.LightRelation(fact)
-		default:
-			return nil, ErrJsonBFormatLightRelation
-		}
-	} else {
-		return nil, ErrJsonBMissingLightRelation
-	}
-
-	if val, ok := JsonB[pgconsts.JsonBSoilTypeKey]; ok {
-		switch fact := val.(type) {
-		case string:
-			decSpec.SoilType = plant.Soil(fact)
-		default:
-			return nil, ErrJsonBFormatSoilType
-		}
-	} else {
-		return nil, ErrJsonBMissingSoilType
-	}
-
-	if val, ok := JsonB[pgconsts.JsonBWinterHardinessKey]; ok {
-		switch fact := val.(type) {
-		case float64:
-			decSpec.WinterHardiness = plant.WinterHardiness(math.Round(fact))
-		case int:
-			decSpec.WinterHardiness = plant.WinterHardiness(fact)
-		default:
-			return nil, ErrJsonBFormatWinterHardiness
-		}
-	} else {
-		return nil, ErrJsonBMissingWinterHardiness
-	}
-	if val, ok := JsonB[pgconsts.JsonBFloweringPeriodKey]; ok {
-		switch fact := val.(type) {
-		case string:
-			decSpec.FloweringPeriod = plant.FloweringPeriod(fact)
-		default:
-			return nil, ErrJsonBFormatFloweringPeriod
-		}
-	} else {
-		return nil, ErrJsonBMissingFloweringPeriod
 	}
 	return &decSpec, nil
 }

@@ -64,7 +64,7 @@ func MapSearchPlantsResponse(plants []*searchservice.SearchPlant) (response.Sear
 
 func MapGetPlantResponse(pl *searchservice.GetPlant) (*response.GetPlantResponse, error) {
 	if pl == nil {
-		return nil, nil
+		return nil, fmt.Errorf("plant is nil")
 	}
 	spec, err := spec.MapSpecification(pl.Specification)
 	if err != nil {

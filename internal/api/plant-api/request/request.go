@@ -20,8 +20,8 @@ type GetPlantRequest struct {
 
 type UpdatePlantSpecRequest struct {
 	ID       uuid.UUID               `uri:"id" binding:"required"`
-	Category string                  `json:"category" form:"category" binding:"required"`
-	Spec     spec.PlantSpecification `json:"specification" form:"specification" binding:"required"`
+	Category string                  `         binding:"required" json:"category"      form:"category"`
+	Spec     spec.PlantSpecification `         binding:"required" json:"specification" form:"specification"`
 }
 
 type DeletePlantRequest struct {
@@ -30,5 +30,5 @@ type DeletePlantRequest struct {
 
 type UploadPlantPhotoRequest struct {
 	ID          uuid.UUID `uri:"id" binding:"required"`
-	Description string    `json:"description" form:"description" binding:"required"`
+	Description string    `         binding:"required" json:"description" form:"description"`
 }
