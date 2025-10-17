@@ -23,7 +23,7 @@ jobs:
           go mod verify
       
       - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        run: sudo apt-get update && sudo apt-get install -y golangci-lint
       
       - name: Run golangci-lint
         id: golangci-lint
