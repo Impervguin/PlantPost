@@ -17,10 +17,10 @@ import (
 )
 
 type PlantRouter struct {
-	plant *plantservice.PlantService
+	plant plantservice.PlantServiceContract
 }
 
-func (r *PlantRouter) Init(router *gin.RouterGroup, plantService *plantservice.PlantService) {
+func (r *PlantRouter) Init(router *gin.RouterGroup, plantService plantservice.PlantServiceContract) {
 	r.plant = plantService
 	gr := router.Group("/plant")
 	gr.POST("/create", r.Create)
@@ -186,7 +186,6 @@ func (r *PlantRouter) UpdateSpecification(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	
 
 	spec, err := req.Spec.ToDomain()
 	if err != nil {

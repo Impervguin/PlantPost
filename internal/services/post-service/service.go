@@ -9,10 +9,10 @@ import (
 type PostService struct {
 	postRepo post.PostRepository
 	fileRepo models.FileRepository
-	auth     *authservice.AuthService
+	auth     authservice.AuthServiceContract
 }
 
-func NewPostService(repo post.PostRepository, fileRepo models.FileRepository, auth *authservice.AuthService) *PostService {
+func NewPostService(repo post.PostRepository, fileRepo models.FileRepository, auth authservice.AuthServiceContract) *PostService {
 	if repo == nil {
 		panic("nil repository")
 	}

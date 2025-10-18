@@ -4,11 +4,14 @@ import (
 	"PlantSite/internal/api-utils/urllib"
 	albumapi "PlantSite/internal/api/album-api"
 	authapi "PlantSite/internal/api/auth-api"
+	metricsapi "PlantSite/internal/api/metrics-api"
 	"PlantSite/internal/api/middleware"
 	plantapi "PlantSite/internal/api/plant-api"
 	postapi "PlantSite/internal/api/post-api"
 	searchapi "PlantSite/internal/api/search-api"
+	"PlantSite/internal/infra/metrics"
 	minioclient "PlantSite/internal/infra/minio-client"
+	"PlantSite/internal/infra/opentelemetry"
 	sessionstorage "PlantSite/internal/infra/session-storage"
 	"PlantSite/internal/models"
 	authrepo "PlantSite/internal/repositories/authrepo"
@@ -23,6 +26,7 @@ import (
 	plantservice "PlantSite/internal/services/plant-service"
 	postservice "PlantSite/internal/services/post-service"
 	searchservice "PlantSite/internal/services/search-service"
+
 	"PlantSite/internal/utils/bcrypthasher"
 	"PlantSite/internal/utils/logs"
 	"PlantSite/internal/view"
@@ -37,9 +41,18 @@ import (
 )
 
 func main() {
-	fmt.Println(GetPlantMinioConfig())
+	tracingCfg := GetTracingConfig()
+
+	shutdownTracer, err := opentelemetry.InitTracer(tracingCfg)
+	if err != nil {
+		panic(fmt.Errorf("failed to init tracer: %w", err))
+	}
+	defer shutdownTracer()
+
 	ctx := context.Background()
 	engine := gin.New()
+
+	engine.Use(middleware.OpenTelemetryMiddleware())
 
 	docs.SwaggerInfo.BasePath = "/api"
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -70,7 +83,7 @@ func main() {
 		panic("unknown file factory")
 	}
 
-	logg, err := logs.InitTwoPlaceLogger(
+	err = logs.InitSigletonLogger(
 		&logs.TwoPlaceConfig{
 			Type:           logconf.LogType,
 			FileLevel:      logconf.LogFileLevel,
@@ -81,7 +94,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to init logger: %w", err))
 	}
-	apiGroup.Use(middleware.LogMiddleware(logg))
+	apiGroup.Use(middleware.LogMiddleware())
 
 	sqpgx := GetSqpgx(context.Background())
 
@@ -118,11 +131,14 @@ func main() {
 
 	adminsMap := GetAdminsMap(hasher)
 	storageWithAdmins := authrepo.NewWithAdminRepository(adminsMap, authRepo)
-	logg.Info("admins map initialized")
 
 	// ------------- AUTH -------------
+	var authService authservice.AuthServiceContract
 	authservice.UpdateSessionExpireTime(GetSessionExpireTime())
-	authService := authservice.NewAuthService(sessStorage, storageWithAdmins, hasher)
+	authService = authservice.NewAuthService(sessStorage, storageWithAdmins, hasher)
+	if tracingCfg.Enabled {
+		authService = authservice.NewTracedAuthService(authService)
+	}
 
 	apiGroup.Use(middleware.AuthMiddleware(authService))
 
@@ -154,22 +170,33 @@ func main() {
 	}
 
 	// ------------- PLANTS -------------
-	plantService := plantservice.NewPlantService(plantRepo, plantCategoryRepo, plantFStorage, authService)
+	var plantService plantservice.PlantServiceContract
+	plantService = plantservice.NewPlantService(plantRepo, plantCategoryRepo, plantFStorage, authService)
+	if tracingCfg.Enabled {
+		plantService = plantservice.NewTracedPlantService(plantService)
+	}
 
 	plantRouter := plantapi.PlantRouter{}
 	plantRouter.Init(apiGroup, plantService)
 
 	// ------------- SEARCH -------------
-	searchService := searchservice.NewSearchService(searchRepo, plantFStorage, postFStorage)
-
+	var searchService searchservice.SearchServiceContract
+	searchService = searchservice.NewSearchService(searchRepo, plantFStorage, postFStorage)
+	if tracingCfg.Enabled {
+		searchService = searchservice.NewTracedSearchService(searchService)
+	}
 	searchRouter := searchapi.SearchRouter{}
 	searchRouter.Init(apiGroup, searchService)
 
 	// ------------- POSTS -------------
-	postservice := postservice.NewPostService(postRepo, postFStorage, authService)
+	var postService postservice.PostServiceContract
+	postService = postservice.NewPostService(postRepo, postFStorage, authService)
+	if tracingCfg.Enabled {
+		postService = postservice.NewTracedPostService(postService)
+	}
 
 	postRouter := postapi.PostRouter{}
-	postRouter.Init(apiGroup, postservice)
+	postRouter.Init(apiGroup, postService)
 
 	// ------------- ALBUM STORAGE -------------
 	albumRepo, err := albumstorage.NewPostgresAlbumRepository(ctx, sqpgx)
@@ -178,16 +205,24 @@ func main() {
 	}
 
 	// ------------- ALBUMS -------------
-	albumService := albumservice.NewAlbumService(albumRepo, authService)
+	var albumService albumservice.AlbumServiceContract
+	albumService = albumservice.NewAlbumService(albumRepo, authService)
+	if tracingCfg.Enabled {
+		albumService = albumservice.NewTracedAlbumService(albumService)
+	}
 
 	albumRouter := albumapi.AlbumRouter{}
 	albumRouter.Init(apiGroup, albumService)
+
+	// ------------- METRICS -------------
+	metrics.RegisterMetricCollector(GetMetricsSleepMs())
+	metricsRouter := metricsapi.MetricsRouter{}
+	metricsRouter.Init(apiGroup)
 
 	// ------------- VIEW -------------
 	viewRouter := view.ViewRouter{}
 	viewGroup := engine.Group("")
 	viewGroup.Use(middleware.RequestIDMiddleware())
-	viewGroup.Use(middleware.LogMiddleware(logg))
 	viewGroup.Use(middleware.AuthMiddleware(authService))
 
 	mediaStrategy := &urllib.StaticUrlStrategy{BaseUrl: GetMediaPath()}

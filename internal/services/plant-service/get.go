@@ -4,6 +4,7 @@ import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/plant"
+	"PlantSite/internal/utils/logs"
 	"context"
 	"time"
 
@@ -33,18 +34,22 @@ func (s *PlantService) GetPlant(ctx context.Context, id uuid.UUID) (*GetPlant, e
 	if user == nil {
 		return nil, auth.ErrNotAuthorized
 	}
+	logs.Debugf("PlantService.GetPlant: got user=%s", user.ID())
 	if !user.HasAuthorRights() {
 		return nil, auth.ErrNoAuthorRights
 	}
+	logs.Debugf("PlantService.GetPlant: user %s has author rights", user.ID())
 	pl, err := s.plantrepo.Get(ctx, id)
 	if err != nil {
 		return nil, Wrap(err)
 	}
+	logs.Debugf("PlantService.GetPlant: got plant %s", pl.ID())
 
 	mainPhoto, err := s.filerepo.Get(ctx, pl.MainPhotoID())
 	if err != nil {
 		return nil, Wrap(err)
 	}
+	logs.Debugf("PlantService.GetPlant: got main photo %s", mainPhoto.ID)
 	photos := make([]GetPlantPhoto, 0, pl.GetPhotos().Len())
 	err = pl.GetPhotos().Iterate(func(e plant.PlantPhoto) error {
 		photoFile, err := s.filerepo.Get(ctx, e.FileID())
@@ -61,6 +66,7 @@ func (s *PlantService) GetPlant(ctx context.Context, id uuid.UUID) (*GetPlant, e
 	if err != nil {
 		return nil, Wrap(err)
 	}
+	logs.Debugf("PlantService.GetPlant: got %d photos", len(photos))
 
 	return &GetPlant{
 		ID:            pl.ID(),

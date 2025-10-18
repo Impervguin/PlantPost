@@ -3,6 +3,7 @@ package searchservice
 import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/post"
+	"PlantSite/internal/utils/logs"
 	"context"
 	"fmt"
 	"time"
@@ -36,10 +37,12 @@ func (s *SearchService) GetPost(ctx context.Context, id uuid.UUID) (*GetPost, er
 	if id == uuid.Nil {
 		return nil, Wrap(fmt.Errorf("id must be non-nil"))
 	}
+	logs.Debugf("SearchService.GetPost: got post ID %s", id)
 	post, err := s.searchRepo.GetPostByID(ctx, id)
 	if err != nil {
 		return nil, Wrap(err)
 	}
+	logs.Debugf("SearchService.GetPost: got post %s", post.ID())
 	photos := make([]GetPostPhoto, 0)
 
 	for _, p := range post.Photos().List() {
@@ -53,6 +56,7 @@ func (s *SearchService) GetPost(ctx context.Context, id uuid.UUID) (*GetPost, er
 			File:        *file,
 		})
 	}
+	logs.Debugf("SearchService.GetPost: got %d photos", len(photos))
 
 	return &GetPost{
 		ID:      post.ID(),

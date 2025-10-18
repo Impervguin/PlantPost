@@ -4,6 +4,7 @@ import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/plant"
 	"PlantSite/internal/models/search"
+	"PlantSite/internal/utils/logs"
 	"context"
 	"time"
 
@@ -26,12 +27,14 @@ func (s *SearchService) SearchPlants(ctx context.Context, plSearch *search.Plant
 	if err != nil {
 		return nil, Wrap(err)
 	}
+	logs.Debugf("SearchService.SearchPlants: got %d plants", len(plants))
 	searchPlants := make([]*SearchPlant, 0, len(plants))
 	for _, p := range plants {
 		mainPhoto, err := s.plantFileRepo.Get(ctx, p.MainPhotoID())
 		if err != nil {
 			return nil, Wrap(err)
 		}
+		logs.Debugf("SearchService.SearchPlants: got main photo %s for plant %s", mainPhoto.ID, p.ID())
 		searchPlants = append(searchPlants, &SearchPlant{
 			ID:            p.ID(),
 			Name:          p.GetName(),
@@ -43,5 +46,6 @@ func (s *SearchService) SearchPlants(ctx context.Context, plSearch *search.Plant
 			CreatedAt:     p.CreatedAt(),
 		})
 	}
+	logs.Debugf("SearchService.SearchPlants: got %d search plants", len(searchPlants))
 	return searchPlants, nil
 }

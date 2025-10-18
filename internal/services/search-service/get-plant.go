@@ -3,6 +3,7 @@ package searchservice
 import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/plant"
+	"PlantSite/internal/utils/logs"
 	"context"
 	"fmt"
 	"time"
@@ -36,10 +37,12 @@ func (s *SearchService) GetPlantByID(ctx context.Context, id uuid.UUID) (*GetPla
 	if err != nil {
 		return nil, Wrap(err)
 	}
+	logs.Debugf("SearchService.GetPlantByID: got plant %s", pl.ID())
 	mainPhoto, err := s.plantFileRepo.Get(ctx, pl.MainPhotoID())
 	if err != nil {
 		return nil, Wrap(err)
 	}
+	logs.Debugf("SearchService.GetPlantByID: got main photo %s", mainPhoto.ID)
 
 	photos := make([]GetPlantPhoto, 0)
 
@@ -58,6 +61,7 @@ func (s *SearchService) GetPlantByID(ctx context.Context, id uuid.UUID) (*GetPla
 	if err != nil {
 		return nil, Wrap(err)
 	}
+	logs.Debugf("SearchService.GetPlantByID: got %d photos", len(photos))
 	return &GetPlant{
 		ID:            pl.ID(),
 		Name:          pl.GetName(),

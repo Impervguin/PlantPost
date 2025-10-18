@@ -3,12 +3,13 @@ package main
 import "github.com/spf13/viper"
 
 const (
-	ApiPrefix          = "api"
-	ApiUrlPrefixKey    = "urlprefix"
-	ApiPortKey         = "port"
-	ApiStaticKey       = "static"
-	ApiMediaKey        = "media"
-	ApiMediaStorageKey = "media-storage"
+	ApiPrefix           = "api"
+	ApiUrlPrefixKey     = "urlprefix"
+	ApiPortKey          = "port"
+	ApiStaticKey        = "static"
+	ApiMediaKey         = "media"
+	ApiMediaStorageKey  = "media-storage"
+	ApiMetricsTimoutKey = "metrics_sleep_ms"
 )
 
 const (
@@ -44,3 +45,9 @@ func GetMediaPath() string {
 	return viper.GetString(Key(ApiPrefix, ApiMediaKey))
 }
 
+func GetMetricsSleepMs() int {
+	if err := ReadInConfig(); err != nil {
+		panic(err)
+	}
+	return int(viper.GetInt64(Key(ApiPrefix, ApiMetricsTimoutKey)))
+}

@@ -16,10 +16,10 @@ import (
 )
 
 type PostRouter struct {
-	post *postservice.PostService
+	post postservice.PostServiceContract
 }
 
-func (r *PostRouter) Init(router *gin.RouterGroup, post *postservice.PostService) {
+func (r *PostRouter) Init(router *gin.RouterGroup, post postservice.PostServiceContract) {
 	r.post = post
 	gr := router.Group("/post")
 	gr.POST("/create", r.Create)

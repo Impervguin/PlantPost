@@ -11,7 +11,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '8'
+          cpus: '1'
           memory: 4G
     
     depends_on:
@@ -24,6 +24,7 @@ services:
     networks:
       - pg-net
       - minio-net
+      - jaeger-net
   pg:
     container_name: pg_test
     hostname: pg_test
@@ -98,9 +99,23 @@ services:
       - MINIO_CONSOLE_PORT=9001
     networks:
       - minio-net
+  
+  jaeger:
+    container_name: jaeger_test
+    hostname: jaeger_test
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # UI
+      - "14268:14268"  # collector
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - jaeger-net
 
 networks:
   pg-net:
     driver: bridge
   minio-net:
+    driver: bridge
+  jaeger-net:
     driver: bridge

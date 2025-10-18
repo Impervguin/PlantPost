@@ -4,6 +4,7 @@ import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/auth"
 	"PlantSite/internal/models/post"
+	"PlantSite/internal/utils/logs"
 	"context"
 	"fmt"
 	"time"
@@ -34,9 +35,11 @@ func (s *PostService) GetPost(ctx context.Context, id uuid.UUID) (*GetPost, erro
 	if user == nil {
 		return nil, auth.ErrNotAuthorized
 	}
+	logs.Debugf("PostService.GetPost: got user=%s", user.ID())
 	if !user.HasAuthorRights() {
 		return nil, auth.ErrNoAuthorRights
 	}
+	logs.Debugf("PostService.GetPost: user %s has author rights", user.ID())
 	if id == uuid.Nil {
 		return nil, fmt.Errorf("id must be non-nil")
 	}
@@ -44,6 +47,7 @@ func (s *PostService) GetPost(ctx context.Context, id uuid.UUID) (*GetPost, erro
 	if err != nil {
 		return nil, Wrap(err)
 	}
+	logs.Debugf("PostService.GetPost: got post %s", post.ID())
 	photos := make([]GetPostPhoto, 0)
 
 	for _, p := range post.Photos().List() {
@@ -51,11 +55,13 @@ func (s *PostService) GetPost(ctx context.Context, id uuid.UUID) (*GetPost, erro
 		if err != nil {
 			return nil, Wrap(err)
 		}
+		logs.Debugf("PostService.GetPost: got photo %s for post %s", file.ID, post.ID())
 		photos = append(photos, GetPostPhoto{
 			ID:          p.ID(),
 			PlaceNumber: p.PlaceNumber(),
 			File:        *file,
 		})
+		logs.Debugf("PostService.GetPost: got photo %s for post %s", file.ID, post.ID())
 	}
 
 	return &GetPost{

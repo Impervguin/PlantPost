@@ -15,10 +15,10 @@ import (
 )
 
 type AlbumRouter struct {
-	album *albumservice.AlbumService
+	album albumservice.AlbumServiceContract
 }
 
-func (r *AlbumRouter) Init(router *gin.RouterGroup, album *albumservice.AlbumService) {
+func (r *AlbumRouter) Init(router *gin.RouterGroup, album albumservice.AlbumServiceContract) {
 	r.album = album
 	gr := router.Group("/album")
 	gr.POST("/create", r.Create)

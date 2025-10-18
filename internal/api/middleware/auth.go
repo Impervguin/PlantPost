@@ -4,12 +4,13 @@ import (
 	authapi "PlantSite/internal/api/auth-api"
 	"PlantSite/internal/models/auth"
 	authservice "PlantSite/internal/services/auth-service"
+	"PlantSite/internal/utils/logs"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func AuthMiddleware(s *authservice.AuthService) gin.HandlerFunc {
+func AuthMiddleware(s authservice.AuthServiceContract) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var sessID uuid.UUID = uuid.Nil
 		if cookie, err := c.Request.Cookie(authapi.SessionCookieName); err == nil {
@@ -21,15 +22,12 @@ func AuthMiddleware(s *authservice.AuthService) gin.HandlerFunc {
 		ctx := s.Authenticate(c.Request.Context(), sessID)
 		c.Request = c.Request.WithContext(ctx)
 
-		l, ex := c.Get(LoggerKey)
 		user := s.UserFromContext(ctx)
 
-		if ex {
-			if _, ok := user.(*auth.NoAuthUser); ok {
-				l.(MiddlewareLogger).Infow("request unauthenticated", "request_id", c.GetString(RequestIDKey))
-			} else {
-				l.(MiddlewareLogger).Infow("request authenticated", "request_id", c.GetString(RequestIDKey), "user_id", user.ID())
-			}
+		if _, ok := user.(*auth.NoAuthUser); ok {
+			logs.Infow("request unauthenticated", "request_id", c.GetString(RequestIDKey))
+		} else {
+			logs.Infow("request authenticated", "request_id", c.GetString(RequestIDKey), "user_id", user.ID())
 		}
 
 		if _, ok := user.(*auth.NoAuthUser); ok {

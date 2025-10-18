@@ -8,10 +8,10 @@ import (
 )
 
 type AuthRouter struct {
-	auth *authservice.AuthService
+	auth authservice.AuthServiceContract
 }
 
-func (r *AuthRouter) Init(router *gin.RouterGroup, auth *authservice.AuthService) {
+func (r *AuthRouter) Init(router *gin.RouterGroup, auth authservice.AuthServiceContract) {
 	r.auth = auth
 	gr := router.Group("/auth")
 	gr.POST("/login", r.Login)

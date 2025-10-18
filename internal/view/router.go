@@ -18,9 +18,9 @@ type MediaUrlStrategy interface {
 
 type ViewRouter struct {
 	StaticPath string
-	auth       *authservice.AuthService
-	srch       *searchservice.SearchService
-	albm       *albumservice.AlbumService
+	auth       authservice.AuthServiceContract
+	srch       searchservice.SearchServiceContract
+	albm       albumservice.AlbumServiceContract
 	plntGet    parser.PlantGetter
 	plantMedia MediaUrlStrategy
 	postMedia  MediaUrlStrategy
@@ -29,9 +29,9 @@ type ViewRouter struct {
 func (r *ViewRouter) Init(
 	router *gin.RouterGroup,
 	staticPath string,
-	auth *authservice.AuthService,
-	srch *searchservice.SearchService,
-	albm *albumservice.AlbumService,
+	auth authservice.AuthServiceContract,
+	srch searchservice.SearchServiceContract,
+	albm albumservice.AlbumServiceContract,
 	sear parser.PlantGetter,
 	plantMedia MediaUrlStrategy,
 	postMedia MediaUrlStrategy) {

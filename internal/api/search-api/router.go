@@ -13,10 +13,10 @@ import (
 )
 
 type SearchRouter struct {
-	search *searchservice.SearchService
+	search searchservice.SearchServiceContract
 }
 
-func (r *SearchRouter) Init(router *gin.RouterGroup, search *searchservice.SearchService) {
+func (r *SearchRouter) Init(router *gin.RouterGroup, search searchservice.SearchServiceContract) {
 	r.search = search
 	gr := router.Group("/search")
 	gr.GET("/posts", r.SearchPosts)
