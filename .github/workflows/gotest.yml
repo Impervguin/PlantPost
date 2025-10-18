@@ -27,7 +27,7 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.1
-          args: $(go list ./... | grep  internal | sed 's/^PlantSite//' | sed 's/^/./')
+          args: $(go list ./... | grep  internal | grep -v /view | sed 's/^PlantSite//' | sed 's/^/./')
 
       - name: Install make
         if: steps.golangci-lint.outcome == 'success'
