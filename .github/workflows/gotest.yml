@@ -22,9 +22,6 @@ jobs:
           go mod download
           go mod verify
       
-      - name: Install golangci-lint
-        run: sudo apt-get update && sudo apt-get install -y golangci-lint
-      
       - name: golangci-lint
         id: golangci-lint
         uses: golangci/golangci-lint-action@v8
