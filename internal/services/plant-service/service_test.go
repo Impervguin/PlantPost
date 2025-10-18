@@ -12,6 +12,7 @@ import (
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
 	plantservice "PlantSite/internal/services/plant-service"
+	"PlantSite/internal/utils/logs"
 
 	"github.com/google/uuid"
 	"github.com/ozontech/allure-go/pkg/framework/provider"
@@ -173,6 +174,10 @@ func (m *MockPlantSpecification) Category() string {
 type PlantServiceTestSuite struct {
 	suite.Suite
 	plantMother *PlantMother
+}
+
+func (s *PlantServiceTestSuite) BeforeAll(t provider.T) {
+	logs.InitNoopLogger()
 }
 
 func (s *PlantServiceTestSuite) BeforeEach(t provider.T) {

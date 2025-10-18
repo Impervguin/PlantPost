@@ -9,6 +9,7 @@ import (
 	"PlantSite/internal/models"
 	"PlantSite/internal/models/post"
 	searchservice "PlantSite/internal/services/search-service"
+	"PlantSite/internal/utils/logs"
 
 	"github.com/google/uuid"
 	"github.com/ozontech/allure-go/pkg/framework/provider"
@@ -19,6 +20,10 @@ import (
 
 type SearchServiceTestGetPostSuite struct {
 	suite.Suite
+}
+
+func (s *SearchServiceTestGetPostSuite) BeforeAll(t provider.T) {
+	logs.InitNoopLogger()
 }
 
 func (s *SearchServiceTestGetPostSuite) BeforeEach(t provider.T) {

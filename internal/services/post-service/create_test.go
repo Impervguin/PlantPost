@@ -13,6 +13,7 @@ import (
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
 	postservice "PlantSite/internal/services/post-service"
+	"PlantSite/internal/utils/logs"
 
 	"github.com/google/uuid"
 	"github.com/ozontech/allure-go/pkg/framework/provider"
@@ -24,6 +25,10 @@ import (
 
 type PostServiceCreateTestSuite struct {
 	suite.Suite
+}
+
+func (s *PostServiceCreateTestSuite) BeforeAll(t provider.T) {
+	logs.InitNoopLogger()
 }
 
 func (s *PostServiceCreateTestSuite) BeforeEach(t provider.T) {

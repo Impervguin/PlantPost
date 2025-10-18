@@ -24,6 +24,12 @@ func InitSigletonLogger(cfg *TwoPlaceConfig) error {
 	return nil
 }
 
+func InitNoopLogger() {
+	once.Do(func() {
+		singletonLogger = zap.NewNop().Sugar()
+	})
+}
+
 func Debugf(format string, args ...interface{}) {
 	once.Do(func() {
 		panic(LoggerNotInitializedError)

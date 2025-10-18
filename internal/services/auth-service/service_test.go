@@ -10,6 +10,7 @@ import (
 	"PlantSite/internal/models/auth"
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
+	"PlantSite/internal/utils/logs"
 
 	"github.com/google/uuid"
 	"github.com/ozontech/allure-go/pkg/framework/provider"
@@ -21,6 +22,10 @@ import (
 
 type AuthServiceTestSuite struct {
 	suite.Suite
+}
+
+func (s *AuthServiceTestSuite) BeforeAll(t provider.T) {
+	logs.InitNoopLogger()
 }
 
 func (s *AuthServiceTestSuite) BeforeEach(t provider.T) {
@@ -202,6 +207,7 @@ func (s *AuthServiceTestSuite) TestLogin(t provider.T) {
 
 		mockUser := new(authmock.MockUser)
 		t.WithNewStep("Setup failed authentication", func(pctx provider.StepCtx) {
+			mockUser.On("ID").Return(validUserID)
 			mockUser.On("Auth", []byte("wrongpassword"), mock.AnythingOfType("func([]uint8, []uint8) (bool, error)")).Return(false)
 		})
 

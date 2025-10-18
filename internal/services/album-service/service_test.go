@@ -13,6 +13,7 @@ import (
 	albumservice "PlantSite/internal/services/album-service"
 	authservice "PlantSite/internal/services/auth-service"
 	authmock "PlantSite/internal/services/auth-service/auth-mock"
+	"PlantSite/internal/utils/logs"
 
 	"github.com/google/uuid"
 	"github.com/ozontech/allure-go/pkg/framework/provider"
@@ -102,6 +103,10 @@ func (m *MockAlbumRepository) List(ctx context.Context, ownerID uuid.UUID) ([]*a
 
 type AlbumServiceTestSuite struct {
 	suite.Suite
+}
+
+func (s *AlbumServiceTestSuite) BeforeAll(t provider.T) {
+	logs.InitNoopLogger()
 }
 
 func (s *AlbumServiceTestSuite) BeforeEach(t provider.T) {
