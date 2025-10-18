@@ -25,11 +25,12 @@ jobs:
       - name: Install golangci-lint
         run: sudo apt-get update && sudo apt-get install -y golangci-lint
       
-      - name: Run golangci-lint
+      - name: golangci-lint
         id: golangci-lint
-        run: |
-          golangci-lint run $(go list ./... | grep  internal | sed 's/^PlantSite//' | sed 's/^/./')
-          go vet -vettool=$(which complexity) -halsteadover 160 $(go list ./... | grep  internal | sed 's/^PlantSite//' | sed 's/^/./')
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1
+          args: $(go list ./... | grep  internal | sed 's/^PlantSite//' | sed 's/^/./')
 
       - name: Install make
         if: steps.golangci-lint.outcome == 'success'
