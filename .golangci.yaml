@@ -54,7 +54,6 @@ linters:
     - cyclop # checks function and package cyclomatic complexity
     - depguard # checks if package imports are in a list of acceptable packages
     - durationcheck # checks for two durations multiplied together
-    - embeddedstructfieldcheck # checks embedded types in structs
     - errname # checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
     - errorlint # finds code that will cause problems with the error wrapping scheme introduced in Go 1.13
     - exhaustive # checks exhaustiveness of enum switch statements
@@ -165,11 +164,6 @@ linters:
             - pkg: log$
               desc: Use log/slog instead, see https://go.dev/blog/slog
 
-    embeddedstructfieldcheck:
-      # Checks that sync.Mutex and sync.RWMutex are not used as embedded fields.
-      # Default: false
-      forbid-mutex: true
-
     exhaustive:
       # Program elements to check for exhaustiveness.
       # Default: [ switch ]
@@ -211,7 +205,6 @@ linters:
         - ^gopkg.in/yaml.v3.Node$
       # Allows empty structures in return statements.
       # Default: false
-      allow-empty-returns: true
 
     funcorder:
       # Checks if the exported methods of a structure are placed before the non-exported ones.
