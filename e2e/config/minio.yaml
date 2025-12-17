@@ -5,5 +5,5 @@ minio:
     - plants
     - posts
   image: minio/minio:RELEASE.2025-04-08T15-41-24Z-cpuv1
-  host: minio
-  port: 9000
+  host: localhost
+  port: 29453

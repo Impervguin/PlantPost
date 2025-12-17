@@ -4,6 +4,7 @@ app:
   app_config: /build/config/api.yaml
   admin_user: admin
   admin_password: admin
-  host: api
+  host: localhost
   port: 23450
   # external_data_source: true
+  external: true

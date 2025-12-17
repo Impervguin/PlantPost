@@ -4,5 +4,5 @@ database:
   database: plantpost
   image: postgres:latest
   migration_dir: ../migrations/postgres
-  host: pg
+  host: localhost
   port: 25432

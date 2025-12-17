@@ -79,7 +79,7 @@ dev-up:
 	docker compose -f $(COMPOSEFILE_DEV) up 
 
 .PHONY: dev-upd
-dev-upd:
+dev-upd: 
 	docker compose -f $(COMPOSEFILE_DEV) up -d 
 
 .PHONY: dev-update
